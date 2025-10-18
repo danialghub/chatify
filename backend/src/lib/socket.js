@@ -33,6 +33,15 @@ io.on("connection", (socket) => {
 
   // io.emit() is used to send events to all connected clients
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
+  
+  socket.on('join-room', (roomId) => {
+    socket.join(roomId)
+    console.log(`user ${userId} joined room ${roomId}`);
+  })
+  socket.on('leave-room', (roomId) => {
+    socket.leave(roomId)
+    console.log(`user ${userId} left room ${roomId}`);
+  })
 
   // with socket.on we listen for events from clients
   socket.on("disconnect", () => {

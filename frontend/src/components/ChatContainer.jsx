@@ -1,31 +1,49 @@
 import { useEffect, useRef } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
+import { useRoomtStore } from "../store/useRoomStore";
 import {
-  ChatHeader, NoChatHistoryPlaceholder, MessagesLoadingSkeleton, MessageInput
-} from './index'
+  PrivateChatHeader,
+  GroupChatHeader,
+  NoChatHistoryPlaceholder,
+  MessagesLoadingSkeleton,
+  MessageInput,
+  Message
+} from "./index";
 
+const ChatContainer = () => {
 
-function ChatContainer({ setMessage }) {
   const {
-    selectedUser,
-    getMessagesByUserId,
+    getMessagesByRoomId,
     messages,
     isMessagesLoading,
     subscribeToMessages,
     unsubscribeFromMessages,
   } = useChatStore();
-  const { authUser } = useAuthStore();
-  const messageEndRef = useRef(null);
 
+  const { authUser } = useAuthStore();
+  const { selectedRoom } = useRoomtStore();
+  const messageEndRef = useRef(null);
+  const isPrivateChat = selectedRoom.type === "private"
+
+  // 📩 گرفتن پیام‌ها
   useEffect(() => {
-    getMessagesByUserId(selectedUser._id);
+    if (!selectedRoom?._id) return;
+
+    getMessagesByRoomId(selectedRoom._id);
     subscribeToMessages();
 
-    // clean up
-    return () => unsubscribeFromMessages();
-  }, [selectedUser, getMessagesByUserId, subscribeToMessages, unsubscribeFromMessages]);
+    return () => {
+      unsubscribeFromMessages();
+    };
+  }, [
+    selectedRoom,
+    getMessagesByRoomId,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+  ]);
 
+  // 🔽 اسکرول خودکار
   useEffect(() => {
     if (messageEndRef.current) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -34,44 +52,38 @@ function ChatContainer({ setMessage }) {
 
   return (
     <>
-      <ChatHeader />
-      <div className="flex-1 px-6 overflow-y-auto py-8" dir="rtl">
+      {isPrivateChat
+        ? <PrivateChatHeader />
+        : <GroupChatHeader/>
+      }
+
+
+      <div
+        className="flex-1 px-3 pr-5 overflow-y-auto py-8 will-change-transform transform-gpu scroll-smooth chat-scrollbar"
+        dir="rtl"
+      >
         {messages.length > 0 && !isMessagesLoading ? (
-          <div className="max-w-3xl mx-auto space-y-6">
-            {messages.map((msg) => (
-              <div
-                key={msg._id}
-                className={`chat ${msg.senderId !== authUser._id ? "chat-end" : "chat-start"}`}
-              >
-                <div
-                  className={`chat-bubble relative  ${msg.senderId === authUser._id
-                    ? "bg-cyan-600 text-white"
-                    : "bg-slate-800 text-slate-200"
-                    }`}
-                >
-                  {msg.image && (
-                    <img
-                      onClick={() => setMessage(msg)}
-                      src={msg.image}
-                      alt="Shared" className="rounded-lg  object-cover max-w-[50vw] sm:max-w-[20vw]" />
-                  )}
-                  {msg.text && <p className="mt-2 max-w-[50vw] sm:max-w-[20vw] break-words ">{msg.text}</p>}
-                  <p className="text-xs mt-1 opacity-75 flex items-center gap-1">
-                    {new Date(msg.createdAt).toLocaleTimeString(undefined, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </div>
-              </div>
-            ))}
-            {/* 👇 scroll target */}
+          <div className="max-w-3xl mx-auto space-y-4">
+            {messages.map((msg) => {
+              const isMyMessage = msg.senderId._id === authUser._id;
+
+              return (
+                <Message
+                  key={msg._id}
+                  msg={msg}
+                  isMyMessage={isMyMessage}
+                  isGroup={selectedRoom.type === "group"}
+                />
+              );
+            })}
             <div ref={messageEndRef} />
           </div>
         ) : isMessagesLoading ? (
           <MessagesLoadingSkeleton />
         ) : (
-          <NoChatHistoryPlaceholder name={selectedUser.name} />
+          <NoChatHistoryPlaceholder
+            name={selectedRoom?.user?.name || selectedRoom.name}
+          />
         )}
       </div>
 

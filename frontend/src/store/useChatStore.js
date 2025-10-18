@@ -1,17 +1,22 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
+import { useRoomtStore } from "./useRoomStore";
 import { useAuthStore } from "./useAuthStore";
 
 export const useChatStore = create((set, get) => ({
-  allContacts: [],
-  chats: [],
   messages: [],
-  activeTab: "chats",
-  selectedUser: null,
+  FindRoomModal: false,
   isUsersLoading: false,
+  activeTab: "chats",
   isMessagesLoading: false,
   isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
+
+  toggleFindRoomModal: () => {
+    set(({ FindRoomModal }) => ({ FindRoomModal: !FindRoomModal }))
+    console.log(get().FindRoomModal);
+
+  },
 
   toggleSound: () => {
     localStorage.setItem("isSoundEnabled", !get().isSoundEnabled);
@@ -19,36 +24,14 @@ export const useChatStore = create((set, get) => ({
   },
 
   setActiveTab: (tab) => set({ activeTab: tab }),
-  setSelectedUser: (selectedUser) => set({ selectedUser }),
 
-  getAllContacts: async () => {
-    set({ isUsersLoading: true });
-    try {
-      const res = await axiosInstance.get("/messages/contacts");
-      set({ allContacts: res.data });
-    } catch (error) {
-      toast.error(error.response.data.message);
-    } finally {
-      set({ isUsersLoading: false });
-    }
-  },
-  getMyChatPartners: async () => {
-    set({ isUsersLoading: true });
-    try {
-      const res = await axiosInstance.get("/messages/chats");
-      set({ chats: res.data });
-    } catch (error) {
-      toast.error(error.response.data.message);
-    } finally {
-      set({ isUsersLoading: false });
-    }
-  },
-
-  getMessagesByUserId: async (userId) => {
+  getMessagesByRoomId: async (roomId) => {
     set({ isMessagesLoading: true });
     try {
-      const res = await axiosInstance.get(`/messages/${userId}`);
-      set({ messages: res.data });
+      const { data } = await axiosInstance.get(`/messages/${roomId}`);
+      set({ messages: data });
+
+
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
     } finally {
@@ -57,15 +40,22 @@ export const useChatStore = create((set, get) => ({
   },
 
   sendMessage: async (messageData) => {
-    const { selectedUser, messages } = get();
+    const { messages } = get();
     const { authUser } = useAuthStore.getState();
+    const { selectedRoom } = useRoomtStore.getState();
+    if (!selectedRoom?._id) return
 
     const tempId = `temp-${Date.now()}`;
-
+    
+    
     const optimisticMessage = {
       _id: tempId,
-      senderId: authUser._id,
-      receiverId: selectedUser._id,
+      senderId: {
+        _id: authUser._id,
+        name: authUser.name,
+        profilePic: authUser.profilePic
+      },
+      roomId: selectedRoom._id,
       text: messageData.text,
       image: messageData.image,
       createdAt: new Date().toISOString(),
@@ -75,7 +65,7 @@ export const useChatStore = create((set, get) => ({
     set({ messages: [...messages, optimisticMessage] });
 
     try {
-      const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
+      const res = await axiosInstance.post(`/messages/send/${selectedRoom._id}`, messageData);
       set({ messages: messages.concat(res.data) });
     } catch (error) {
       // remove optimistic message on failure
@@ -85,17 +75,26 @@ export const useChatStore = create((set, get) => ({
   },
 
   subscribeToMessages: () => {
-    const { selectedUser, isSoundEnabled } = get();
-    if (!selectedUser) return;
+    const { isSoundEnabled } = get();
+    const { selectedRoom } = useRoomtStore.getState();
+    const { authUser } = useAuthStore.getState();
+    if (!selectedRoom) return;
 
     const socket = useAuthStore.getState().socket;
 
     socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
-      if (!isMessageSentFromSelectedUser) return;
+      const isFromCurrentUser = newMessage.senderId === authUser._id;
+      const isForCurrentChat = newMessage.roomId === selectedRoom?._id;
 
-      const currentMessages = get().messages;
-      set({ messages: [...currentMessages, newMessage] });
+      // اگه پیام از خود کاربر بود، نیازی به اضافه کردن دوباره نیست
+      if (isFromCurrentUser) return;
+
+      // اگه پیام برای چت فعلی نیست، فعلاً نمایش نده
+      if (!isForCurrentChat) return;
+
+      set((state) => ({
+        messages: [...state.messages, newMessage],
+      }));
 
       if (isSoundEnabled) {
         const notificationSound = new Audio("/sounds/notification.mp3");

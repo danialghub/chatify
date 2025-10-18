@@ -19,6 +19,7 @@ const Modal = ({
   onClose,
   title,
   children,
+  hasHeader=true,
   footer,
   size = "md",
   closeOnBackdrop = true,
@@ -95,9 +96,8 @@ const Modal = ({
   return createPortal(
     <div
       aria-hidden={!isOpen}
-      className={`fixed inset-0 z-40 flex items-center justify-center pointer-events-none ${
-        isOpen ? "" : "invisible"
-      }`}
+      className={`fixed inset-0 z-40 flex items-center justify-center pointer-events-none ${isOpen ? "" : "invisible"
+        }`}
     >
       <div
         ref={overlayRef}
@@ -105,9 +105,8 @@ const Modal = ({
           if (!closeOnBackdrop) return;
           if (e.target === overlayRef.current) handleClose();
         }}
-        className={`absolute inset-0 transition-opacity duration-300 pointer-events-auto ${
-          isOpen ? "opacity-60" : "opacity-0"
-        } bg-black/60 backdrop-blur-sm`}
+        className={`absolute inset-0 transition-opacity duration-300 pointer-events-auto ${isOpen ? "opacity-60" : "opacity-0"
+          } bg-black/60 backdrop-blur-sm`}
       />
 
       <div
@@ -116,12 +115,12 @@ const Modal = ({
         aria-label={title || "Dialog"}
         ref={dialogRef}
         tabIndex={-1}
-        className={`pointer-events-auto transform transition-all duration-300 ease-out w-full px-4 ${SIZES[size]} ${
-          isOpen ? "translate-y-0 opacity-100 scale-100" : "translate-y-6 opacity-0 scale-95"
-        } ${className}`}
+        className={`pointer-events-auto transform transition-all duration-300 ease-out w-full px-4 ${SIZES[size]} ${isOpen ? "translate-y-0 opacity-100 scale-100" : "translate-y-6 opacity-0 scale-95"
+          } `}
       >
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden">
-          <div className="flex items-start justify-between p-5 border-b border-slate-100 dark:border-slate-800">
+        <div className={`${className} dark:bg-zinc-900 rounded-2xl shadow-2xl overflow-hidden`}>
+          {hasHeader && (
+            <div className="flex items-start justify-between p-5 border-b border-slate-100 dark:border-slate-800">
             <div>
               {title && <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h3>}
             </div>
@@ -139,8 +138,9 @@ const Modal = ({
               </button>
             )}
           </div>
+          )}
 
-          <div className="p-6 text-slate-700 dark:text-slate-300">{children}</div>
+          <div className="p-6 text-slate-700 dark:text-slate-300">{isOpen && children}</div>
 
           {footer ? (
             <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800">{footer}</div>

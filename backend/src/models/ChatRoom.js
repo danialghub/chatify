@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
 
 const ChatRoomSchema = new mongoose.Schema({
-    name: String,
+    name:
+    {
+        type: String,
+        default: ""
+    },
     type: {
         type: String,
         enum: ["private", 'group'],
@@ -13,18 +17,23 @@ const ChatRoomSchema = new mongoose.Schema({
             {
                 type: mongoose.Schema.ObjectId,
                 ref: "User",
-                required:true
+                required: true
             },
-            role: 
+            role:
             {
-                type:String,
-                enum:["admin" , 'member',"owner"],
-                default:'member'
+                type: String,
+                enum: ["admin", 'member', "owner"],
+                default: 'member'
             }
 
         }
     ],
-    
+    logo:
+    {
+        type: String,
+        default: ''
+    }
+
 })
 
 const ChatRoom = mongoose.model('ChatRoom', ChatRoomSchema, "ChatRoom")

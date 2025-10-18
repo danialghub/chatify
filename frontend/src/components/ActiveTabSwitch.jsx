@@ -14,11 +14,11 @@ const ActiveTabSwitch = () => {
       </button>
 
       <button
-        onClick={() => setActiveTab("contacts")}
-        className={`tab ${activeTab === "contacts" ? "bg-cyan-500/20 text-cyan-400" : "text-slate-400"
+        onClick={() => setActiveTab("groups")}
+        className={`tab ${activeTab === "groups" ? "bg-cyan-500/20 text-cyan-400" : "text-slate-400 "
           }`}
       >
-        مخاطبین
+        گروه ها
       </button>
     </div>
   );

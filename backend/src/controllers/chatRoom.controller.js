@@ -1,21 +1,7 @@
 import ChatRoom from '../models/ChatRoom.js'
-import User from '../models/User.js'
 
-export const getUsers = async (req, res) => {
-    try {
-        const { userName } = req.query
-        if (!userName)
-            return res.sendStatus(400)
-        const users = await User.find({ name: { $regex: userName, $options: 'i' } })
-        if (!users.length) {
-            return res.status(404).json({ message: "!هیچ کاربری یافت نشد" })
-        }
-        res.status(200).json(users)
-    } catch (error) {
-        console.log("Error in sendMessage controller: ", error.message);
-        res.status(500).json({ error: "Internal server error" });
-    }
-}
+
+
 export const createGroupChat = async (req, res) => {
     try {
         const userId = req.user._id
@@ -50,15 +36,30 @@ export const createGroupChat = async (req, res) => {
 export const getAllPrivateChat = async (req, res) => {
     try {
         const userId = req.user._id
+
         const allPrivateChats = await ChatRoom.find({
             type: 'private',
             "members.user": userId
         })
             .select('-name -members.role')
             .populate('members.user', "name profilePic bio")
-            .exec()
-        if (!allPrivateChats.length) return res.sendStatus(404)
-        res.status(200).json(allPrivateChats)
+            .lean(); // اضافه کن تا خروجی JSON بشه و بتونی راحت تغییر بدی
+
+
+        if (!allPrivateChats.length) return res.sendStatus(404);
+
+        // هر چت رو طوری فیلتر کن که فقط اون یکی user بمونه ولی بقیه فیلدها حفظ بشن
+        const filteredPrivateChats = allPrivateChats.map(chat => {
+            const otherMember = chat.members.find(m => String(m.user._id) !== String(userId));
+            return {
+                _id: chat._id,
+                user: otherMember.user, // فقط اون یکی کاربر
+                type: chat.type,
+                updatedAt: chat.updatedAt,
+            };
+        });
+
+        res.status(200).json(filteredPrivateChats);
 
     } catch (error) {
         console.log("Error in sendMessage controller: ", error.message);
@@ -73,7 +74,8 @@ export const getAllGroupChat = async (req, res) => {
             "members.user": userId
         })
             .populate('members.user', "name profilePic bio")
-        if (!allGroupChats.length) return res.sendStatus(404)
+            
+        if (!allGroupChats.length) return res.status(404).json({ message: "هیچ گروهی وجود ندارد" })
         res.status(200).json(allGroupChats)
 
     } catch (error) {

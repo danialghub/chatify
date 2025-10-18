@@ -7,30 +7,32 @@ import {
 
 import ChatSidebar from "../components/ChatSidebar";
 import { useAuthStore } from "../store/useAuthStore";
+import { useRoomtStore } from "../store/useRoomStore";
 
 
 const ChatPage = () => {
-  const { activeTab, selectedUser } = useChatStore();
+  const { activeTab } = useChatStore();
   const { authUser } = useAuthStore();
-  const [messageModal, setMessageModal] = useState(null)
+  const {selectedRoom } = useRoomtStore()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
     <div className="relative w-full max-w-6xl  h-[95vh] overflow-hidden">
-    
+
 
       <BorderAnimatedContainer>
-        
+
         {/* LEFT SIDEBAR */}
-        <ChatSidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(prev => !prev)}
-          user={authUser}
-        />
+          <ChatSidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(prev => !prev)}
+            user={authUser}
+          />
+        
 
         {/* LEFT SIDE */}
         <div
-          className={`h-full bg-slate-800/50 backdrop-blur-sm flex flex-col w-full md:w-1/3 ${selectedUser && "max-md:hidden w-full"}`}
+          className={`h-full bg-slate-800/50 backdrop-blur-sm flex flex-col w-full md:w-1/3 ${selectedRoom && "max-md:hidden w-full"}`}
         >
           <ProfileHeader showSidebar={setIsSidebarOpen} />
           <ActiveTabSwitch />
@@ -43,9 +45,9 @@ const ChatPage = () => {
         {/* RIGHT SIDE */
           (
             <div
-              className={`flex flex-col bg-slate-900/50 backdrop-blur-sm w-full md:w-2/3 ${!selectedUser && "max-md:hidden"}`}
+              className={`flex flex-col bg-slate-900/50 backdrop-blur-sm w-full md:w-2/3 ${!selectedRoom && "max-md:hidden"}`}
             >
-              {selectedUser ? <ChatContainer setMessage={setMessageModal} /> : <NoConversationPlaceholder />}
+              {selectedRoom ? <ChatContainer /> : <NoConversationPlaceholder />}
             </div>
           )
         }

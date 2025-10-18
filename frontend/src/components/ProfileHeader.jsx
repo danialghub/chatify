@@ -2,16 +2,13 @@ import { useState, useRef } from "react";
 import { LogOutIcon, VolumeOffIcon, Volume2Icon, LayoutDashboard } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
-
+import { ChatIcon } from './index'
 
 const mouseClickSound = new Audio("/sounds/mouse-click.mp3");
 
-const ProfileHeader = ({showSidebar}) => {
+const ProfileHeader = ({ showSidebar }) => {
   const { logout, authUser, updateProfile } = useAuthStore();
   const { isSoundEnabled, toggleSound } = useChatStore();
-  const [selectedImg, setSelectedImg] = useState(null);
-
-
 
   const fileInputRef = useRef(null);
 
@@ -24,7 +21,6 @@ const ProfileHeader = ({showSidebar}) => {
 
     reader.onloadend = async () => {
       const base64Image = reader.result;
-      setSelectedImg(base64Image);
       await updateProfile({ profilePic: base64Image });
     };
   };
@@ -39,10 +35,11 @@ const ProfileHeader = ({showSidebar}) => {
               className="size-14 rounded-full overflow-hidden relative group"
               onClick={() => fileInputRef.current.click()}
             >
-              <img
-                src={selectedImg || authUser.profilePic || "/avatar.png"}
-                alt="User image"
-                className="size-full object-cover"
+
+              <ChatIcon
+                profile={authUser?.profilePic}
+                name={authUser.name}
+                classProps=" !size-14"
               />
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                 <span className="text-white text-xs">تغییر</span>
