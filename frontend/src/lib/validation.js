@@ -16,10 +16,10 @@ export const userSignUpSchema = z.object({
         .min(3, "نام باید حداقل ۳ کاراکتر باشد"),
 
 
-    email: z
+    userName: z
         .string()
-        .email("ایمیل معتبر نیست"),
-
+        .refine(userName => userName.startsWith('@'), "یوزرنیم حتما باید با @ شروع شود"),
+        
     password: passwordSchema,
 
     passwordConfirm: z
@@ -33,12 +33,16 @@ export const userSignUpSchema = z.object({
 });
 
 export const userLoginSchema = z.object({
-    email: z
+    userName: z
         .string()
-        .email("ایمیل معتبر نیست"),
-
+        .refine(userName => userName.startsWith('@'), "یوزرنیم حتما باید با @ شروع شود"),
     password: z
         .string()
         .min(6, "رمز عبور باید حداقل ۶ کاراکتر باشد"),
 
 })
+
+export const imgageSchema = z
+    .instanceof(File)
+    .refine(file => file.size <= 4 * 1024 * 1024, "حجم عکس بیشتر از 4 مگابایت نباید باشد")
+    .refine(file => ["image/jpeg", "image/png", "image/webp"].includes(file.type), "فرمت فایل درسیت نیست")

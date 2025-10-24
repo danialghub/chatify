@@ -1,6 +1,8 @@
 import express from "express";
 import {
+  checkMessageAsSeen,
   getMessagesByRoomId,
+  removeMsg,
   sendMessage,
 } from "../controllers/message.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
@@ -15,5 +17,7 @@ router.use(arcjetProtection, protectRoute);
 
 router.get("/:roomId", getMessagesByRoomId);
 router.post("/send/:roomId", sendMessage);
+router.post("/seenby/:roomId", checkMessageAsSeen);
+router.delete("/remove/:msgId", removeMsg);
 
 export default router;

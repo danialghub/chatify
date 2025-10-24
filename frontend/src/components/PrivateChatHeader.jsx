@@ -1,15 +1,16 @@
 import { XIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
-import { useRoomtStore } from "../store/useRoomStore";
+import { useRoomStore } from "../store/useRoomStore";
 import { ChatIcon } from './index'
 
 
 const PrivateChatContainer = () => {
-  const { selectedRoom, setSelectedRoom, leaveRoom } = useRoomtStore();
+  const { selectedRoom, setSelectedRoom, leaveRoom } = useRoomStore();
   const { onlineUsers } = useAuthStore();
+  const user = selectedRoom.members.user
+  const isOnline = onlineUsers.includes(user._id)
 
-  const isOnline = onlineUsers.includes(selectedRoom.user._id)
 
 
   useEffect(() => {
@@ -33,15 +34,15 @@ const PrivateChatContainer = () => {
         <div className={`avatar ${isOnline ? "online" : "offline"} `}>
 
           <ChatIcon
-            profile={selectedRoom.user?.profilePic}
-            name={selectedRoom.user.name}
+            profile={user?.profilePic}
+            name={user.name}
             classProps="size-12"
           />
 
         </div>
 
         <div>
-          <h3 className="text-slate-200 font-medium">{selectedRoom.user.name }</h3>
+          <h3 className="text-slate-200 font-medium">{user.name}</h3>
           <p className="text-slate-400 text-sm">{isOnline ? "Online" : "Offline"}</p>
         </div>
       </div>

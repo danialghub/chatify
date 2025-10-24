@@ -1,12 +1,13 @@
 import { XIcon } from "lucide-react";
 import { useEffect } from "react";
-import { useRoomtStore } from "../store/useRoomStore";
-import { ChatIcon, GroupInfoModal } from '../components/index'
-import useModal from "../hooks/useModal";
+import { useRoomStore } from "../store/useRoomStore";
+import { useChatStore } from "../store/useChatStore";
+import { ChatIcon} from './index'
+
 
 const GroupChatHeader = () => {
-    const { selectedRoom, setSelectedRoom, leaveRoom } = useRoomtStore();
-    const [showGroupInfo, toggleGroupInfo] = useModal()
+    const { selectedRoom, setSelectedRoom, leaveRoom } = useRoomStore();
+    const { setModalType} = useChatStore();
 
 
     useEffect(() => {
@@ -26,21 +27,14 @@ const GroupChatHeader = () => {
    border-slate-700/50 max-h-[84px] px-6 flex-1"
         >
 
-            <GroupInfoModal
-                room={selectedRoom}
-                isOpen={showGroupInfo}
-                onClose={toggleGroupInfo}
-            />
-
-
             <div className="flex items-center space-x-3">
                 <div>
 
                     <ChatIcon
                         profile={selectedRoom?.logo}
                         name={selectedRoom.name}
-                        classProps="size-12"
-                        onClick={toggleGroupInfo}
+                        classProps="size-12 cursor-pointer"
+                        onClick={() => setModalType("groupInfo")}
                     />
 
                 </div>

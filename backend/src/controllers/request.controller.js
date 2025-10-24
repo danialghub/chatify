@@ -18,26 +18,28 @@ export const getUsers = async (req, res) => {
                 { from: myUserId },
                 { to: myUserId }
             ]
-        });
-
-        // لیست آی‌دی تمام کاربرهایی که در درخواست‌ها حضور دارن
-        const requestedUserIds = requests.map(request =>
-            request.from.toString() === myUserId.toString() ? request.to : request.from
-        );
+        }).lean()
 
         const users = await User.find({
             name: { $regex: name, $options: 'i' },
-            _id: { $ne: myUserId, $nin: requestedUserIds },
+            _id: { $ne: myUserId },
+        }).lean();
 
+        const reqMap = new Map();
+        requests.forEach(req => {
+            reqMap.set(req.from.toString(), req);
+            reqMap.set(req.to.toString(), req);
         });
-        const groups = await ChatRoom.find({ name: { $regex: name, $options: "i" } })
 
-        const payloads = [...users, ...groups]
+        const result = users.map(user => ({
+            ...user,
+            request: reqMap.get(user._id.toString())
+        }));
 
-        if (!payloads.length) {
+        if (!result.length) {
             return res.status(404).json({ message: "!هیچ موردی یافت نشد" })
         }
-        res.status(200).json(payloads)
+        res.status(200).json(result)
     } catch (error) {
         console.log("Error in sendMessage controller: ", error.message);
         res.status(500).json({ error: "Internal server error" });
@@ -111,7 +113,6 @@ export const changeRequestStatus = async (req, res) => {
         } else if (status === "Accepted") {
 
             const { from, to } = await FriendRequest.findOneAndUpdate({ _id: requestId }, { status })
-            console.log('backend');
 
             const newRoom = new ChatRoom({
                 type: "private",
@@ -129,21 +130,15 @@ export const changeRequestStatus = async (req, res) => {
             if (!room) return res.sendStatus(404);
 
             // اون یکی کاربر رو پیدا کن
-            const otherMember = room.members.find(
-                m => String(m.user._id) !== String(from)
-            );
+            const privateRoom =
+            {
+                ...room,
+                members: room.members.filter(m => m.user._id.toString() !== to.toString())[0]
+            }
 
-            // خروجی نهایی (ساختار ساده برای فرانت)
-            const privateRoom = {
-                _id: room._id,
-                type: room.type,
-                user: otherMember?.user || null,
-                updatedAt: room.updatedAt,
-            };
-
-            const receiverId = getReceiverSocketId(from)
+            const receiverId = getReceiverSocketId(from)            
             if (receiverId) {
-                io.to(receiverId).emit('newRoom', privateRoom)
+                io.to(receiverId).emit('room:new', privateRoom) 
             }
             res.status(200).json({ message: "با موفقیت درخواست کاربر پذیرفته شد", privateRoom })
 

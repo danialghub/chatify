@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
-import { useAuthStore } from "./useAuthStore";
-import { useRoomtStore } from "./useRoomStore";
+import { useChatStore } from "./useChatStore";
+import { useRoomStore } from "./useRoomStore";
 
 export const useRequestStore = create((set, get) => ({
     isRequestLoading: false,
@@ -24,7 +24,6 @@ export const useRequestStore = create((set, get) => ({
         }
     },
     sendRequest: async (to) => {
-
         try {
             set({ isSendingLoading: to })
             const { data } = await axiosInstance.post(`/requests/send/${to}`)
@@ -47,38 +46,35 @@ export const useRequestStore = create((set, get) => ({
         }
     },
     responseToRequest: async (requestId, status) => {
-        const { getPrivateChats } = useRoomtStore.getState()
+
         set(({ allRequests }) => (
             { allRequests: allRequests.filter(req => req._id !== requestId) }
         ))
+
         try {
             const { data } = await axiosInstance.post(`/requests/response/${requestId}`, { status })
-            getPrivateChats()
+            useRoomStore.setState(prev => ({
+                allPrivateChat: [...prev.allPrivateChat, data.privateRoom]
+            }))
+
             toast.success(data.message)
         } catch (error) {
             console.log(error.response?.data?.message || "Error")
         }
     },
-    subscribeToRequests: () => {
-        const socket = useAuthStore.getState().socket
-        if (!socket) return;
+    addToRequests: (newRequest) => {
+        const { isSoundEnabled } = useChatStore.getState()
 
-        // جلوگیری از ثبت چندبار listener تکراری
-        socket.off('newRequest')
+        const currentRequests = get().allRequests || []
+        set({ allRequests: [...currentRequests, newRequest] })
+        toast.success(` داری ${newRequest.from.name} یک درخواست دوستی از سمت `)
 
-        socket.on('newRequest', (newRequest) => {
-            const currentRequests = get().allRequests || []
-            set({ allRequests: [...currentRequests, newRequest] })
-            toast.success(`📩 یک درخواست دوستی از سمت ${newRequest.from.name} داری`)
-        })
+        if (isSoundEnabled) {
+            const notificationSound = new Audio("/sounds/notification.mp3");
+
+            notificationSound.currentTime = 0; // reset to start
+            notificationSound.play().catch((e) => console.log("Audio play failed:", e));
+        }
     },
-
-    unSubscribeToRequest: () => {
-        const socket = useAuthStore.getState().socket
-        if (!socket) return;
-        socket.off('newRequest')
-    },
-
-
 
 }))

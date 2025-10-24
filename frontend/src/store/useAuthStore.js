@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { axiosInstance } from "../lib/axios";
+import { authService } from "../services/auth.services";
+import { useRoomStore } from './useRoomStore'
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 
@@ -15,9 +16,10 @@ export const useAuthStore = create((set, get) => ({
 
   checkAuth: async () => {
     try {
-      const res = await axiosInstance.get("/auth/check");
-      set({ authUser: res.data });
+      const data = await authService.checkAuth()
+      set({ authUser: data });
       get().connectSocket();
+
     } catch (error) {
       console.log("Error in authCheck:", error);
       set({ authUser: null });
@@ -26,14 +28,14 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  signup: async (data) => {
+  signup: async (authData) => {
     set({ isSigningUp: true });
     try {
-      
-      const res = await axiosInstance.post("/auth/signup", data);
-      set({ authUser: res.data });
 
-      toast.success("Account created successfully!");
+      const data = await authService.signUp(authData);
+      set({ authUser: data });
+
+      toast.success("حساب شما با موفقیت ساخته شد");
       get().connectSocket();
     } catch (error) {
       toast.error(error.response.data.message);
@@ -42,13 +44,13 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  login: async (data) => {
+  login: async (authData) => {
     set({ isLoggingIn: true });
     try {
-      const res = await axiosInstance.post("/auth/login", data);
-      set({ authUser: res.data });
+      const data = await authService.login(authData);
+      set({ authUser: data });
 
-      toast.success("Logged in successfully");
+      toast.success("با موفقیت وارد شدید");
 
       get().connectSocket();
     } catch (error) {
@@ -60,21 +62,22 @@ export const useAuthStore = create((set, get) => ({
 
   logout: async () => {
     try {
-      await axiosInstance.post("/auth/logout");
+      await authService.logout()
       set({ authUser: null });
-      toast.success("Logged out successfully");
+      toast.success("با موفقیت خارج شدید");
       get().disconnectSocket();
+      useRoomStore.getState().setSelectedRoom(null)
     } catch (error) {
-      toast.error("Error logging out");
+      toast.error("خطایی پیش آمد");
       console.log("Logout error:", error);
     }
   },
 
-  updateProfile: async (data) => {
+  updateProfile: async (profileData) => {
     try {
-      const res = await axiosInstance.put("/auth/update-profile", data);
-      set({ authUser: res.data });
-      toast.success("Profile updated successfully");
+      const data = await authService.updateProfile(profileData)
+      set({ authUser: data });
+      toast.success("پروفایل با موفقیت آپدیت شد");
     } catch (error) {
       console.log("Error in update profile:", error);
       toast.error(error.response.data.message);

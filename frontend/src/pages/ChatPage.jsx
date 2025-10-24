@@ -2,18 +2,18 @@ import { useChatStore } from "../store/useChatStore";
 import { useState } from "react";
 
 import {
-  BorderAnimatedContainer, ProfileHeader, ActiveTabSwitch, ChatsList, ContactList, ChatContainer, NoConversationPlaceholder
+  BorderAnimatedContainer, ProfileHeader, ActiveTabSwitch, PrivateRooms, GroupRooms, ChatContainer, NoConversationPlaceholder
 } from '../components/index'
 
 import ChatSidebar from "../components/ChatSidebar";
 import { useAuthStore } from "../store/useAuthStore";
-import { useRoomtStore } from "../store/useRoomStore";
+import { useRoomStore } from "../store/useRoomStore";
 
 
 const ChatPage = () => {
   const { activeTab } = useChatStore();
   const { authUser } = useAuthStore();
-  const {selectedRoom } = useRoomtStore()
+  const {selectedRoom } = useRoomStore()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
@@ -38,7 +38,7 @@ const ChatPage = () => {
           <ActiveTabSwitch />
 
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
-            {activeTab === "chats" ? <ChatsList /> : <ContactList />}
+            {activeTab === "chats" ? <PrivateRooms /> : <GroupRooms />}
           </div>
         </div>
 

@@ -4,7 +4,7 @@ const ChatRoomSchema = new mongoose.Schema({
     name:
     {
         type: String,
-        default: ""
+        unique: true
     },
     type: {
         type: String,
@@ -32,9 +32,14 @@ const ChatRoomSchema = new mongoose.Schema({
     {
         type: String,
         default: ''
+    },
+    lastMessage:
+    {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Message',
     }
 
-})
+}, { timestamps: true })
 
 const ChatRoom = mongoose.model('ChatRoom', ChatRoomSchema, "ChatRoom")
 

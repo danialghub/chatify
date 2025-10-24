@@ -1,18 +1,16 @@
-import { MailIcon, LockIcon, UserIcon } from "lucide-react";
+import { UserCircle, LockIcon, UserIcon } from "lucide-react";
 
 
 import { userSignUpSchema ,userLoginSchema} from '../lib/validation'
 
 
-
-
  const loginFields = [
     {
-        type: "email",
-        name: "email",
-        lable: "ایمیل",
-        icon: MailIcon,
-        placeholder: "reza@gmail.com"
+        type: "text",
+        name: "userName",
+        lable: "یوزرنیم",
+        icon: UserCircle,
+        placeholder: "@reza"
     },
     {
         type: "password",
@@ -31,11 +29,11 @@ import { userSignUpSchema ,userLoginSchema} from '../lib/validation'
         placeholder: "نام"
     },
     {
-        type: "email",
-        name: "email",
-        lable: "ایمیل",
-        icon: MailIcon,
-        placeholder: "reza@gmail.com"
+        type: "text",
+        name: "userName",
+        lable: "یوزرنیم",
+        icon: UserCircle,
+        placeholder: "@reza"
     },
     {
         type: "password",

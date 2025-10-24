@@ -7,8 +7,10 @@ import { ChatIcon } from './index'
 const mouseClickSound = new Audio("/sounds/mouse-click.mp3");
 
 const ProfileHeader = ({ showSidebar }) => {
+
   const { logout, authUser, updateProfile } = useAuthStore();
   const { isSoundEnabled, toggleSound } = useChatStore();
+
 
   const fileInputRef = useRef(null);
 

@@ -1,35 +1,27 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { UserSearchIcon, Users, UserCircle, X } from "lucide-react";
-import useModal from '../hooks/useModal'
-import { SendRequestModal, Notifications, GroupFormModal } from './index';
+import { Notifications, ModalManager } from './index';
 import { useEffect } from 'react';
 import { useRequestStore } from '../store/useRequestStore';
 import { useChatStore } from '../store/useChatStore';
+import useSocket from '../hooks/useSocket';
 
 const ChatSidebar = ({ isOpen, onClose, user }) => {
 
-    const { FindRoomModal, toggleFindRoomModal } = useChatStore()
-    const [isGroupFormtModalShown, toggleGroupFormModal] = useModal()
+    const { addToRequests, getRequests } = useRequestStore()
+    const { modalType, setModalType } = useChatStore()
 
-    const { subscribeToRequests, unSubscribeToRequest, getRequests } = useRequestStore()
+    //گوش دادن به درخواست جدید
+    useSocket('newRequest', addToRequests)
 
     useEffect(() => {
         getRequests()
-        subscribeToRequests()
-
-        return () => unSubscribeToRequest()
-    }, [])
+    }, [getRequests])
 
     return (
         <>
-            <SendRequestModal
-                isOpen={FindRoomModal}
-                onClose={toggleFindRoomModal}
-            />
-            <GroupFormModal
-                isOpen={isGroupFormtModalShown}
-                onClose={toggleGroupFormModal}
-            />
+            <ModalManager modalType={modalType} setModalType={setModalType} />
+
             <AnimatePresence>
 
                 {isOpen && (
@@ -50,7 +42,7 @@ const ChatSidebar = ({ isOpen, onClose, user }) => {
                             />
                             <div className="flex flex-col">
                                 <p className="font-semibold text-lg">{user?.name || "کاربر مهمان"}</p>
-                                <p className="text-sm text-zinc-400">@{user?.bio || "guest"}</p>
+                                <p className="text-sm text-zinc-400">{user?.userName || "guest"}</p>
                             </div>
 
                             {/* Close button */}
@@ -65,14 +57,14 @@ const ChatSidebar = ({ isOpen, onClose, user }) => {
                         {/* Menu */}
                         <div className="flex flex-col p-3 space-y-2">
                             <button
-                                onClick={toggleFindRoomModal}
+                                onClick={() => setModalType("sendRequest")}
                                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition">
                                 <UserSearchIcon size={22} />
                                 <span className="text-base font-medium">جستجو مخاطب یا گروه</span>
                             </button>
 
                             <button
-                                onClick={toggleGroupFormModal}
+                                onClick={() => setModalType("GroupCreate")}
                                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition">
                                 <Users size={22} />
                                 <span className="text-base font-medium"> گروه جدید</span>

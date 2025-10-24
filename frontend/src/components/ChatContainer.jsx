@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
-import { useRoomtStore } from "../store/useRoomStore";
+import { useRoomStore } from "../store/useRoomStore";
+
 import {
   PrivateChatHeader,
   GroupChatHeader,
@@ -10,37 +11,39 @@ import {
   MessageInput,
   Message
 } from "./index";
+import useSocket from "../hooks/useSocket";
 
 const ChatContainer = () => {
 
   const {
     getMessagesByRoomId,
+    checkMessageAsSeen,
     messages,
     isMessagesLoading,
-    subscribeToMessages,
-    unsubscribeFromMessages,
+    addToMessages,
+    removeFromMessages,
+
   } = useChatStore();
 
   const { authUser } = useAuthStore();
-  const { selectedRoom } = useRoomtStore();
+  const { selectedRoom } = useRoomStore();
+
+  //گوش دادن به پیام جدید
+  useSocket('message:send', addToMessages)
+  useSocket('message:remove', removeFromMessages)
+
   const messageEndRef = useRef(null);
   const isPrivateChat = selectedRoom.type === "private"
 
   // 📩 گرفتن پیام‌ها
   useEffect(() => {
     if (!selectedRoom?._id) return;
-
+    checkMessageAsSeen(selectedRoom._id)
     getMessagesByRoomId(selectedRoom._id);
-    subscribeToMessages();
 
-    return () => {
-      unsubscribeFromMessages();
-    };
   }, [
     selectedRoom,
     getMessagesByRoomId,
-    subscribeToMessages,
-    unsubscribeFromMessages,
   ]);
 
   // 🔽 اسکرول خودکار
@@ -48,16 +51,15 @@ const ChatContainer = () => {
     if (messageEndRef.current) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+    checkMessageAsSeen(selectedRoom._id)
+  }, [messages, checkMessageAsSeen]);
 
   return (
     <>
       {isPrivateChat
         ? <PrivateChatHeader />
-        : <GroupChatHeader/>
+        : <GroupChatHeader />
       }
-
-
       <div
         className="flex-1 px-3 pr-5 overflow-y-auto py-8 will-change-transform transform-gpu scroll-smooth chat-scrollbar"
         dir="rtl"

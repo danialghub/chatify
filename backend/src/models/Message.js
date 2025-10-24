@@ -20,11 +20,19 @@ const messageSchema = new mongoose.Schema(
     image: {
       type: String,
     },
-    seen:
-    {
-      type: Boolean,
-      default: false
-    },
+    seenBy:
+      [
+        {
+          type: mongoose.Schema.ObjectId,
+          ref: 'User'
+        }
+      ],
+      replyTo : 
+      {
+        type : mongoose.Schema.ObjectId,
+        ref:"Message",
+        default:""
+      }
   },
   { timestamps: true }
 );

@@ -1,8 +1,8 @@
 import { MessageCircleIcon } from "lucide-react";
 import { useChatStore } from "../store/useChatStore";
 
-const NoChatsFound = ({ title, type }) => {
-  const { toggleFindRoomModal } = useChatStore();
+const NoChatsFound = ({ title, type, modalType }) => {
+  const { setModalType } = useChatStore();
 
   return (
     <div className="flex flex-col items-center justify-center py-10 text-center space-y-4">
@@ -14,10 +14,10 @@ const NoChatsFound = ({ title, type }) => {
 
       </div>
       <button
-        onClick={toggleFindRoomModal}
+        onClick={() => setModalType(modalType)}
         className="px-4 py-2 text-sm text-cyan-400 bg-cyan-500/10 rounded-lg hover:bg-cyan-500/20 transition-colors"
       >
-        {type}   پیدا کن
+        {type}
       </button>
     </div>
   );

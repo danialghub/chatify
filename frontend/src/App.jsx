@@ -5,11 +5,10 @@ import Router from './routes'
 import { Toaster } from "react-hot-toast";
 
 function App() {
-  const { checkAuth, isCheckingAuth } = useAuthStore();
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+  const {  isCheckingAuth } = useAuthStore();
+  const checkAuth = useAuthStore(state => state.checkAuth);
+  
+  useEffect(() => { checkAuth(); }, [checkAuth]);
 
   if (isCheckingAuth) return <PageLoader />;
 

@@ -1,17 +1,19 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useKeyboardSound from "../hooks/useKeyboardSound";
 import { useChatStore } from "../store/useChatStore";
-import toast from "react-hot-toast";
 import { ImageIcon, SendIcon, XIcon } from "lucide-react";
+import { ImageUploader } from './index'
 
-const MessageInput = () => {
+const MessageInput = ({ }) => {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
+
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
 
   const fileInputRef = useRef(null);
+  const textareaRef = useRef(null);
 
-  const { sendMessage, isSoundEnabled } = useChatStore();
+  const { sendMessage, isSoundEnabled, replyToMsg, setReplyToMsg } = useChatStore();
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -21,22 +23,13 @@ const MessageInput = () => {
     sendMessage({
       text: text.trim(),
       image: imagePreview,
+      replyTo: replyToMsg
     });
     setText("");
     setImagePreview("");
+    setReplyToMsg(null);
+
     if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file.type.startsWith("image/")) {
-      toast.error("لطفا یک عکس انتخاب کنید");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result);
-    reader.readAsDataURL(file);
   };
 
   const removeImage = () => {
@@ -44,11 +37,38 @@ const MessageInput = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto"; // ارتفاع رو ریست کن
+      textarea.style.height = textarea.scrollHeight + "px"; // تنظیم به اندازه متن
+    }
+  }, [text]);
+
+
   return (
-    <div className="p-4 border-t border-slate-700/50">
-      {imagePreview && (
-        <div className="max-w-3xl mx-auto mb-3 flex items-center">
-          <div className="relative">
+    <div className="p-4 pt-1 border-t border-slate-700/50">
+
+      <div className="max-w-3xl mx-auto mb-3 ">
+        {replyToMsg && (
+          <div className="relative w-full ">
+            < div className=" bg-white/5 border-l-8 border-l-cyan-600 rounded-l-xl">
+              {/* msg content */}
+              <p className="mt-2 pr-6 py-2 break-words text-right ">
+                {replyToMsg.text} : <span>{replyToMsg.senderId.name}</span>
+              </p>
+            </div>
+            <button
+              onClick={() => setReplyToMsg(null)}
+              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700"
+              type="button"
+            >
+              <XIcon className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+        {imagePreview && (
+          <div className="relative mt-2 w-fit">
             <img
               src={imagePreview}
               alt="Preview"
@@ -61,48 +81,49 @@ const MessageInput = () => {
             >
               <XIcon className="w-4 h-4" />
             </button>
-          </div>
-        </div>
-      )}
 
-      <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto flex space-x-4" >
-        <input
+          </div>
+        )}
+      </div>
+
+      <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto relative flex items-center py-3 px-16 bg-slate-800/50 border border-slate-700/50" >
+
+        <textarea
+          ref={textareaRef}
           dir="rtl"
-          type="text"
+          rows={1}
           value={text}
           onChange={(e) => {
             setText(e.target.value);
             isSoundEnabled && playRandomKeyStrokeSound();
           }}
-          className="flex-1 bg-slate-800/50 border border-slate-700/50 rounded-lg py-2 px-4"
+          className="w-full resize-none overflow-hidden bg-transparent rounded  text-white focus:outline-none focus:border-slate-500 transition-all "
           placeholder="متن خود را تایپ کنید..."
         />
 
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          onChange={handleImageChange}
-          className="hidden"
+        <ImageUploader
+          setImage={setImagePreview}
+          inputRef={fileInputRef}
         />
 
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className={`bg-slate-800/50 text-slate-400 hover:text-slate-200 rounded-lg px-4 transition-colors ${imagePreview ? "text-cyan-500" : ""
+          className={`absolute bottom-1.5 left-1.5 bg-slate-700/30 text-slate-400 hover:text-slate-200  rounded-md transition-colors px-3 py-2 ${imagePreview ? "text-cyan-500" : ""
             }`}
         >
-          <ImageIcon className="w-5 h-5" />
+          <ImageIcon className="size-5" />
         </button>
+
         <button
           type="submit"
           disabled={!text.trim() && !imagePreview}
-          className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg px-4 py-2 font-medium hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="absolute bottom-1.5 right-1.5 bg-gradient-to-r from-cyan-500  to-cyan-600 text-white rounded-md  font-medium hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2"
         >
           <SendIcon className="w-5 h-5" />
         </button>
       </form>
-    </div>
+    </div >
   );
 }
 export default MessageInput;

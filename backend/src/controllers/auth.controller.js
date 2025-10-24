@@ -1,4 +1,3 @@
-import { sendWelcomeEmail } from "../emails/emailHandlers.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
@@ -6,10 +5,11 @@ import { ENV } from "../lib/env.js";
 import cloudinary from "../lib/cloudinary.js";
 
 export const signup = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, userName, password } = req.body;
+console.log(userName);
 
   try {
-    if (!name || !email || !password) {
+    if (!name || !userName || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -18,13 +18,13 @@ export const signup = async (req, res) => {
     }
 
     // check if emailis valid: regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: "Invalid email format" });
+    
+    if (!userName.startsWith('@')) {
+      return res.status(400).json({ message: "Invalid userName format" });
     }
 
-    const user = await User.findOne({ email });
-    if (user) return res.status(400).json({ message: "Email already exists" });
+    const user = await User.findOne({ userName });
+    if (user) return res.status(400).json({ message: "userName already exists" });
 
     // 123456 => $dnjasdkasj_?dmsakmk
     const salt = await bcrypt.genSalt(10);
@@ -32,7 +32,7 @@ export const signup = async (req, res) => {
 
     const newUser = new User({
       name,
-      email,
+      userName,
       password: hashedPassword,
     });
 
@@ -49,7 +49,7 @@ export const signup = async (req, res) => {
       res.status(201).json({
         _id: newUser._id,
         name: newUser.name,
-        email: newUser.email,
+        userName: newUser.userName,
         profilePic: newUser.profilePic,
       });
 
@@ -68,28 +68,27 @@ export const signup = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { userName, password } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ message: "ایمیل و رمزعبور ضروری است" });
+  if (!userName || !password) {
+    return res.status(400).json({ message: "نام کاربری و رمزعبور ضروری است" });
   }
 
   try {
-    const user = await User.findOne({ email });
-    console.log(email, password);
+    const user = await User.findOne({ userName });
 
-    if (!user) return res.status(400).json({ message: "رمزعبور یا ایمیل اشتباه است" });
+    if (!user) return res.status(400).json({ message: "رمزعبور یا نام کاربری اشتباه است" });
     // never tell the client which one is incorrect: password or email
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) return res.status(400).json({ message: "رمزعبور یا ایمیل اشتباه است" });
+    if (!isPasswordCorrect) return res.status(400).json({ message: "نام کاربری یا ایمیل اشتباه است" });
 
     generateToken(user._id, res);
 
     res.status(200).json({
       _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
+      name: user.name,
+      userName: user.userName,
       profilePic: user.profilePic,
     });
   } catch (error) {

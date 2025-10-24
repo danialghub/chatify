@@ -22,6 +22,16 @@ export const getReceiverSocketId = (userId) => {
   return userSocketMap[userId];
 }
 
+// we will use this function to send information to the members who are online
+export const sendInfoToOnlineMembers = (members, action, info) => {
+  for (const member of members) {
+    const receiverIsOnline = getReceiverSocketId(member)
+    if (receiverIsOnline) {
+      io.to(receiverIsOnline).emit(action, info)
+    }
+  }
+}
+
 // this is for storig online users
 const userSocketMap = {}; // {userId:socketId}
 
@@ -33,7 +43,7 @@ io.on("connection", (socket) => {
 
   // io.emit() is used to send events to all connected clients
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
-  
+
   socket.on('join-room', (roomId) => {
     socket.join(roomId)
     console.log(`user ${userId} joined room ${roomId}`);
