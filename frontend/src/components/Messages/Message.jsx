@@ -32,7 +32,7 @@ const Message = memo(({ msg, isMyMessage, isGroup }) => {
               {isGroup && <p className="font-semibold text-xs opacity-80">
                 {RepliedByMe || "Unknown"}
               </p>}
-              <p className="text-xs truncate opacity-70">
+              <p dir="auto" className="text-xs truncate opacity-70">
                 {msg.replyTo.text
                   ? msg.replyTo.text.length > 50
                     ? msg.replyTo.text.slice(0, 50) + "..."
@@ -60,7 +60,9 @@ const Message = memo(({ msg, isMyMessage, isGroup }) => {
 
           {/* ✍️ متن پیام */}
           {msg.text && (
-            <p className="mt-2 break-words text-right">{msg.text}</p>
+            <p
+              dir="auto"
+              className="mt-2 break-words whitespace-pre-line [unicode-bidi:plaintext]">{msg.text}</p>
           )}
 
           {/* 🕓 زمان پیام */}

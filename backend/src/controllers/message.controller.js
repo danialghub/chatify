@@ -43,7 +43,6 @@ export const sendMessage = async (req, res) => {
 
     // بررسی reply message
     const replyTo = replyId && (await Message.exists({ _id: replyId })) ? replyId : null;
-    console.log('sende message : back');
     // ساخت پیام جدید
     const newMessage = await messageService.create({
       senderId,
@@ -95,7 +94,6 @@ export const removeMsg = async (req, res) => {
       room.lastMessage = prevMsg?._id || null;
       await room.save();
     }
-console.log(msgId);
 
     res.json({ message: "پیام با موفقیت حذف شد" });
     io.to(room._id.toString()).emit("message:remove", { msgId ,room});

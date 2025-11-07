@@ -90,14 +90,14 @@ const MessageInput = ({ }) => {
 
         <textarea
           ref={textareaRef}
-          dir="rtl"
+          dir="auto"
           rows={1}
           value={text}
           onChange={(e) => {
             setText(e.target.value);
             isSoundEnabled && playRandomKeyStrokeSound();
           }}
-          className="w-full max-h-[20vh]  resize-none overflow-hidden bg-transparent rounded  text-white focus:outline-none focus:border-slate-500 transition-all "
+          className="w-full max-h-[20vh] [unicode-bidi:plaintext]  resize-none overflow-hidden bg-transparent rounded  text-white focus:outline-none focus:border-slate-500 transition-all "
           placeholder="متن خود را تایپ کنید..."
         />
 
@@ -118,7 +118,7 @@ const MessageInput = ({ }) => {
         <button
           type="submit"
           disabled={!text.trim() && !imagePreview}
-          className="absolute bottom-1.5 right-1.5 bg-gradient-to-r from-cyan-500  to-cyan-600 text-white rounded-md  font-medium hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2"
+          className="absolute bottom-1.5 right-1.5 bg-gradient-to-r from-cyan-500  to-cyan-600 text-white rounded-md  font-medium hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 "
         >
           <SendIcon className="w-5 h-5" />
         </button>

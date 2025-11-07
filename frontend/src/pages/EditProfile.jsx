@@ -41,9 +41,18 @@ export default function EditProfile() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="bg-zinc-900 backdrop-blur-lg shadow-2xl rounded-3xl  p-6 space-y-5"
+        className="bg-zinc-900 backdrop-blur-lg shadow-2xl rounded-3xl  p-6 space-y-5 relative"
       >
         {/* Header */}
+        <motion.button
+          onClick={() => navigate('/')}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 1, duration: 0.4 }}
+          className="absolute top-5 right-5 px-4 py-1 bg-blue-600 text-white rounded-md"
+        >
+          بازگشت
+        </motion.button>
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -151,9 +160,10 @@ export default function EditProfile() {
           >
             <label className="block text-sm text-gray-200">بیوگرافی</label>
             <textarea
+              dir="auto"
               {...register('bio')}
               rows="5"
-              className="w-full mt-1 p-2.5 rounded-md border bg-zinc-900 border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none transition text-sm resize-none"
+              className="w-full mt-1 [unicode-bidi:plaintext] p-2.5 rounded-md border bg-zinc-900 border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none transition text-sm resize-none"
               placeholder="چند کلمه درباره‌ی خودت..."
             />
           </motion.div>

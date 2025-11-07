@@ -12,7 +12,7 @@ const Room = memo(({ room, userId, name, logo }) => {
 
   useSocket('message:notif', updateRoomStates)
   useSocket('room:remove', removeFromRooms)
-  
+
 
 
 
@@ -57,8 +57,8 @@ const Room = memo(({ room, userId, name, logo }) => {
         </div>
 
         <span
-          dir="rtl"
-          className="truncate text-xs text-slate-400 opacity-70 w-60"
+          dir="auto"
+          className="truncate [unicode-bidi:plaintext] text-xs text-slate-400 opacity-70 w-60"
         >
           {room?.lastMessage?.text || "بدون پیام"}
         </span>
