@@ -1,5 +1,5 @@
 import { MessageCircleIcon } from "lucide-react";
-import { useChatStore } from "../store/useChatStore";
+import { useChatStore } from "@/store/useChatStore";
 
 const NoChatsFound = ({ title, type, modalType }) => {
   const { setModalType } = useChatStore();

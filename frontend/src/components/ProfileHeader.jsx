@@ -1,8 +1,8 @@
 import { useState, useRef } from "react";
 import { LogOutIcon, VolumeOffIcon, Volume2Icon, LayoutDashboard } from "lucide-react";
-import { useAuthStore } from "../store/useAuthStore";
-import { useChatStore } from "../store/useChatStore";
-import { ChatIcon } from './index'
+import { useAuthStore } from "@/store/useAuthStore";
+import { useChatStore } from "@/store/useChatStore";
+import { ChatIcon } from '@/components/index'
 
 const mouseClickSound = new Audio("/sounds/mouse-click.mp3");
 
@@ -41,7 +41,7 @@ const ProfileHeader = ({ showSidebar }) => {
               <ChatIcon
                 profile={authUser?.profilePic}
                 name={authUser.name}
-                classProps=" !size-14"
+                classProps="!size-14"
               />
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                 <span className="text-white text-xs">تغییر</span>
@@ -63,7 +63,7 @@ const ProfileHeader = ({ showSidebar }) => {
               {authUser.name}
             </h3>
 
-            <p className="text-slate-400 text-xs">Online</p>
+            <p className="text-slate-400 text-xs">آنلاین</p>
           </div>
         </div>
 

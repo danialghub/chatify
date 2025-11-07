@@ -23,7 +23,7 @@ export const getReceiverSocketId = (userId) => {
 }
 
 // we will use this function to send information to the members who are online
-export const sendInfoToOnlineMembers = (members, action, info) => {
+export const emitToOnlineMembers = (members, action, info) => {
   for (const member of members) {
     const receiverIsOnline = getReceiverSocketId(member)
     if (receiverIsOnline) {

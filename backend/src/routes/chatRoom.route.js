@@ -1,11 +1,11 @@
 import express from "express";
 import {
-    createGroupChat,
-    getAllGroupChat,
-    getAllPrivateChat,
-    leavingGroup,
-    removeGroupChat,
-    removePrivateChat
+    addMembers,
+    createRoom,
+    getAllRooms,
+    leavingTheGroup,
+    removeRoom,
+    updateGroupRooms
 } from "../controllers/chatRoom.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { arcjetProtection } from "../middleware/arcjet.middleware.js";
@@ -16,15 +16,17 @@ const router = express.Router();
 router.use(arcjetProtection, protectRoute);
 
 
-router.get('/group-chats', getAllGroupChat)
-router.get('/private-chats', getAllPrivateChat)
+router.get('/all', getAllRooms)
 
-router.post('/group', createGroupChat)
 
-router.put('/group/leave/:roomId',leavingGroup)
+router.post('/create', createRoom)
 
-router.delete('/private-chats/:otherUserId', removePrivateChat)
-router.delete('/group-chats/:roomId', removeGroupChat)
+router.put('/update/:roomId', updateGroupRooms)
+router.put('/addmember/:roomId', addMembers)
+router.put('/leave/:roomId', leavingTheGroup)
+
+
+router.delete('/remove/:roomId', removeRoom)
 
 
 

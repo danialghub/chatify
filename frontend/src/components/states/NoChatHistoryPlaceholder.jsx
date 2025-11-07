@@ -1,5 +1,5 @@
 import { MessageCircleIcon } from "lucide-react";
-import { useChatStore } from "../store/useChatStore";
+import { useChatStore } from "@/store/useChatStore";
 
 const NoChatHistoryPlaceholder = ({ name }) => {
   const { sendMessage } = useChatStore();
@@ -17,7 +17,7 @@ const NoChatHistoryPlaceholder = ({ name }) => {
         <MessageCircleIcon className="size-8 text-cyan-400" />
       </div>
       <h3 className="text-lg font-medium text-slate-200 mb-3">
-        گفتگو را با  {name} شروع کن.
+   شروع کن  {name}  گفتگو را در گروه 
       </h3>
       <div className="flex flex-col space-y-3 max-w-md mb-5">
         <p className="text-slate-400 text-sm">

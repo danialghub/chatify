@@ -1,22 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { UserSearchIcon, Users, UserCircle, X } from "lucide-react";
-import { Notifications, ModalManager } from './index';
-import { useEffect } from 'react';
-import { useRequestStore } from '../store/useRequestStore';
-import { useChatStore } from '../store/useChatStore';
-import useSocket from '../hooks/useSocket';
-
+import { ChatIcon, ModalManager } from '@/components/index';
+import { useChatStore } from '@/store/useChatStore';
+import { Link } from 'react-router'
 const ChatSidebar = ({ isOpen, onClose, user }) => {
 
-    const { addToRequests, getRequests } = useRequestStore()
     const { modalType, setModalType } = useChatStore()
-
-    //گوش دادن به درخواست جدید
-    useSocket('newRequest', addToRequests)
-
-    useEffect(() => {
-        getRequests()
-    }, [getRequests])
 
     return (
         <>
@@ -35,14 +24,13 @@ const ChatSidebar = ({ isOpen, onClose, user }) => {
 
                         {/* Header */}
                         <div className="relative flex items-center gap-3 p-4 border-b border-zinc-700">
-                            <img
-                                src={user?.profilePic || "/avatar.png"}
-                                alt="user avatar"
-                                className="w-12 h-12 rounded-full border border-zinc-600"
+                            <ChatIcon
+                                profile={user.profilePic}
+                                name={user.name}
                             />
                             <div className="flex flex-col">
                                 <p className="font-semibold text-lg">{user?.name || "کاربر مهمان"}</p>
-                                <p className="text-sm text-zinc-400">{user?.userName || "guest"}</p>
+                                <p className="text-sm text-zinc-400">{user.userName || "guest"}</p>
                             </div>
 
                             {/* Close button */}
@@ -57,7 +45,7 @@ const ChatSidebar = ({ isOpen, onClose, user }) => {
                         {/* Menu */}
                         <div className="flex flex-col p-3 space-y-2">
                             <button
-                                onClick={() => setModalType("sendRequest")}
+                                onClick={() => setModalType("SearchingRooms")}
                                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition">
                                 <UserSearchIcon size={22} />
                                 <span className="text-base font-medium">جستجو مخاطب یا گروه</span>
@@ -70,17 +58,17 @@ const ChatSidebar = ({ isOpen, onClose, user }) => {
                                 <span className="text-base font-medium"> گروه جدید</span>
                             </button>
 
-                            <button className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition">
+                            <Link
+                                to='/edit'
+                                className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition">
                                 <UserCircle size={22} />
                                 <span className="text-base font-medium"> پروفایل من</span>
-                            </button>
+                            </Link>
                         </div>
 
                         {/* Footer */}
                         <div className="mt-auto p-4 py-5 text-center text-xs text-zinc-500 border-t border-zinc-700 relative">
                             <span>نسخه ۱.۰.۰</span>
-                            {/* allRequest */}
-                            <Notifications />
                         </div>
 
                     </motion.div>

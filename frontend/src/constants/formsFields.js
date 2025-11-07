@@ -1,7 +1,7 @@
 import { UserCircle, LockIcon, UserIcon } from "lucide-react";
 
 
-import { userSignUpSchema ,userLoginSchema} from '../lib/validation'
+import { userSignUpSchema ,userLoginSchema} from '@/lib/validation'
 
 
  const loginFields = [
@@ -50,7 +50,6 @@ import { userSignUpSchema ,userLoginSchema} from '../lib/validation'
         placeholder: "تکرار رمزعبور"
     },
 ]
-
 export const signUpProps = {
     authFields: signUpFields,
     authSchema: userSignUpSchema,

@@ -1,99 +1,148 @@
 import { create } from "zustand";
-import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import { useAuthStore } from "./useAuthStore";
 import { useChatStore } from "./useChatStore";
-import { useRequestStore } from "./useRequestStore";
+import { axiosInstance } from "../lib/axios";
 
 export const useRoomStore = create((set, get) => ({
-    allPrivateChat: [],
-    allGroupChat: [],
+    groupRooms: [],
+    privateRooms: [],
     unSeenMessages: {},
     selectedRoom: null,
     isRoomsLoading: false,
-    isCreatingLoading: false,
+    isCreatingLoading: null,
+    isRemovingLoading: null,
+    isJoining: false,
+    activeTab: "chats",
 
+    setActiveTab: (tab) => set({ activeTab: tab }),
     setSelectedRoom: (newRoom) => {
-        const { joinNewRoom, leaveRoom, selectedRoom } = get();
+        const { joinNewRoomSocket, leaveRoomSocket, selectedRoom } = get();
 
         // اگر همون اتاق رو دوباره انتخاب کرده، هیچ کاری نکن
         if (selectedRoom?._id === newRoom?._id) return;
 
         // اول از اتاق قبلی خارج شو
-        if (selectedRoom?._id) leaveRoom();
+        if (selectedRoom?._id) leaveRoomSocket();
 
         // بعد اتاق جدید رو ست کن
         set({ selectedRoom: newRoom });
 
         // سپس به اتاق جدید بپیوند
-        if (newRoom?._id) joinNewRoom();
+        if (newRoom?._id) joinNewRoomSocket();
     },
-    getPrivateChats: async () => {
+    //apis
+    getRooms: async ({ isGroup }) => {
+        const roomType = isGroup ? "groupRooms" : "privateRooms"
         set({ isRoomsLoading: true });
         try {
-            const { data } = await axiosInstance.get("/room/private-chats");
-            set({ allPrivateChat: data.privateRooms, unSeenMessages: data.unSeenMessages });
+            const { data } = await axiosInstance.get("/room/all", { params: { isGroup } });
+            set({ [roomType]: data.rooms, unSeenMessages: data.unSeenMessages });
 
         } catch (error) {
-            console.log(error.response?.data?.message || "no private chat");
+            console.log(error.response?.data?.message || "no chat");
         } finally {
             set({ isRoomsLoading: false });
         }
     },
-    getAllGroups: async () => {
-        set({ isRoomsLoading: true });
-        try {
-            const { data } = await axiosInstance.get("/room/group-chats");
-            set({ allGroupChat: data.groupRooms, unSeenMessages: data.unSeenMessages });
-        } catch (error) {
-            console.log(error.response?.data?.message || "no group")
-
-        } finally {
-            set({ isRoomsLoading: false });
-        }
-    },
-    createGroup: async (memberIds, groupName, groupImage) => {
+    createRoom: async (body, isChattingWith) => {
         const { setModalType } = useChatStore.getState()
+        const roomType = body.isGroup ? "groupRooms" : "privateRooms"
+
         try {
-            set({ isCreatingLoading: true })
-            const { data } = await axiosInstance.post("/room/group", { memberIds, groupName, groupImage });
-            const currentGroups = get().allGroupChat;
-            set({ allGroupChat: [...currentGroups, data?.group] });
+
+            set({ isCreatingLoading: isChattingWith })
+            const { data } = await axiosInstance.post("/room/create", { ...body });
+
+            const isGroup = data?.newRoom?.isGroup || data?.room?.isGroup
+
+            set(prev => {
+                const payload = {
+                    selectedRoom: data?.newRoom || data.room,
+                    activeTab: isGroup ? "groups" : "chats"
+                }
+                if (data?.newRoom)
+                    payload[roomType] = [data.newRoom, ...prev[roomType]]
+
+                return payload;
+            })
+
             setModalType(null)
-            toast.success(data.message)
+            if (data?.message) {
+                toast.success(data?.message)
+            }
         } catch (error) {
-            console.log(error.response?.data?.message || "Failed to create group");
+            console.log(error.response?.data?.message || error.message);
         } finally {
             set({ isCreatingLoading: false })
         }
     },
-    removeGroupRoom: async (roomId) => {
-        // حذف از استیت لوکال
-        set((state) => ({
-            allGroupChat: state.allGroupChat.filter(room => room._id !== roomId)
-        }));
+    removeRoom: async (room) => {
+        const { setModalType } = useChatStore.getState()
+        const { setSelectedRoom } = get()
+        const roomType = room.isGroup ? "groupRooms" : "privateRooms"
 
         try {
-            const { data } = await axiosInstance.delete(`/room/group-chats/${roomId}`);
+            set({ isRemovingLoading: true })
+            setModalType(null)
+            const { data } = await axiosInstance.delete(`/room/remove/${room._id}`);
+            set((prev) => ({
+                [roomType]: prev[roomType].filter(r => r._id !== room._id),
+            }));
+            setSelectedRoom(null)
             toast.success(data.message);
         } catch (error) {
             console.log(error.response?.data?.message);
+        } finally {
+            set({ isRemovingLoading: null })
         }
     },
-    removePrivateRoom: async (otherMember) => {
-        // حذف از استیت لوکال
-        set((state) => ({
-            allPrivateChat: state.allPrivateChat.filter(({ members }) => members.user._id !== otherMember)
-        }));
+    leaveingTheGroup: async (roomId) => {
+        const { setSelectedRoom } = get()
+        const { setModalType } = useChatStore.getState()
+        setModalType(null)
+
         try {
-            const { data } = await axiosInstance.delete(`/room/private-chats/${otherMember}`);
-            useRequestStore.setState({ searchedRooms: null })
-            toast.success(data.message);
+            const { data } = await axiosInstance.put(`/room/leave/${roomId}`)
+            set(({ groupRooms }) => ({ groupRooms: groupRooms.filter(g => g._id !== roomId) }))
+            setSelectedRoom(null)
+            toast.success(data.message)
         } catch (error) {
-            console.log(error.response?.data?.message);
+            toast.error(error?.response?.data.message || "Internal Error")
         }
     },
-    joinNewRoom: () => {
+    updateGroup: async (body, roomId) => {
+        const { setModalType } = useChatStore.getState()
+
+        try {
+            set({ isUpdatingLoading: true })
+            const { data } = await axiosInstance.put(`/room/update/${roomId}`, { ...body });
+            setModalType(null)
+            if (data?.message) {
+                toast.success(data?.message)
+            }
+        } catch (error) {
+            console.log(error.response?.data?.message || error.message);
+        } finally {
+            set({ isUpdatingLoading: false })
+        }
+    },
+    addMembers: async (memberIds, roomId) => {
+        const { setModalType } = useChatStore.getState()
+        try {
+            set({ isJoining: true })
+
+            const { data } = await axiosInstance.put(`/room/addmember/${roomId}`, { memberIds })
+            setModalType(null)
+            toast.success(data.message)
+        } catch (error) {
+            console.log(error.response?.data?.message || "error in add members");
+        } finally {
+            set({ isJoining: false })
+        }
+    },
+    //socket configs
+    joinNewRoomSocket: () => {
         const { socket } = useAuthStore.getState();
         const { selectedRoom } = get();
 
@@ -105,32 +154,42 @@ export const useRoomStore = create((set, get) => ({
 
         socket.emit("join-room", selectedRoom._id);
     },
-    leaveRoom: async () => {
+    leaveRoomSocket: () => {
         const { socket } = useAuthStore.getState();
         const { selectedRoom } = get();
 
         socket.emit("leave-room", selectedRoom._id);
-
         set({
             selectedRoom: null,
         });
     },
+    //socket listeners
     addToRooms: (newRoom) => {
-
-        const roomType = newRoom.type === "private" ? "allPrivateChat" : "allGroupChat"
-        set((state) => {
-            if (state[roomType].some(r => r._id === newRoom._id)) return state;
-            return { [roomType]: [newRoom, ...state[roomType]] };
+        const roomType = newRoom.isGroup ? "groupRooms" : "privateRooms"
+        set((prev) => {
+            if (prev[roomType].some(r => r._id === newRoom._id)) return state;
+            return { [roomType]: [newRoom, ...prev[roomType]] };
         })
+    },
+    removeFromRooms: (room) => {
+
+        const { setSelectedRoom, selectedRoom } = get()
+        const roomType = room.isGroup ? "groupRooms" : "privateRooms"
+        set(prev => (
+            {
+                [roomType]: prev[roomType].filter(r => r._id !== room._id),
+            }
+        ))
+        if (room._id === selectedRoom._id) {
+            setSelectedRoom(null)
+        }
     },
     updateRoomStates: (newMessage) => {
         const { isSoundEnabled } = useChatStore.getState();
-        let notificationSound = new Audio("/sounds/notification.mp3");
-
-        const chatType = newMessage.roomId.type === "private" ? "allPrivateChat" : "allGroupChat";
 
         set(prev => {
-            const chats = prev[chatType];
+            const roomType = newMessage.roomId.isGroup ? "groupRooms" : "privateRooms"
+            const chats = prev[roomType];
             const unSeenMessages = prev.unSeenMessages;
             const newDate = newMessage.createddAt;
 
@@ -147,7 +206,7 @@ export const useRoomStore = create((set, get) => ({
             ];
 
             return {
-                [chatType]: updatedChats,
+                [roomType]: updatedChats,
                 unSeenMessages: {
                     ...unSeenMessages,
                     [newMessage.roomId._id]: isCurrentRoomOpen
@@ -159,9 +218,20 @@ export const useRoomStore = create((set, get) => ({
 
         //صدای اعلان
         if (isSoundEnabled) {
-            notificationSound.pause();
-            notificationSound.currentTime = 0;
+            const notificationSound = new Audio("/sounds/notification.mp3");
+            notificationSound.currentTime = 0; // reset to start
             notificationSound.play().catch((e) => console.log("Audio play failed:", e));
+        }
+    },
+    updateGroupStates: (updatedGroup) => {
+        const { selectedRoom } = get()
+
+        set(({ groupRooms }) => ({
+            groupRooms: [updatedGroup, ...groupRooms.filter(g => g._id !== updatedGroup._id)]
+        }));
+
+        if (selectedRoom._id === updatedGroup._id) {
+            set({ selectedRoom: { _id: selectedRoom._id, ...updatedGroup } })
         }
 
     }

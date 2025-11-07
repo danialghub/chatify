@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { X, ArrowLeft, Pen } from "lucide-react";
-import { ChatIcon } from '../index'
-import { useAuthStore } from '../../store/useAuthStore';
-import { useRoomStore } from '../../store/useRoomStore';
-import { useChatStore } from '../../store/useChatStore';
+import { ChatIcon } from '@/components/index'
+import { useAuthStore } from '@/store/useAuthStore';
+import { useRoomStore } from '@/store/useRoomStore';
+import { useChatStore } from '@/store/useChatStore';
 
 const GroupEdit = () => {
 

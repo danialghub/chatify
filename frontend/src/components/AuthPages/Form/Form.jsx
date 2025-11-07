@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from '../../index'
+import { Input } from '@/components/index'
 
 const Form = ({ schema, fields, onSubmit, children }) => {
 

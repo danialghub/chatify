@@ -1,31 +1,25 @@
-import { PageLoader } from "./index"
 import { useEffect, useRef } from "react";
-import { User, Search } from 'lucide-react'
-import { useRequestStore } from '../store/useRequestStore'
-import { useRoomStore } from "../store/useRoomStore";
+import { User, Search, LoaderIcon } from 'lucide-react'
+import { useRoomStore } from "@/store/useRoomStore";
 import { motion } from 'framer-motion'
+import { useUserStore } from '@/store/useUserStore';
 
-const SendRequest = () => {
+const SearchingRooms = () => {
 
     const inputRef = useRef()
 
-    const {
-        getSeachedRooms,
-        isRequestLoading,
-        searchedRooms,
-        errors,
-        sendRequest,
-        isSendingLoading
-
-    } = useRequestStore()
-    const { removePrivateRoom } = useRoomStore()
+    const { createRoom, isCreatingLoading, privateRooms } = useRoomStore()
+    const { isSearching, foundUsers, getSeachedUsers } = useUserStore()
 
     const searchtHandler = (e) => {
         e.preventDefault()
         const input = inputRef.current.value
         if (input.trim()) {
-            getSeachedRooms(input)
+            getSeachedUsers(input)
         }
+    }
+    const createRoomHandler = async (participantId) => {
+        await createRoom({ isGroup: false, memberIds: [participantId] }, participantId)
     }
     useEffect(() => {
         inputRef.current.focus()
@@ -56,31 +50,16 @@ const SendRequest = () => {
 
             {/* لیست کاربران */}
             <div className="mt-6 w-full ">
-                {!isRequestLoading ? (
-                    searchedRooms ? (
-                        searchedRooms.length ? (
+                {!isSearching ? (
+                    foundUsers ? (
+                        foundUsers.length ? (
                             <div
                                 dir="rtl"
                                 className="mt-4 h-[50vh] overflow-y-auto custom-scrollbar px-2"
 
                             >
                                 <p className="text-slate-400 py-3 text-sm"> نتیجه جستجو :</p>
-                                {searchedRooms.map(user => {
-
-                                    const bgColor = user?.request?.status === "Pending" ? "bg-blue-700/70 hover:bg-blue-700" : user?.request?.status === "Accepted" ? "bg-red-700/70 hover:bg-red-700" : "bg-purple-700/70 hover:bg-purple-700"
-
-                                    const isDisable = isSendingLoading === user._id || user?.request?.status === "Pending"
-
-                                    const requestHandler = () => {
-                                        if (user?.request?.status === "Accepted") {
-                                            removePrivateRoom(user._id)
-
-
-                                        } else {
-                                            sendRequest(user._id)
-                                        }
-                                    }
-
+                                {foundUsers.map(user => {
                                     return (
                                         <motion.div
                                             key={user._id}
@@ -90,26 +69,21 @@ const SendRequest = () => {
                                         >
                                             <div className="flex items-center gap-3">
                                                 <img
-                                                    src={user?.profilePic || './avatar.png'}
+                                                    src={user?.avatar || './avatar.png'}
                                                     className="w-10 h-10 rounded-full object-cover border border-white/10"
                                                     alt=''
                                                 />
                                                 <span className="text-sm font-medium">{user.name}</span>
                                             </div>
                                             <button
-                                                onClick={requestHandler}
-                                                className={`px-3 py-2 disabled:bg-gray-700 transition rounded-lg text-sm flex items-center gap-1 ${bgColor}`}
-                                                disabled={isDisable}
+                                                onClick={() => createRoomHandler(user._id)}
+                                                className={`px-3 py-2  transition rounded-lg text-sm flex items-center gap-1 bg-purple-700/70 hover:bg-purple-700 `}
+                                                disabled={isCreatingLoading === user._id}
                                             >
                                                 <User className="size-5" />
-                                                {isSendingLoading === user._id
-                                                    ? <span>در حال ارسال</span>
-                                                    : user?.request?.status === "Pending"
-                                                        ? <span> در انتظار پاسخ</span>
-                                                        : user?.request?.status === "Accepted"
-                                                            ? <span> حذف</span>
-                                                            : <span> درخواست</span>
-
+                                                {isCreatingLoading === user._id
+                                                    ? <span className='animate-pulse text-md'>...</span>
+                                                    : <span>چت</span>
                                                 }
                                             </button>
 
@@ -118,27 +92,26 @@ const SendRequest = () => {
                                 })}
                             </div>
                         ) : (
-                            <div className="h-[10vh] flex items-center justify-center text-lg text-gray-300">
-                                {errors}
+                            <div className="h-[10vh] flex users-center justify-center text-lg text-gray-300">
+                                !هیچ موردی یافت نشد!
                             </div>
                         )
                     ) : (
                         <div className="text-center text-gray-300 py-5 text-md">
-                            نام کاربری را جستجو کنید
+                            نام گروه یا کاربری  را جستجو کنید
                         </div>
                     )
                 ) : (
-                    <div className="h-[50vh] flex items-center justify-center text-lg text-gray-300 animate-pulse">
-                        <PageLoader />
+                    <div className="h-[50vh] flex items-center justify-center">
+                        <div className="flex items-center justify-center">
+                            <LoaderIcon className="size-12 animate-spin" />
+                        </div>
                     </div>
 
                 )}
             </div>
         </div >
-
-
-
     )
 }
 
-export default SendRequest
+export default SearchingRooms

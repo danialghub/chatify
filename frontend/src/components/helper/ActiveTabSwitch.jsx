@@ -1,7 +1,7 @@
-import { useChatStore } from "../store/useChatStore";
+import { useRoomStore } from "@/store/useRoomStore";
 
 const ActiveTabSwitch = () => {
-  const { activeTab, setActiveTab } = useChatStore();
+  const { activeTab, setActiveTab } = useRoomStore();
 
   return (
     <div className="tabs tabs-boxed bg-transparent p-2 m-2">

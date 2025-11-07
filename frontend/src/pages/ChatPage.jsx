@@ -1,35 +1,31 @@
-import { useChatStore } from "../store/useChatStore";
 import { useState } from "react";
-
 import {
   BorderAnimatedContainer, ProfileHeader, ActiveTabSwitch, PrivateRooms, GroupRooms, ChatContainer, NoConversationPlaceholder
-} from '../components/index'
+} from '@/components/index'
 
-import ChatSidebar from "../components/ChatSidebar";
-import { useAuthStore } from "../store/useAuthStore";
-import { useRoomStore } from "../store/useRoomStore";
+import ChatSidebar from "@/components/ChatSidebar";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useRoomStore } from "@/store/useRoomStore";
 
 
 const ChatPage = () => {
-  const { activeTab } = useChatStore();
+
   const { authUser } = useAuthStore();
-  const {selectedRoom } = useRoomStore()
+  const {selectedRoom,activeTab } = useRoomStore()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
     <div className="relative w-full max-w-6xl  h-[95vh] overflow-hidden">
 
-
       <BorderAnimatedContainer>
 
-        {/* LEFT SIDEBAR */}
+        {/*  SIDEBAR */}
           <ChatSidebar
             isOpen={isSidebarOpen}
             onClose={() => setIsSidebarOpen(prev => !prev)}
             user={authUser}
           />
         
-
         {/* LEFT SIDE */}
         <div
           className={`h-full bg-slate-800/50 backdrop-blur-sm flex flex-col w-full md:w-1/3 ${selectedRoom && "max-md:hidden w-full"}`}
@@ -51,8 +47,6 @@ const ChatPage = () => {
             </div>
           )
         }
-
-
       </BorderAnimatedContainer>
     </div>
   );

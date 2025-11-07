@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import useKeyboardSound from "../hooks/useKeyboardSound";
-import { useChatStore } from "../store/useChatStore";
+import useKeyboardSound from "@/hooks/useKeyboardSound";
+import { useChatStore } from "@/store/useChatStore";
 import { ImageIcon, SendIcon, XIcon } from "lucide-react";
-import { ImageUploader } from './index'
+import { ImageUploader } from '@/components/index'
 
 const MessageInput = ({ }) => {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
@@ -52,7 +52,7 @@ const MessageInput = ({ }) => {
       <div className="max-w-3xl mx-auto mb-3 ">
         {replyToMsg && (
           <div className="relative w-full ">
-            < div className=" bg-white/5 border-l-8 border-l-cyan-600 rounded-l-xl">
+            < div className=" bg-white/5 border-r-8 border-r-cyan-600 rounded-r-lg">
               {/* msg content */}
               <p className="mt-2 pr-6 py-2 break-words text-right ">
                 {replyToMsg.text} : <span>{replyToMsg.senderId.name}</span>
@@ -60,7 +60,7 @@ const MessageInput = ({ }) => {
             </div>
             <button
               onClick={() => setReplyToMsg(null)}
-              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700"
+              className="absolute -top-2 -left-1 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700"
               type="button"
             >
               <XIcon className="w-4 h-4" />
@@ -97,7 +97,7 @@ const MessageInput = ({ }) => {
             setText(e.target.value);
             isSoundEnabled && playRandomKeyStrokeSound();
           }}
-          className="w-full resize-none overflow-hidden bg-transparent rounded  text-white focus:outline-none focus:border-slate-500 transition-all "
+          className="w-full max-h-[20vh]  resize-none overflow-hidden bg-transparent rounded  text-white focus:outline-none focus:border-slate-500 transition-all "
           placeholder="متن خود را تایپ کنید..."
         />
 

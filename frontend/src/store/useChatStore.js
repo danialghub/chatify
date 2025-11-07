@@ -8,12 +8,9 @@ export const useChatStore = create((set, get) => ({
   messages: [],
   modalType: null,
   isUsersLoading: false,
-  activeTab: "chats",
   isMessagesLoading: false,
   replyToMsg: null,
   isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
-
-  setActiveTab: (tab) => set({ activeTab: tab }),
 
   setModalType: (modalType) => set({ modalType: modalType }),
 
@@ -95,17 +92,17 @@ export const useChatStore = create((set, get) => ({
   },
 
   addToMessages: (newMessage) => {
-    const { isSoundEnabled } = get();
+    const { isSoundEnabled, checkMessageAsSeen } = get();
     const { selectedRoom } = useRoomStore.getState()
     if (!selectedRoom) return;
-
+    
     const isForCurrentChat = newMessage.roomId._id === selectedRoom?._id;
     if (!isForCurrentChat) return;
 
     set(({ messages }) => ({
       messages: [...messages, newMessage],
     }));
-
+    checkMessageAsSeen(selectedRoom._id)
     if (isSoundEnabled) {
       const notificationSound = new Audio("/sounds/notification.mp3");
       notificationSound.currentTime = 0; // reset to start
@@ -114,7 +111,7 @@ export const useChatStore = create((set, get) => ({
   },
   removeFromMessages: ({ msgId, room }) => {
     const { selectedRoom } = useRoomStore.getState()
-    const chatType = room.type === "private" ? "allPrivateChat" : "allGroupChat"
+    const chatType = room.isGroup  ? "groupRooms" : "privateRooms"
     if (!selectedRoom) return;
 
     set(({ messages }) => ({

@@ -1,5 +1,5 @@
 import { LoaderIcon } from "lucide-react";
-import {Form} from '../index'
+import {Form} from '@/components/index'
 
 const LoginForm = ({auth , isAuth ,authFields , authSchema ,title}) => {
 

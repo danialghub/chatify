@@ -1,7 +1,7 @@
 import { toast } from 'react-hot-toast'
-import { imgageSchema } from '../lib/validation'
+import { imgageSchema } from '@/lib/validation'
 
-const ImageUploader = ({ inputRef, setImage }) => {
+const ImageUploader = ({ inputRef, setImage ,...props}) => {
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -26,6 +26,7 @@ const ImageUploader = ({ inputRef, setImage }) => {
             accept='image/*'
             hidden
             onChange={handleImageChange}
+            {...props}
         />
     )
 }

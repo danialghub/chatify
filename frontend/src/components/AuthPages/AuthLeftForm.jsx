@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { AuthForm, AuthFormHeader } from '../index'
+import { AuthForm, AuthFormHeader } from '@/components/index'
 
 const AuthLeftForm = ({ state, ...props }) => {
 

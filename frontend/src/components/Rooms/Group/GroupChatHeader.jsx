@@ -1,18 +1,17 @@
 import { XIcon } from "lucide-react";
 import { useEffect } from "react";
-import { useRoomStore } from "../store/useRoomStore";
-import { useChatStore } from "../store/useChatStore";
-import { ChatIcon} from './index'
+import { useRoomStore } from "@/store/useRoomStore";
+import { useChatStore } from "@/store/useChatStore";
+import { ChatIcon } from '@/components/index'
 
 
 const GroupChatHeader = () => {
-    const { selectedRoom, setSelectedRoom, leaveRoom } = useRoomStore();
-    const { setModalType} = useChatStore();
-
+    const { selectedRoom, setSelectedRoom } = useRoomStore();
+    const { setModalType } = useChatStore();
 
     useEffect(() => {
         const handleEscKey = (event) => {
-            if (event.key === "Escape") leaveRoom()
+            if (event.key === "Escape") setSelectedRoom(null)
         };
 
         window.addEventListener("keydown", handleEscKey);
@@ -41,13 +40,13 @@ const GroupChatHeader = () => {
 
                 <div>
                     <h3 className="text-slate-200 font-medium">{selectedRoom.name}</h3>
-                    <p className="text-slate-400 text-sm">
-                        {`${selectedRoom.members.length} members`}
+                    <p className="text-slate-400 text-sm text-center" dir="rtl">
+                        {`${selectedRoom.members.length} عضو`}
                     </p>
                 </div>
             </div>
 
-            <button onClick={leaveRoom}>
+            <button onClick={() => setSelectedRoom(null)}>
                 <XIcon className="w-5 h-5 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer" />
             </button>
         </div>

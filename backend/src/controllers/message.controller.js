@@ -1,157 +1,127 @@
-import cloudinary from "../lib/cloudinary.js";
-import { io, sendInfoToOnlineMembers, getReceiverSocketId } from "../lib/socket.js";
+import { uploadImage } from "../lib/helper.js";
+import { io, emitToOnlineMembers, getReceiverSocketId } from "../lib/socket.js";
+import { messageService } from '../services/message.service.js'
+import { chatRoomService } from '../services/chatRoom.service.js'
 import Message from "../models/Message.js";
 import ChatRoom from "../models/ChatRoom.js";
 
-
+// 🟢 دریافت پیام‌های هر روم
 export const getMessagesByRoomId = async (req, res) => {
   try {
     const { roomId } = req.params;
+    if (!roomId) return res.status(400).json({ message: "شناسه روم نامعتبر است" });
 
-    const messages = await Message.find({ roomId })
-      .populate([
-        { path: 'senderId', select: 'name profilePic' },
-        {
-          path: 'replyTo', populate: { path: 'senderId', select: 'name' },
-        },
-      ])
+    const messages = await messageService.findByRoomId(roomId)
 
-      .exec()
     res.status(200).json(messages);
-
   } catch (error) {
-    console.log("Error in getMessages controller: ", error.message);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("getMessagesByRoomId:", error);
+    res.status(500).json({ message: "خطای داخلی سرور" });
   }
 };
-
+// 🟡 ارسال پیام
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image, replyTo: replyId } = req.body;
-    const { roomId } = req.params;
     const senderId = req.user._id;
+    const { roomId } = req.params;
+    const { text, image, replyTo: replyId } = req.body;
 
-    if (!text && !image) {
-      return res.status(400).json({ message: "متن یا عکس لازم است" });
-    }
-    if (senderId.equals(roomId)) {
-      return res.status(400).json({ message: "نمیتونی به خودت پیام بفرستی" });
-    }
-    const roomExists = await ChatRoom.exists({ _id: roomId });
-
-    if (!roomExists) {
-      return res.status(404).json({ message: "Room not found." });
-    }
-
-    let imageUrl;
-    if (image) {
-      // upload base64 image to cloudinary
-      const uploadResponse = await cloudinary.uploader.upload(image, {
-        transformation: [
-          { crop: 'fill', gravity: 'face' },
-          { quality: 'auto', fetch_format: "auto" }
-        ]
-      });
-      imageUrl = uploadResponse.secure_url;
-    }
-    let replyTo;
-    const message = await Message.findOne({ _id: replyId })
-    if (message) {
-      replyTo = replyId
-    }
-
-
-    const newMessage = await (
-      await new Message({ senderId, roomId, text, image: imageUrl, replyTo }).save()
-    ).populate([
-      { path: 'roomId', select: 'updatedAt type members' },
-      { path: 'senderId', select: 'name profilePic' },
-      {
-        path: 'replyTo', populate: { path: 'senderId', select: 'name' },
-      },
-    ]);
-
-    await ChatRoom.findByIdAndUpdate(roomId,
-      { lastMessage: newMessage._id },
-      { new: true }
-    );
-
-    const exceptionId = getReceiverSocketId(senderId)
-    if (exceptionId) {
-      io.to(roomId).except(exceptionId).emit("message:send", newMessage);
-    }
-
-    const membersExceptMe = newMessage.roomId.members.map(m => m.user).filter(m => m._id.toString() !== senderId.toString())
-    sendInfoToOnlineMembers(membersExceptMe, "message:notif", newMessage)
-
-
-    res.status(201).json(newMessage);
-
-  } catch (error) {
-    console.log("Error in sendMessage controller: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-export const removeMsg = async (req, res) => {
-  try {
-    const userId = req.user._id
-    const { msgId } = req.params
-
-    // پیدا کردن پیام مورد نظر
-    const eliminatedMsg = await Message.findById(msgId)
-    if (!eliminatedMsg)
-      return res.status(400).json({ message: "همچین پیامی وجود ندارد" })
-
-    const roomId = eliminatedMsg.roomId
-    const room = await ChatRoom.findById(roomId)
-    if (!room)
-      return res.status(400).json({ message: "اتاق یافت نشد" })
-
-    // همه پیام‌های این روم را به ترتیب زمان
-    const messages = await Message.find({ roomId }).sort({ createdAt: 1 }).lean()
-    const msgIdx = messages.findIndex(m => m._id.toString() === msgId)
-
-    // حذف پیام
-    await Message.findByIdAndDelete(msgId)
-
-    // بررسی اگر آخرین پیام بوده
-    const isLastMessage = room.lastMessage?._id?.toString() === msgId
-    let prevMsg;
-    if (isLastMessage) {
-      prevMsg = messages[msgIdx - 1] || null
-      room.lastMessage = prevMsg
-      await room.save()
-    }
-
-    res.status(200).json({ message: "با موفقیت حذف شد" })
-
-    // اطلاع‌رسانی به سایر کاربران
-
-      io.to(roomId.toString())
-        .emit('message:remove', { msgId, room })
-    
-
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: "خطای سرور" })
-  }
-}
-
-
-
-export const checkMessageAsSeen = async (req, res) => {
-  try {
-    const userId = req.user._id
-    const { roomId } = req.params
+    if (!text && !image)
+      return res.status(400).json({ message: "متن یا تصویر الزامی است" });
 
     if (!roomId)
-      return res.status(400).json({ message: "چتی پیدا نشد" })
-    await Message.updateMany({ roomId }, { $addToSet: { seenBy: userId } })
+      return res.status(400).json({ message: "شناسه اتاق نامعتبر است" });
 
+    const room = await chatRoomService.findById(roomId)
+    if (!room) return res.status(404).json({ message: "اتاق یافت نشد" });
+
+    // آپلود تصویر در صورت نیاز
+    let imageUrl = null;
+    if (image) {
+      imageUrl = await uploadImage(image);
+    }
+
+    // بررسی reply message
+    const replyTo = replyId && (await Message.exists({ _id: replyId })) ? replyId : null;
+    console.log('sende message : back');
+    // ساخت پیام جدید
+    const newMessage = await messageService.create({
+      senderId,
+      roomId,
+      text,
+      image: imageUrl,
+      replyTo,
+    });
+
+    // ارسال پیام به کاربران دیگر
+    const exceptionId = getReceiverSocketId(senderId);
+    if (exceptionId) io.to(roomId).except(exceptionId).emit("message:send", newMessage);
+
+    // اعلان پیام جدید
+    const membersExceptMe = newMessage.roomId.members
+      .filter(m => m._id.toString() !== senderId.toString());
+    emitToOnlineMembers(membersExceptMe, "message:notif", newMessage);
+
+    res.status(201).json(newMessage);
   } catch (error) {
-    console.log("Error in checkMessageAsSeen controller: ", error.message);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("sendMessage:", error);
+    res.status(500).json({ message: "خطای داخلی سرور" });
   }
-}
+};
+// 🔴 حذف پیام
+export const removeMsg = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { msgId } = req.params;
+    if (!msgId) return res.status(400).json({ message: "شناسه پیام نامعتبر است" });
+
+    const message = await Message.findById(msgId);
+    if (!message) return res.status(404).json({ message: "پیام یافت نشد" });
+    //آیا پیام برای خود شخص
+    if (message.senderId.toString() !== userId.toString())
+      return res.status(403).json({ message: "اجازه حذف ندارید" });
+
+    const room = await ChatRoom.findById(message.roomId);
+    if (!room) return res.status(404).json({ message: "اتاق یافت نشد" });
+
+    // حذف پیام
+    await message.deleteOne();
+
+    // به‌روزرسانی پیام آخر در صورت نیاز
+    if (room.lastMessage?.toString() === msgId) {
+      const prevMsg = await Message.findOne({ roomId: room._id })
+        .sort({ createdAt: -1 })
+        .select("_id");
+      room.lastMessage = prevMsg?._id || null;
+      await room.save();
+    }
+console.log(msgId);
+
+    res.json({ message: "پیام با موفقیت حذف شد" });
+    io.to(room._id.toString()).emit("message:remove", { msgId ,room});
+  } catch (err) {
+    console.error("removeMsg:", err);
+    res.status(500).json({ message: "خطای سرور" });
+  }
+};
+// 🟢 علامت‌زدن پیام‌ها به عنوان خوانده‌شده
+export const markMessageAsSeen = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { roomId } = req.params;
+
+    if (!roomId)
+      return res.status(400).json({ message: "شناسه اتاق نامعتبر است" });
+
+    await Message.updateMany(
+      { roomId, seenBy: { $ne: userId } },
+      { $addToSet: { seenBy: userId } }
+    );
+
+    res.status(200).json({ message: "پیام‌ها به عنوان خوانده‌شده علامت‌گذاری شدند" });
+  } catch (error) {
+    console.error("checkMessageAsSeen:", error);
+    res.status(500).json({ message: "خطای داخلی سرور" });
+  }
+};
 

@@ -1,7 +1,7 @@
 import express from "express";
 import {
-  checkMessageAsSeen,
   getMessagesByRoomId,
+  markMessageAsSeen,
   removeMsg,
   sendMessage,
 } from "../controllers/message.controller.js";
@@ -17,7 +17,7 @@ router.use(arcjetProtection, protectRoute);
 
 router.get("/:roomId", getMessagesByRoomId);
 router.post("/send/:roomId", sendMessage);
-router.post("/seenby/:roomId", checkMessageAsSeen);
+router.post("/seenby/:roomId", markMessageAsSeen);
 router.delete("/remove/:msgId", removeMsg);
 
 export default router;

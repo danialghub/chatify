@@ -6,7 +6,7 @@ import cloudinary from "../lib/cloudinary.js";
 
 export const signup = async (req, res) => {
   const { name, userName, password } = req.body;
-console.log(userName);
+
 
   try {
     if (!name || !userName || !password) {
@@ -17,8 +17,6 @@ console.log(userName);
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
-    // check if emailis valid: regex
-    
     if (!userName.startsWith('@')) {
       return res.status(400).json({ message: "Invalid userName format" });
     }
@@ -104,25 +102,37 @@ export const logout = (_, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { profilePic } = req.body;
-    if (!profilePic) return res.status(400).json({ message: "Profile pic is required" });
+    const { profilePic, name, password, bio } = req.body;
+
+    if (!profilePic && !name && !password && !bio)
+      return res.status(400).json({ message: "داده نامعتبر است" });
 
     const userId = req.user._id;
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic, {
-      transformation: [
-        { width: 500, crop: 'fill', gravity: 'face' },
-        { quality: 'auto', fetch_format: "auto" }
-      ]
-    });
+    const newInfo = { name, bio }
+
+    if (profilePic) {
+      let uploadedImg = await cloudinary.uploader.upload(profilePic, {
+        transformation: [
+          { width: 500, crop: 'fill', gravity: 'face' },
+          { quality: 'auto', fetch_format: "auto" }
+        ]
+      });
+      newInfo.profilePic = uploadedImg.secure_url
+    }
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      newInfo.password = hashedPassword = await bcrypt.hash(password, salt);
+    }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { profilePic: uploadResponse.secure_url },
+      newInfo,
       { new: true }
     );
 
-    res.status(200).json(updatedUser);
+
+    res.status(200).json({ updatedUser, message: "اطلاعات با موفقیت ویرایش شد" });
   } catch (error) {
     console.log("Error in update profile:", error);
     res.status(500).json({ message: "Internal server error" });

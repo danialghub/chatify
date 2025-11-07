@@ -10,6 +10,14 @@ const passwordSchema = z
     .refine((val) => /[!@#$%^&*()_+\-=\[\]{};:\\|,.<>\/?]/.test(val), { message: "رمز باید حداقل یک نماد ویژه داشته باشد." });
 
 
+
+export const imgageSchema = z
+    .instanceof(File)
+    .refine(file => file.size <= 4 * 1024 * 1024, "حجم عکس بیشتر از 4 مگابایت نباید باشد")
+    .refine(file => ["image/jpeg", "image/png", "image/webp"].includes(file.type), "فرمت فایل درسیت نیست")
+
+
+
 export const userSignUpSchema = z.object({
     name: z
         .string()
@@ -19,7 +27,7 @@ export const userSignUpSchema = z.object({
     userName: z
         .string()
         .refine(userName => userName.startsWith('@'), "یوزرنیم حتما باید با @ شروع شود"),
-        
+
     password: passwordSchema,
 
     passwordConfirm: z
@@ -42,7 +50,21 @@ export const userLoginSchema = z.object({
 
 })
 
-export const imgageSchema = z
-    .instanceof(File)
-    .refine(file => file.size <= 4 * 1024 * 1024, "حجم عکس بیشتر از 4 مگابایت نباید باشد")
-    .refine(file => ["image/jpeg", "image/png", "image/webp"].includes(file.type), "فرمت فایل درسیت نیست")
+export const userEditSchema = z.object({
+    name: z
+        .string()
+        .min(3, "نام باید حداقل ۳ کاراکتر باشد"),
+
+    bio: z
+        .string(),
+
+    password: z.string().optional().refine(val => !val || val.length >= 10, "رمز باید حداقل 10 کاراکتر باشد."),
+
+    passwordConfirm: z
+        .string(),
+
+
+}).refine((data) => data.password === data.passwordConfirm, {
+    message: "رمز عبور و تکرار آن یکی نیستند",
+    path: ["passwordConfirm"],
+})

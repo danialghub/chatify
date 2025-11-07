@@ -1,18 +1,21 @@
 import { motion } from 'framer-motion'
-import { useRoomStore } from '../store/useRoomStore'
-import { useAuthStore } from '../store/useAuthStore';
-import { ChatIcon } from './index'
-import useSocket from '../hooks/useSocket';
-import { formatChatTime } from '../lib/helper'
+import { useRoomStore } from '@/store/useRoomStore'
+import { useAuthStore } from '@/store/useAuthStore';
+import { ChatIcon } from '@/components/index'
+import useSocket from '@/hooks/useSocket';
+import { formatChatTime } from '@/lib/helper'
+import { memo } from 'react';
 
-const Room = ({ room, userId, name, logo }) => {
-  const { selectedRoom, setSelectedRoom, unSeenMessages, updateRoomStates } = useRoomStore()
+const Room = memo(({ room, userId, name, logo }) => {
+  const { selectedRoom, setSelectedRoom, unSeenMessages, updateRoomStates, removeFromRooms } = useRoomStore()
   const { onlineUsers } = useAuthStore();
 
   useSocket('message:notif', updateRoomStates)
-
-
+  useSocket('room:remove', removeFromRooms)
   
+
+
+
   return (
     <motion.div
       onClick={() => setSelectedRoom(room)}
@@ -32,7 +35,7 @@ const Room = ({ room, userId, name, logo }) => {
           <ChatIcon
             profile={logo}
             name={name}
-            classProps="size-12"
+            classProps="!size-12 w-auto"
           />
         </div>
       ) : (
@@ -63,7 +66,7 @@ const Room = ({ room, userId, name, logo }) => {
 
       {/* نشانگر پیام خوانده‌نشده */}
       {unSeenMessages[room._id] > 0 && (
-        <div className="absolute right-0 bottom-2">
+        <div className="absolute right-0.5 bottom-2">
           <span
             className="
         bg-cyan-800 text-white text-[10px] font-semibold 
@@ -81,6 +84,6 @@ const Room = ({ room, userId, name, logo }) => {
     </motion.div>
 
   )
-}
+})
 
 export default Room

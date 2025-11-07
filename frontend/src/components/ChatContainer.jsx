@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import { useAuthStore } from "../store/useAuthStore";
-import { useChatStore } from "../store/useChatStore";
-import { useRoomStore } from "../store/useRoomStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useChatStore } from "@/store/useChatStore";
+import { useRoomStore } from "@/store/useRoomStore";
 
 import {
   PrivateChatHeader,
@@ -10,7 +10,7 @@ import {
   MessagesLoadingSkeleton,
   MessageInput,
   Message
-} from "./index";
+} from '@/components/index';
 import useSocket from "../hooks/useSocket";
 
 const ChatContainer = () => {
@@ -33,14 +33,12 @@ const ChatContainer = () => {
   useSocket('message:remove', removeFromMessages)
 
   const messageEndRef = useRef(null);
-  const isPrivateChat = selectedRoom.type === "private"
 
   // 📩 گرفتن پیام‌ها
   useEffect(() => {
     if (!selectedRoom?._id) return;
     checkMessageAsSeen(selectedRoom._id)
     getMessagesByRoomId(selectedRoom._id);
-
   }, [
     selectedRoom,
     getMessagesByRoomId,
@@ -51,12 +49,11 @@ const ChatContainer = () => {
     if (messageEndRef.current) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-    checkMessageAsSeen(selectedRoom._id)
-  }, [messages, checkMessageAsSeen]);
+  }, [messages]);
 
   return (
     <>
-      {isPrivateChat
+      {!selectedRoom.isGroup
         ? <PrivateChatHeader />
         : <GroupChatHeader />
       }
@@ -74,7 +71,7 @@ const ChatContainer = () => {
                   key={msg._id}
                   msg={msg}
                   isMyMessage={isMyMessage}
-                  isGroup={selectedRoom.type === "group"}
+                  isGroup={selectedRoom.isGroup}
                 />
               );
             })}

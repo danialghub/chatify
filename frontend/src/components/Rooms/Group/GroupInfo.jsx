@@ -1,16 +1,16 @@
 import React, { useState } from 'react'
-import { ChatIcon } from '../index'
-import { X, Edit, LogOut, UserPlus } from "lucide-react";
-import { useAuthStore } from "../../store/useAuthStore";
-import { useRoomStore } from '../../store/useRoomStore';
-import { useChatStore } from '../../store/useChatStore';
+import { ChatIcon } from '@/components/index'
+import { X, Edit, LogOut, UserPlus, Trash } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useRoomStore } from '@/store/useRoomStore';
+import { useChatStore } from '@/store/useChatStore';
 
 const GroupInfo = () => {
     const [activeTab, setActiveTab] = useState("members");
 
     const { onlineUsers, authUser } = useAuthStore();
     const { setModalType } = useChatStore()
-    const { leaveRoom, selectedRoom: room } = useRoomStore();
+    const { leaveingTheGroup, selectedRoom: room, removeRoom } = useRoomStore();
 
     const media = [
         { id: 1, src: "https://picsum.photos/200?random=1" },
@@ -23,11 +23,12 @@ const GroupInfo = () => {
         { id: 8, src: "https://picsum.photos/200?random=8" },
     ];
 
-    const visibleMembers = room.members.slice(0, 6);
-    const me = visibleMembers.find(({ user }) => user._id === authUser._id)
+    const visibleMembers = room?.members?.slice(0, 6);
+    const isOwner = room.createdBy === authUser._id
 
 
     const visibleMedia = media.slice(0, 9);
+
 
 
     return (
@@ -35,7 +36,7 @@ const GroupInfo = () => {
             <div className="bg-white w-[400px] rounded-2xl overflow-hidden shadow-xl flex flex-col">
                 {/* Header */}
                 <div className="bg-blue-700/80  text-white p-4 relative flex flex-col items-center">
-                    {me.role !== "member" && (
+                    {isOwner && (
                         <button
                             onClick={() => setModalType("groupEdit")}
                             className="absolute top-3 right-3 hover:bg-blue-700 p-2 rounded-full">
@@ -46,7 +47,7 @@ const GroupInfo = () => {
                     <ChatIcon
                         profile={room?.logo}
                         name={room?.name}
-                        classProps="w-20 h-20 rounded-full border-4 border-white mb-2"
+                        classProps="size-20 rounded-full border-4 border-white mb-2"
                     />
                     <h2 className="text-lg font-semibold text-center">
                         {room?.name}
@@ -62,17 +63,27 @@ const GroupInfo = () => {
                     <div className="flex items-center justify-center w-full gap-3 pt-4">
                         {/* Buttons */}
                         <div className="flex justify-center py-1 border-b-2 bg-black/10  hover:bg-black/20 rounded-md flex-1 transition">
-                            <button
-                                onClick={leaveRoom}
-                                className="flex items-center gap-2  text-white font-medium px-4 py-2  ">
-                                <LogOut size={18} />
-                                ترک گروه
-                            </button>
+                            {isOwner
+                                ? <button
+                                    onClick={() => removeRoom(room)}
+                                    className="flex items-center gap-2  text-white font-medium px-4 py-2  ">
+                                    <Trash size={18} />
+                                    حذف گروه
+                                </button>
+                                : <button
+                                    onClick={() => leaveingTheGroup(room._id)}
+                                    className="flex items-center gap-2  text-white font-medium px-4 py-2  ">
+                                    <LogOut size={18} />
+                                    ترک گروه
+                                </button>
+                            }
                         </div>
 
                         {/* Add Members */}
                         <div className="flex justify-center py-1 border-b-2  bg-black/10 hover:bg-black/20 rounded-md flex-1 transition">
-                            <button className="flex items-center gap-2  font-medium  px-4 py-2 ">
+                            <button
+                                onClick={() => setModalType('AddMembers')}
+                                className="flex items-center gap-2  font-medium  px-4 py-2 ">
                                 <span className="text-2xl leading-none"><UserPlus size={20} /></span> عضویت
                             </button>
                         </div>
@@ -108,14 +119,14 @@ const GroupInfo = () => {
                 <div className="flex-1 py-1 max-h-[50vh] min-h-[50vh] overflow-y-auto text-black/50">
                     {activeTab === "members" ? (
                         <div className="divide-y">
-                            {visibleMembers && visibleMembers.map(({ user, role }) => {
+                            {visibleMembers && visibleMembers.map((user) => {
 
                                 const isOnline = onlineUsers.includes(user._id)
 
                                 return (
                                     <div
                                         key={user._id}
-                                        className="flex items-center gap-2 p-3 hover:bg-gray-200/50 transition"
+                                        className={`flex items-center gap-2 p-3 hover:bg-gray-200/50 transition`}
                                     >
 
                                         <div className={`avatar ${isOnline ? "online" : "offline"} `}>
@@ -123,7 +134,7 @@ const GroupInfo = () => {
                                             <ChatIcon
                                                 profile={user?.profilePic}
                                                 name={user.name}
-                                                classProps="size-12"
+                                                classProps="!size-12"
 
                                             />
 
@@ -135,18 +146,15 @@ const GroupInfo = () => {
                                             }
                                             </p>
 
-                                            <p className={`text-xs ${isOnline ? "text-green-600" : "text-slate-500"}`}>{isOnline ? "Online" : "Offline"}</p>
+                                            <p className={`text-xs ${isOnline ? "text-green-600" : "text-slate-500"}`}>{isOnline ? "آنلاین" : "آفلاین"}</p>
                                         </div>
-                                        {role && (
+                                        {room.createdBy === user._id &&
                                             <span
-                                                className={`text-xs text-center font-semibold ${role === "owner"
-                                                    ? "text-purple-600"
-                                                    : "text-blue-600"
-                                                    }`}
+                                                className="text-xs text-center font-semibold text-purple-600"
                                             >
-                                                {role}
+                                                مالک
                                             </span>
-                                        )}
+                                        }
                                     </div>
                                 )
                             })}
@@ -159,12 +167,14 @@ const GroupInfo = () => {
                     ) : (
                         <div className="grid grid-cols-3 gap-2 p-3 max-h-[50vh] min-h-[50vh] overflow-y-auto">
                             {visibleMedia.map((m) => (
-                                <img
-                                    key={m.id}
-                                    src={m.src}
-                                    alt="media"
-                                    className="rounded-lg object-cover w-full h-24 cursor-pointer hover:opacity-80 transition"
-                                />
+                                <a href={m.src} target='_blank'>
+                                    <img
+                                        key={m.id}
+                                        src={m.src}
+                                        alt="media"
+                                        className="rounded-lg object-cover w-full h-24 cursor-pointer hover:opacity-80 transition"
+                                    />
+                                </a>
                             ))}
                             {media.length > 9 && (
                                 <div className="col-span-3 text-center text-sm text-gray-400 py-1">

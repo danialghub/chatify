@@ -7,7 +7,7 @@ import cors from "cors";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import chatRoomRoutes from "./routes/chatRoom.route.js";
-import requestRoutes from "./routes/request.route.js";
+import userRoutes from "./routes/user.route.js";
 //configs
 import { connectDB } from "./lib/db.js";
 import { ENV } from "./lib/env.js";
@@ -24,7 +24,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/room", chatRoomRoutes);
-app.use("/api/requests", requestRoutes);
+app.use("/api/user", userRoutes);
 
 // make ready for deployment
 if (ENV.NODE_ENV === "production") {
@@ -38,4 +38,5 @@ if (ENV.NODE_ENV === "production") {
 server.listen(PORT, () => {
   console.log("Server running on port: " + PORT);
   connectDB();
-});
+})
+

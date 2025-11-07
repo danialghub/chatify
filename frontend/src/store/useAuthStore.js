@@ -11,6 +11,7 @@ export const useAuthStore = create((set, get) => ({
   isCheckingAuth: true,
   isSigningUp: false,
   isLoggingIn: false,
+  isUpdating: false,
   socket: null,
   onlineUsers: [],
 
@@ -73,14 +74,17 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  updateProfile: async (profileData) => {
+  updateProfile: async (body) => {
     try {
-      const data = await authService.updateProfile(profileData)
-      set({ authUser: data });
-      toast.success("پروفایل با موفقیت آپدیت شد");
+      set({ isUpdating: true })
+      const data = await authService.updateProfile(body)
+      set({ authUser: data.updatedUser });
+      toast.success(data.message);
     } catch (error) {
       console.log("Error in update profile:", error);
       toast.error(error.response.data.message);
+    } finally {
+      set({ isUpdating: false })
     }
   },
 

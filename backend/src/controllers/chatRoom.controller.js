@@ -1,228 +1,243 @@
-import ChatRoom from "../models/ChatRoom.js";
-import FriendRequest from "../models/FriendRequest.js";
+import { chatRoomService } from '../services/chatRoom.service.js'
 import Message from "../models/Message.js";
-import { sendInfoToOnlineMembers, io } from "../lib/socket.js";
-import cloudinary from "../lib/cloudinary.js";
+import { emitToOnlineMembers, io, getReceiverSocketId } from "../lib/socket.js";
+import { uploadImage } from '../lib/helper.js';
+import ChatRoom from '../models/ChatRoom.js';
+import User from '../models/User.js';
+
 // 🟢 ایجاد گروه
-export const createGroupChat = async (req, res) => {
+export const createRoom = async (req, res) => {
   try {
-    const { _id: userId } = req.user;
-    const { memberIds = [], groupName, groupImage } = req.body;
+    const { isGroup, memberIds, groupName, groupImage } = req.body;
+    const userId = req.user._id
+    let newRoom;
+    let allParticipantIds = [];
 
-    if (!groupName || !memberIds.length)
-      return res.status(400).json({ message: "اطلاعات ناقص است" });
+    if (isGroup && groupName) {
+      if (await ChatRoom.exists({ name: groupName }))
+        return res.status(400).json({ message: "این گروه از قبل وجود دارد" });
 
-    if (await ChatRoom.exists({ name: groupName }))
-      return res.status(400).json({ message: "این گروه از قبل وجود دارد" });
+      let uploadedImg = null;
+      if (groupImage) {
+        uploadedImg = await uploadImage(groupImage);
+      }
 
-    const members = [
-      { user: userId, role: "owner" },
-      ...memberIds.map(id => ({ user: id, role: "member" })),
-    ];
-    let uploadedImg;
-    if (groupImage) {
-      const uploadResponse = await cloudinary.uploader.upload(groupImage, {
-        transformation: [
-          { width: 500, crop: 'fill', gravity: 'face' },
-          { quality: 'auto', fetch_format: "auto" }
-        ]
+      allParticipantIds = [userId, ...memberIds];
+      newRoom = await chatRoomService.create({
+        members: allParticipantIds,
+        isGroup,
+        name: groupName,
+        createdBy: userId,
+        logo: uploadedImg
       });
-      uploadedImg = uploadResponse.secure_url
+    } else {
+      const otherUser = await User.findById(memberIds[0]);
+      if (!otherUser) return res.status(404).json({ message: "مخاطبی یافت نشد" });
+
+      allParticipantIds = [userId, ...memberIds];
+      const existingChat = await ChatRoom.findOne({
+        members: {
+          $all: allParticipantIds,
+          $size: 2,
+        },
+      }).populate('members', 'name profilePic').lean()
+
+      if (existingChat) {
+        return res.status(200).json({ room: existingChat })
+      } else {
+        newRoom = await chatRoomService.create({
+          members: allParticipantIds,
+          isGroup: false,
+        });
+      }
     }
 
-    const newGroup = await ChatRoom.create({
-      name: groupName,
-      type: "group",
-      members,
-      logo: uploadedImg
-    });
+    emitToOnlineMembers(memberIds, "room:new", newRoom);
 
-    sendInfoToOnlineMembers(memberIds, "newRoom", newGroup);
+    if (isGroup) {
+      return res.status(201).json({ newRoom, message: "گروه با موفقیت ایجاد شد" });
+    }
 
-    return res.status(201).json({
-      group: newGroup,
-      message: "گروه با موفقیت ایجاد شد",
-    });
+    res.status(201).json({ newRoom, message: "چت با موفقیت ایجاد شد" });
   } catch (error) {
-    console.error("Error in createGroupChat:", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("createRoom:", error);
+    res.status(500).json({ message: "خطای داخلی سرور" });
   }
 };
 
-// 🟣 دریافت همه چت‌های خصوصی
-export const getAllPrivateChat = async (req, res) => {
+// 🟡 دریافت همه چت‌ها
+export const getAllRooms = async (req, res) => {
   try {
-    const { _id: userId } = req.user;
 
-    const privateRooms = await ChatRoom.find({
-      type: "private",
-      "members.user": userId,
-    })
-      .select("-name -members.role")
-      .sort({ updatedAt: -1 })
-      .populate("members.user", "name profilePic bio")
-      .populate('lastMessage', 'text createdAt')
-      .lean();
+    const userId = req.user._id;
+    const { isGroup } = req.query
 
-    if (!privateRooms.length)
-      return res.status(404).json({ message: "هیچ چت خصوصی‌ای یافت نشد" });
+    let rooms = await chatRoomService.findRooms(userId, isGroup)
 
-    //جداکردن خود کاربر از مخاطب هایش
-    const filterPrivateRooms = privateRooms.map(room => {
-      return {
-        ...room,
-        members: room.members.filter(m => m.user._id.toString() !== userId.toString())[0]
-      }
-    });
+    if (!rooms.length)
+      return res.status(200).json({ rooms: [], unSeenMessages: {} });
+
 
     const unSeenMessages = Object.fromEntries(
-      await Promise.all(filterPrivateRooms.map(async p => [
-        p._id,
-        await Message.countDocuments({ roomId: p._id, seenBy: { $ne: userId }, senderId: { $ne: userId } })
-      ]))
-    )
+      await Promise.all(
+        rooms.map(async r => [
+          r._id,
+          await Message.countDocuments({
+            roomId: r._id,
+            seenBy: { $ne: userId },
+            senderId: { $ne: userId },
+          }),
+        ])
+      )
+    );
 
-
-    res.status(200).json({ privateRooms: filterPrivateRooms, unSeenMessages });
+    res.status(200).json({ rooms, unSeenMessages });
   } catch (error) {
-    console.error("Error in getAllPrivateChat:", error.message);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("getAllPrivateChat:", error);
+    res.status(500).json({ message: "خطای داخلی سرور" });
   }
 };
 
-// 🟢 دریافت گروه‌ها
-export const getAllGroupChat = async (req, res) => {
+//  حذف چت
+export const removeRoom = async (req, res) => {
   try {
-    const { _id: userId } = req.user;
-
-    const groupRooms = await ChatRoom.find({
-      type: "group",
-      "members.user": userId,
-    })
-      .sort({ updatedAt: -1 })
-      .populate("members.user", "name profilePic bio")
-      .populate('lastMessage', 'text createdAt');
-
-    if (!groupRooms.length)
-      return res.status(404).json({ message: "هیچ گروهی وجود ندارد" });
-
-    const unSeenMessages = Object.fromEntries(
-      await Promise.all(groupRooms.map(async g => [
-        g._id,
-        await Message.countDocuments({ roomId: g._id, seenBy: { $ne: userId }, senderId: { $ne: userId } })
-      ]))
-    )
-
-
-    res.status(200).json({ groupRooms, unSeenMessages });
-  } catch (error) {
-    console.error("Error in getAllGroupChat:", error.message);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-// 🔴 حذف گروه
-export const removeGroupChat = async (req, res) => {
-  try {
-    const { _id: userId } = req.user;
+    const userId = req.user._id;
     const { roomId } = req.params;
 
-    if (!roomId)
-      return res.status(400).json({ message: "شناسه گروه نامعتبر است" });
+    const room = await ChatRoom.findOne({ _id: roomId });
+    if (!room) return res.status(404).json({ message: "گروهی یافت نشد" });
 
-    const room = await ChatRoom.findOne({ _id: roomId, type: "group" });
-    if (!room)
-      return res.status(404).json({ message: "گروهی یافت نشد" });
-
-    const isOwner = room.members.some(
-      m => String(m.user) === String(userId) && m.role === "owner"
-    );
-    if (!isOwner)
-      return res.status(403).json({ message: "شما مجاز به حذف این گروه نیستید" });
+    if (room.isGroup) {
+      const isOwner = room.createdBy.toString() === userId.toString()
+      if (!isOwner)
+        return res.status(403).json({ message: "شما مجاز به حذف این گروه نیستید" });
+    }
 
     await Promise.all([
-      Message.deleteMany({ room: roomId }),
+      Message.deleteMany({ roomId }),
       ChatRoom.deleteOne({ _id: roomId }),
     ]);
 
-    const memberIds = room.members.map(m => m.user);
-    sendInfoToOnlineMembers(memberIds, "groupDeleted", { roomId });
+    const groupMembers = room.members.map(m => m.toString()).filter(m => m !== userId.toString())
 
-    res.status(200).json({ message: "گروه با موفقیت حذف شد" });
+    emitToOnlineMembers(groupMembers, "room:remove", room);
+
+    res.status(200).json({ message: "اتاق موفقیت حذف شد" });
   } catch (error) {
-    console.error("Error in removeGroupChat:", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("removeRoom:", error);
+    res.status(500).json({ message: "خطای داخلی سرور" });
   }
 };
 
-// 🔴 حذف چت خصوصی
-export const removePrivateChat = async (req, res) => {
+//  خروج از گروه
+export const leavingTheGroup = async (req, res) => {
   try {
-    const { _id: userId } = req.user;
-    const { otherUserId } = req.params;
+    const userId = req.user._id;
+    const { roomId } = req.params;
 
-    if (!otherUserId)
-      return res.status(400).json({ message: "شناسه کاربر نامعتبر است" });
-
-    const room = await ChatRoom.findOne({ "members.user": { $all: [userId, otherUserId] }, type: "private" });
+    const room = await chatRoomService.findById(roomId)
     if (!room)
-      return res.status(404).json({ message: "هیچ چت خصوصی‌ای یافت نشد" });
+      return res.status(404).json({ message: "گروهی یافت نشد" });
 
+    const member = room.members.find(m => m._id.toString() === userId.toString());
+    if (!member) return res.status(403).json({ message: "عضو این گروه نیستید" });
 
-    await Promise.all([
-      Message.deleteMany({ roomId: room._id }),
-      ChatRoom.deleteOne({ _id: room._id }),
-      FriendRequest.deleteOne({
-        $or: [
-          { from: userId, to: otherUserId },
-          { from: otherUserId, to: userId },
-        ],
-      }),
-    ]);
-
-    sendInfoToOnlineMembers([userId, otherUserId], "chatDeleted", { roomId: room._id });
-
-    res.status(200).json({ message: "چت با موفقیت حذف شد" });
-  } catch (error) {
-    console.error("Error in removePrivateChat:", error.message);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-//خروج از گروه
-export const leavingGroup = async (req, res) => {
-  try {
-    const userId = req.user._id
-    const { roomId } = req.params
-
-    if (!roomId)
-      return res.status(400).json({ message: "اتاق نامعتبر است" })
-    const room = await ChatRoom.findOne({ _id: roomId, type: "group" })
-      .populate('members.user', 'name profilePic')
-
-    if (!room)
-      return res.status(404).json({ message: "گروهی یافت نشد" })
-
-
-    const isOwner = room.members.some(m =>
-      String(m.user._id) === String(userId) && m.role === "owner"
-    )
-    console.log(isOwner);
+    const isOwner = room.createdBy.toString() === member._id.toString()
     if (isOwner)
-      return res.status(403).json({ message: "شما قادر به اینکار نمیباشید" })
-    room.members = room.members.filter(m => String(m.user._id) !== String(userId))
+      return res.status(403).json({ message: "مالک گروه نمی‌تواند خارج شود" });
 
-    await room.save()
+    room.members = room.members.filter(m => m._id.toString() !== userId.toString());
+    await room.save();
 
-    const updatedRoom = await room.populate('members.user', 'name profilePic')
-
-    io.to(roomId).emit('groupUpdate', updatedRoom)
+    await room.populate("members", "name profilePic");
 
 
-    res.status(200).json({ message: "شما با موفقیت خارج شدید" })
+    io.to(roomId).emit("room:update", room);
+
+    res.status(200).json({ message: "با موفقیت از گروه خارج شدید" });
+  } catch (error) {
+    console.error("leavingTheGroup:", error);
+    res.status(500).json({ message: "خطای داخلی سرور" });
+  }
+};
+//  آپدیت گروه
+export const updateGroupRooms = async (req, res) => {
+  try {
+    const { memberIds, groupName, groupImage } = req.body;
+    const { roomId } = req.params
+    const userId = req.user._id
+
+    if (!groupImage && !groupName && !memberIds.length)
+      return res.status(400).json({ message: "مقادیر نامعتبر است" })
+
+
+    if (! await ChatRoom.exists({ _id: roomId }))
+      return res.status(400).json({ message: "گروه نامعتبر است" });
+
+
+    if (! await ChatRoom.exists({ createdBy: userId }))
+      return res.status(403).json({ message: "تنها مالک گروه مجاز به تغییر است" })
+
+    const currentGroup = await chatRoomService.findById(roomId)
+
+
+    let uploadedImg = null;
+    if (groupImage) {
+      uploadedImg = await uploadImage(groupImage);
+    }
+
+    const updatedRoom = await ChatRoom.findByIdAndUpdate(roomId, {
+      members: [userId, ...memberIds],
+      name: groupName,
+      logo: uploadedImg
+    }, { new: true }).populate("members", "name profilePic").lean();
+
+
+    emitToOnlineMembers([userId, ...memberIds], "room:update", updatedRoom);
+
+    const kickedOutMembers = currentGroup.members.map(m => m._id.toString()).filter(m => !memberIds.includes(m) && m !== userId.toString())
+    console.log(kickedOutMembers);
+
+
+    if (kickedOutMembers.length)
+      emitToOnlineMembers(kickedOutMembers, "room:remove", updatedRoom);
+
+    res.status(201).json({ message: "گروه با موفقیت آپدیت شد" });
 
   } catch (error) {
-    console.error("Error in leavingGroup:", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("updateGroupRooms:", error);
+    res.status(500).json({ message: "خطای داخلی سرور" });
+  }
+};
+
+// افزودن اعضاء
+export const addMembers = async (req, res) => {
+  try {
+    const { memberIds } = req.body
+    const { roomId } = req.params
+    const userId = req.user._id
+
+    if (!memberIds.length)
+      return res.status(400).json({ message: "باید حداقل یک نفر انتخاب شود" })
+
+    if (!await ChatRoom.exists({ _id: roomId, members: userId }))
+      return res.status(403).json({ message: "شما در این گروه حضور ندارید" })
+
+    const room = await chatRoomService.findById(roomId)
+    const currentMemberIds = room.members.map(m => m._id.toString());
+    const newMembers = memberIds.filter(id => !currentMemberIds.includes(id));
+    const allMembers = [...room.members, ...newMembers]
+    room.members = allMembers;
+
+    const updatedRoom = await ChatRoom.findByIdAndUpdate(roomId, { members: room.members }, { new: true }).populate('members', 'name profilePic')
+
+    const allMemberIds = allMembers.map(m => m._id ? m._id.toString() : m.toString());
+    emitToOnlineMembers(allMemberIds, "room:update", updatedRoom);
+
+    res.status(201).json({ message: "اعضاء با موفقیت عضو گروه شدن" })
+
+  } catch (error) {
+    console.error("addMembers:", error);
+    res.status(500).json({ message: "خطای داخلی سرور" });
   }
 }

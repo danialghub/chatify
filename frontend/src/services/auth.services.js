@@ -17,8 +17,8 @@ export const authService = {
     logout: async () => {
         await axiosInstance.post("/auth/logout");
     },
-    updateProfile : async (profileData)=>{
-        const {data} = await axiosInstance.put("/auth/update-profile", profileData);
+    updateProfile : async (body)=>{
+        const {data} = await axiosInstance.put("/auth/update-profile", body);
         return data
     }
 }

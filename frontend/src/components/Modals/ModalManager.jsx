@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { Modal, GroupInfo, GroupForm, SendRequest } from "../index";
+import { Modal, GroupInfo, GroupForm, SearchingRooms, AddMembers } from '@/components/index';
 
 const ModalManager = ({ modalType, setModalType }) => {
 
@@ -7,7 +7,7 @@ const ModalManager = ({ modalType, setModalType }) => {
     {
         GroupCreate: "ایجاد گروه جدید",
         groupEdit: "ادیت گروه",
-        sendRequest: "جستجوی مخاطب  "
+        SearchingRooms: "جستجوی مخاطب "
     }
 
     const renderModal = useCallback(() => {
@@ -21,19 +21,23 @@ const ModalManager = ({ modalType, setModalType }) => {
             case "GroupCreate":
                 return <GroupForm state="create" />
 
-            case "sendRequest":
-                return <SendRequest />
+            case "AddMembers":
+                return <AddMembers />
+
+            case "SearchingRooms":
+                return <SearchingRooms />
 
             default:
                 return null;
         }
-    })
+    }, [modalType])
+    
     return (
         <Modal
             title={titles[modalType]}
             isOpen={!!modalType}
             onClose={() => setModalType(null)}
-            className={modalType === "groupInfo" && "!bg-transparent !shadow-none"}
+            className={(modalType === "groupInfo" || modalType === "AddMembers") && "!bg-transparent !shadow-none"}
         >
             {renderModal()}
         </Modal>

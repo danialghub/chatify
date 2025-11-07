@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { XIcon } from "lucide-react";
-import { ChatIcon, ImageUploader } from '../index'
-import { useRoomStore } from "../../store/useRoomStore";
-import { useAuthStore } from "../../store/useAuthStore";
-import toast from "react-hot-toast";
-
+import { LoaderIcon, XIcon } from "lucide-react";
+import { ChatIcon, ImageUploader, PageLoader } from '@/components/index'
+import { useRoomStore } from "@/store/useRoomStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const GroupForm = ({ state }) => {
-    const { allPrivateChat, createGroup, selectedRoom } = useRoomStore()
+    const { privateRooms, createRoom, updateGroup, selectedRoom, isCreatingLoading, isUpdatingLoading } = useRoomStore()
     const { authUser } = useAuthStore()
 
     const isCreateMode = state === "create"
@@ -25,9 +23,7 @@ const GroupForm = ({ state }) => {
     const [selectedUsers, setSelectedUsers] = useState(
         isCreateMode
             ? []
-            : selectedRoom.members
-                .filter(({ user }) => user._id !== authUser._id)
-                .map(({ user }) => user)
+            : selectedRoom.members.filter((user) => user._id !== authUser._id)
     );
 
 
@@ -43,11 +39,14 @@ const GroupForm = ({ state }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!groupName.trim() || !selectedUsers.length) return;
+        if (!groupNameRef.current.value.trim() || !selectedUsers.length) return;
+        const memberIds = selectedUsers.map(m => m._id)
+        const img = imageInputRef.current?.files[0] ? groupImage : null
+        const data = { isGroup: true, memberIds, groupName, groupImage: img }
         if (isCreateMode) {
-            createGroup(selectedUsers, groupName, groupImage)
+            createRoom(data, true)
         } else {
-            updateGroup(selectedUsers, groupName, groupImage)
+            updateGroup(data, selectedRoom._id)
         }
 
     };
@@ -58,14 +57,13 @@ const GroupForm = ({ state }) => {
         }
     }
 
-
     useEffect(() => {
         groupNameRef?.current?.focus()
         return () => setSelectedUsers([])
     }, [])
-    if (!allPrivateChat.length) 
-       return <div className="text-center text-xl">ابتدا مخاطب پیدا کنید</div>
-    
+    if (!privateRooms?.length)
+        return <div className="text-center text-xl">ابتدا مخاطب پیدا کنید</div>
+
     return (
 
         <div className="w-full max-w-md mx-auto px-5 rounded-2xl ">
@@ -146,14 +144,14 @@ const GroupForm = ({ state }) => {
                         انتخاب اعضای گروه
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-52 overflow-y-auto overflow-x-hidden p-1">
-                        {allPrivateChat.map(({ members }) => {
-
-                            const isSelected = selectedUsers.some((u) => u._id === members.user._id)
+                        {privateRooms.map(r => {
+                            const members = r.members.filter(m => m._id !== authUser._id)[0]
+                            const isSelected = selectedUsers.some((u) => u._id === members._id)
 
                             return (
                                 <div
-                                    key={members.user._id}
-                                    onClick={() => toggleUser(members.user)}
+                                    key={members._id}
+                                    onClick={() => toggleUser(members)}
                                     className={`cursor-pointer flex items-center gap-2 p-2 rounded-xl border transition-all duration-200  ${isSelected
                                         ? "border-indigo-500 hover:bg-indigo-800/50 dark:bg-indigo-800/30"
                                         : "border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-700"
@@ -161,15 +159,15 @@ const GroupForm = ({ state }) => {
                                 >
 
                                     <ChatIcon
-                                        profile={members.user?.profilePic}
-                                        name={members.user.name}
+                                        profile={members?.profilePic}
+                                        name={members.name}
                                         classProps="size-9"
                                     />
 
                                     <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                                        {members.user.name.length > 6
-                                            ? members.user.name.slice(0, 6).concat('...')
-                                            : members.user.name
+                                        {members.name.length > 6
+                                            ? members.name.slice(0, 6).concat('...')
+                                            : members.name
                                         }
                                     </span>
                                 </div>
@@ -180,11 +178,16 @@ const GroupForm = ({ state }) => {
 
                 {/* Submit */}
                 <button
-                    disabled={!selectedUsers.length || !groupName}
+                    disabled={!selectedUsers.length || !groupName || isCreatingLoading || isUpdatingLoading}
                     type="submit"
-                    className="w-full py-2.5 rounded-lg bg-indigo-600  disabled:bg-gray-600 hover:bg-indigo-700 text-white font-semibold transition-all shadow-md hover:shadow-lg"
+                    className="w-full py-2.5 rounded-lg bg-indigo-600  disabled:bg-gray-600 hover:bg-indigo-700 text-white font-semibold transition-all shadow-md hover:shadow-lg "
                 >
-                    {isCreateMode ? "ایجاد گروه" : "ادیت گروه"}
+
+                    {isCreatingLoading || isUpdatingLoading ?
+                        <div className="flex items-center justify-center">
+                            <LoaderIcon className=" animate-spin" />
+                        </div>
+                        : isCreateMode ? "ایجاد گروه" : "ادیت گروه"}
                 </button>
             </form>
         </div>

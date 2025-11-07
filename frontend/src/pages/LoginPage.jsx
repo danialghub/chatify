@@ -1,6 +1,5 @@
-
-import { useAuthStore } from "../store/useAuthStore";
-import { loginProps } from '../constants/formsFields'
+import { useAuthStore } from "@/store/useAuthStore";
+import { loginProps } from '@/constants/formsFields'
 
 import {
   BorderAnimatedContainer, AuthIllustration, AuthLeftForm

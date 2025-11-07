@@ -1,42 +1,38 @@
 import mongoose from "mongoose";
+import { ref } from "process";
 
 const ChatRoomSchema = new mongoose.Schema({
     name:
     {
         type: String,
-        unique: true
-    },
-    type: {
-        type: String,
-        enum: ["private", 'group'],
-        default: "private",
     },
     members: [
         {
-            user:
-            {
-                type: mongoose.Schema.ObjectId,
-                ref: "User",
-                required: true
-            },
-            role:
-            {
-                type: String,
-                enum: ["admin", 'member', "owner"],
-                default: 'member'
-            }
-
+            type: mongoose.Schema.ObjectId,
+            ref: "User",
+            required: true
         }
     ],
     logo:
     {
         type: String,
-        default: ''
     },
     lastMessage:
     {
         type: mongoose.Schema.ObjectId,
         ref: 'Message',
+        default: null
+    },
+    isGroup:
+    {
+        type: Boolean,
+        default: false
+
+    },
+    createdBy:
+    {
+        type: mongoose.Schema.ObjectId,
+        ref: "User"
     }
 
 }, { timestamps: true })

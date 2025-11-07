@@ -1,5 +1,5 @@
-import { signUpProps } from '../constants/formsFields'
-import { useAuthStore } from '../store/useAuthStore';
+import { signUpProps } from '@/constants/formsFields'
+import { useAuthStore } from '@/store/useAuthStore';
 
 import {
   BorderAnimatedContainer, AuthIllustration, AuthLeftForm
