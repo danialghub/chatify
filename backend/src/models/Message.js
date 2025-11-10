@@ -2,15 +2,17 @@ import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
   {
+
     senderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
     roomId: {
       type: mongoose.Schema.ObjectId,
       ref: "ChatRoom"
     }
+    ,
+    system: { type: Boolean, default: false }
     ,
     text: {
       type: String,
@@ -27,12 +29,11 @@ const messageSchema = new mongoose.Schema(
           ref: 'User'
         }
       ],
-      replyTo : 
-      {
-        type : mongoose.Schema.ObjectId,
-        ref:"Message",
-        default:""
-      }
+    replyTo:
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: "Message",
+    }
   },
   { timestamps: true }
 );

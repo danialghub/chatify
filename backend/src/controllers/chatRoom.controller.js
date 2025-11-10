@@ -1,4 +1,5 @@
 import { chatRoomService } from '../services/chatRoom.service.js'
+import { messageService } from '../services/message.service.js'
 import Message from "../models/Message.js";
 import { emitToOnlineMembers, io, getReceiverSocketId } from "../lib/socket.js";
 import { uploadImage } from '../lib/helper.js';
@@ -30,6 +31,15 @@ export const createRoom = async (req, res) => {
         createdBy: userId,
         logo: uploadedImg
       });
+      const notif =
+      {
+        roomId: newRoom._id,
+        system: true,
+        text: "گروه ایجاد شد"
+      }
+
+      const msg = await Message.create(notif)
+      io.to(msg.roomId).emit('message:send', { roomId: msg.roomId, messages: [msg] })
     } else {
       const otherUser = await User.findById(memberIds[0]);
       if (!otherUser) return res.status(404).json({ message: "مخاطبی یافت نشد" });
@@ -133,6 +143,7 @@ export const removeRoom = async (req, res) => {
 export const leavingTheGroup = async (req, res) => {
   try {
     const userId = req.user._id;
+    const userName = req.user.name;
     const { roomId } = req.params;
 
     const room = await chatRoomService.findById(roomId)
@@ -145,7 +156,14 @@ export const leavingTheGroup = async (req, res) => {
     const isOwner = room.createdBy.toString() === member._id.toString()
     if (isOwner)
       return res.status(403).json({ message: "مالک گروه نمی‌تواند خارج شود" });
-
+    const notif =
+    {
+      roomId,
+      senderId: userId,
+      system: true,
+      text: `${userName} , از گروه خارج شد`
+    }
+    const msg = await Message.create(notif)
     room.members = room.members.filter(m => m._id.toString() !== userId.toString());
     await room.save();
 
@@ -153,6 +171,7 @@ export const leavingTheGroup = async (req, res) => {
 
 
     io.to(roomId).emit("room:update", room);
+    io.to(roomId).emit("message:send", { roomId, messages: [msg] });
 
     res.status(200).json({ message: "با موفقیت از گروه خارج شدید" });
   } catch (error) {
@@ -166,6 +185,7 @@ export const updateGroupRooms = async (req, res) => {
     const { memberIds, groupName, groupImage } = req.body;
     const { roomId } = req.params
     const userId = req.user._id
+    const userName = req.user.name
 
     if (!groupImage && !groupName && !memberIds.length)
       return res.status(400).json({ message: "مقادیر نامعتبر است" })
@@ -175,33 +195,54 @@ export const updateGroupRooms = async (req, res) => {
       return res.status(400).json({ message: "گروه نامعتبر است" });
 
 
-    if (! await ChatRoom.exists({ createdBy: userId }))
+    if (! await ChatRoom.exists({ _id: roomId, createdBy: userId }))
       return res.status(403).json({ message: "تنها مالک گروه مجاز به تغییر است" })
 
     const currentGroup = await chatRoomService.findById(roomId)
-
-
-    let uploadedImg = null;
-    if (groupImage) {
-      uploadedImg = await uploadImage(groupImage);
+    const updatedGroup =
+    {
+      name: groupName,
+      members: [userId, ...memberIds]
     }
 
-    const updatedRoom = await ChatRoom.findByIdAndUpdate(roomId, {
-      members: [userId, ...memberIds],
-      name: groupName,
-      logo: uploadedImg
-    }, { new: true }).populate("members", "name profilePic").lean();
+    if (groupImage) {
+      updatedGroup['logo'] = await uploadImage(groupImage);
+    }
+    let notifs = [
+      {
+        roomId,
+        text: `گروه توسط مالک گروه بروز شد`,
+        senderId: userId,
+        system: true,
+      }]
 
 
-    emitToOnlineMembers([userId, ...memberIds], "room:update", updatedRoom);
+    const kickedOutMembers = currentGroup.members.filter(m => !memberIds.includes(m._id.toString()) && m._id.toString() !== userId.toString())
 
-    const kickedOutMembers = currentGroup.members.map(m => m._id.toString()).filter(m => !memberIds.includes(m) && m !== userId.toString())
-    console.log(kickedOutMembers);
+    if (kickedOutMembers.length) {
 
+      notifs = [
+        ...kickedOutMembers.map(m => (
+          {
+            roomId,
+            text: `بیرون انداخته شد${userName} توسط ,${m.name}`,
+            senderId: m._id,
+            system: true,
+          }
+        )),
+        ...notifs
+      ];
 
-    if (kickedOutMembers.length)
+      await Message.insertMany(notifs);
+      updatedGroup["lastMessage"] = notifs.at(-2)
+
       emitToOnlineMembers(kickedOutMembers, "room:remove", updatedRoom);
+    }
 
+    const updatedRoom = await chatRoomService.update(roomId, updatedGroup)
+
+    io.to(roomId).emit('message:send', { roomId, messages: notifs })
+    emitToOnlineMembers([userId, ...memberIds], "room:update", updatedRoom);
     res.status(201).json({ message: "گروه با موفقیت آپدیت شد" });
 
   } catch (error) {
@@ -216,6 +257,7 @@ export const addMembers = async (req, res) => {
     const { memberIds } = req.body
     const { roomId } = req.params
     const userId = req.user._id
+    const userName = req.user.name
 
     if (!memberIds.length)
       return res.status(400).json({ message: "باید حداقل یک نفر انتخاب شود" })
@@ -224,15 +266,39 @@ export const addMembers = async (req, res) => {
       return res.status(403).json({ message: "شما در این گروه حضور ندارید" })
 
     const room = await chatRoomService.findById(roomId)
+    if (!room)
+      return res.status(400).json({ message: "اتاق نامعتبر است" })
+
     const currentMemberIds = room.members.map(m => m._id.toString());
-    const newMembers = memberIds.filter(id => !currentMemberIds.includes(id));
-    const allMembers = [...room.members, ...newMembers]
-    room.members = allMembers;
+    const newMemberIds = memberIds.filter(id => !currentMemberIds.includes(id));
+    if (!newMemberIds.length)
+      return res.status(401).json({ message: "کاربر از قبل در گروه وجود دارد" })
 
-    const updatedRoom = await ChatRoom.findByIdAndUpdate(roomId, { members: room.members }, { new: true }).populate('members', 'name profilePic')
+    const newMembers = await User.find({ _id: { $in: newMemberIds } }).lean()
+    if (!newMembers.length)
+      return res.status(400).json({ message: "کاربران نامعتبر هستند" })
 
-    const allMemberIds = allMembers.map(m => m._id ? m._id.toString() : m.toString());
+    const notifs = newMembers.map(user => (
+      {
+        roomId,
+        text: `${user.name}, توسط ${userName} عضو گروه شد`,
+        senderId: user._id,
+        system: true,
+      }
+    )
+    );
+    const updatedRoom = await ChatRoom.findByIdAndUpdate(roomId,
+      { $addToSet: { members: { $each: newMemberIds } } },
+      { new: true })
+      .populate('members', 'name profilePic')
+      .populate('lastMessage', 'text createdAt')
+
+    const messages = await Message.insertMany(notifs);
+    const allMemberIds = [...currentMemberIds, ...newMemberIds]
+
     emitToOnlineMembers(allMemberIds, "room:update", updatedRoom);
+    io.to(roomId).emit('message:send', { roomId, messages })
+
 
     res.status(201).json({ message: "اعضاء با موفقیت عضو گروه شدن" })
 

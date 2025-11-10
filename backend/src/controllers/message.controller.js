@@ -54,7 +54,7 @@ export const sendMessage = async (req, res) => {
 
     // ارسال پیام به کاربران دیگر
     const exceptionId = getReceiverSocketId(senderId);
-    if (exceptionId) io.to(roomId).except(exceptionId).emit("message:send", newMessage);
+    if (exceptionId) io.to(roomId).except(exceptionId).emit("message:send", { roomId, messages: [newMessage] });
 
     // اعلان پیام جدید
     const membersExceptMe = newMessage.roomId.members
@@ -96,7 +96,7 @@ export const removeMsg = async (req, res) => {
     }
 
     res.json({ message: "پیام با موفقیت حذف شد" });
-    io.to(room._id.toString()).emit("message:remove", { msgId ,room});
+    io.to(room._id.toString()).emit("message:remove", { msgId, room });
   } catch (err) {
     console.error("removeMsg:", err);
     res.status(500).json({ message: "خطای سرور" });

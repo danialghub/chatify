@@ -96,11 +96,11 @@ export const useChatStore = create((set, get) => ({
     const { selectedRoom } = useRoomStore.getState()
     if (!selectedRoom) return;
     
-    const isForCurrentChat = newMessage.roomId._id === selectedRoom?._id;
+    const isForCurrentChat = newMessage.roomId === selectedRoom?._id;
     if (!isForCurrentChat) return;
 
     set(({ messages }) => ({
-      messages: [...messages, newMessage],
+      messages: [...messages, ...newMessage.messages],
     }));
     checkMessageAsSeen(selectedRoom._id)
     if (isSoundEnabled) {

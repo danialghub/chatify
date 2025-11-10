@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useRoomStore } from "@/store/useRoomStore";
+import { formatChatTime } from '@/lib/helper'
 
 import {
   PrivateChatHeader,
@@ -63,17 +64,28 @@ const ChatContainer = () => {
       >
         {messages.length > 0 && !isMessagesLoading ? (
           <div className="max-w-3xl mx-auto space-y-4">
-            {messages.map((msg) => {
-              const isMyMessage = msg.senderId._id === authUser._id;
+            {messages.map((msg,idx) => {
+              const isMyMessage = msg?.senderId?._id === authUser._id;
+              const isFromSystem = msg.system
+            const isStillSame = messages[idx+1]?.senderId?._id === msg?.senderId?._id
 
-              return (
+
+              return !isFromSystem ? (
                 <Message
                   key={msg._id}
                   msg={msg}
                   isMyMessage={isMyMessage}
                   isGroup={selectedRoom.isGroup}
+                  isStillSame={isStillSame}
                 />
-              );
+              ) : (
+                <div key={msg._id} className="text-center">
+                  <div className="text-xs pb-0.5">{formatChatTime(msg.createdAt)}</div>
+                  <span className="px-4 py-1 text-sm bg-black/10 rounded">
+                    {msg.text}
+                  </span>
+                </div>
+              )
             })}
             <div ref={messageEndRef} />
           </div>

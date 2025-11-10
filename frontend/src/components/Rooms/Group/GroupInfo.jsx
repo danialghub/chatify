@@ -116,7 +116,7 @@ const GroupInfo = () => {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 py-1 max-h-[50vh] min-h-[50vh] overflow-y-auto text-black/50">
+                <div className="flex-1 py-1 max-h-[40vh] min-h-[40vh] overflow-y-auto text-black/50">
                     {activeTab === "members" ? (
                         <div className="divide-y">
                             {visibleMembers && visibleMembers.map((user) => {
@@ -165,7 +165,7 @@ const GroupInfo = () => {
                             )}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-3 gap-2 p-3 max-h-[50vh] min-h-[50vh] overflow-y-auto">
+                        <div className="grid grid-cols-3 gap-2 p-3 max-h-[40vh] min-h-[40vh] overflow-y-auto">
                             {visibleMedia.map((m) => (
                                 <a href={m.src} target='_blank'>
                                     <img

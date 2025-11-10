@@ -4,7 +4,7 @@ import { TrashIcon, ReplyIcon } from 'lucide-react'
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 
-const Message = memo(({ msg, isMyMessage, isGroup }) => {
+const Message = memo(({ msg, isMyMessage, isGroup ,isStillSame}) => {
   const { setReplyToMsg, removeMessage } = useChatStore()
   const { authUser } = useAuthStore()
   const RepliedByMe = msg?.replyTo?.senderId?._id === authUser._id ? "YOU" : msg?.replyTo?.senderId?.name
@@ -75,10 +75,10 @@ const Message = memo(({ msg, isMyMessage, isGroup }) => {
         </div>
 
         {/* آیکون یا پروفایل */}
-        {isGroup ? (
+        {isGroup && !isStillSame && !isMyMessage ? (
           <ChatIcon profile={msg.senderId?.profilePic} name={msg?.senderId?.name} />
         ) : (
-          <div className="size-3 shrink-0" />
+          <div className={`shrink-0 ${isGroup && !isMyMessage ? "w-12" : "w-3"}`} />
         )}
 
         {/* دکمه حذف برای پیام خودت */}

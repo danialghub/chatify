@@ -14,8 +14,6 @@ const Room = memo(({ room, userId, name, logo }) => {
   useSocket('room:remove', removeFromRooms)
 
 
-
-
   return (
     <motion.div
       onClick={() => setSelectedRoom(room)}
