@@ -51,11 +51,11 @@ const MessageInput = ({ }) => {
 
       <div className="max-w-3xl mx-auto mb-3 ">
         {replyToMsg && (
-          <div className="relative w-full ">
+          <div className="relative w-full text-white">
             < div className=" bg-white/5 border-r-8 border-r-cyan-600 rounded-r-lg">
               {/* msg content */}
-              <p className="mt-2 pr-6 py-2 break-words text-right ">
-                {replyToMsg.text} : <span>{replyToMsg.senderId.name}</span>
+              <p dir="rtl" className="mt-2 pr-6 py-2 break-words text-right ">
+                <span>{replyToMsg.senderId.name}</span> : {replyToMsg.text}
               </p>
             </div>
             <button
