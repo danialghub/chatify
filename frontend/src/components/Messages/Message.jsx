@@ -4,7 +4,7 @@ import { TrashIcon, ReplyIcon } from 'lucide-react'
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 
-const Message = memo(({ msg, isMyMessage, isGroup ,isStillSame}) => {
+const Message = memo(({ msg, isMyMessage, isGroup, isStillSame }) => {
   const { setReplyToMsg, removeMessage } = useChatStore()
   const { authUser } = useAuthStore()
   const RepliedByMe = msg?.replyTo?.senderId?._id === authUser._id ? "YOU" : msg?.replyTo?.senderId?.name
@@ -99,7 +99,7 @@ const Message = memo(({ msg, isMyMessage, isGroup ,isStillSame}) => {
             onClick={() => setReplyToMsg(msg)}
             className="absolute -right-10 top-1/2 -translate-y-1/2 p-1 bg-white/5 hover:bg-white/10 transition-colors duration-200 rounded-full"
           >
-            <ReplyIcon size={18} />
+            <ReplyIcon size={18} color="white" />
           </button>
         )}
       </div>

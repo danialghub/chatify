@@ -36,7 +36,7 @@ export default function EditProfile() {
 
 
   return (
-    <div className=" flex items-center justify-center ">
+    <div className="flex items-center justify-center max-sm:mx-2">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}

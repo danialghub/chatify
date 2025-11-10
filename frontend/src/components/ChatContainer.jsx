@@ -79,7 +79,7 @@ const ChatContainer = () => {
                   isStillSame={isStillSame}
                 />
               ) : (
-                <div key={msg._id} className="text-center">
+                <div key={msg._id} className="text-center text-white">
                   <div className="text-xs pb-0.5">{formatChatTime(msg.createdAt)}</div>
                   <span className="px-4 py-1 text-sm bg-black/10 rounded">
                     {msg.text}

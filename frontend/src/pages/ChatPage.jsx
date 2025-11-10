@@ -15,7 +15,7 @@ const ChatPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
-    <div className="relative w-full sm:max-w-6xl h-screen sm:h-[95vh] overflow-hidden">
+    <div className="relative w-full sm:max-w-6xl h-[100dvh] sm:h-[95dvh] overflow-hidden">
 
       <BorderAnimatedContainer>
 
