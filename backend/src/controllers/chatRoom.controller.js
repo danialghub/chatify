@@ -168,7 +168,6 @@ export const leavingTheGroup = async (req, res) => {
     // 5️⃣ ساخت پیام سیستمی خروج کاربر
     const msg = await Message.create({
       roomId,
-      senderId: userId,
       system: true,
       text: `${userName} از گروه خارج شد`
     });
@@ -221,7 +220,6 @@ export const updateGroupRooms = async (req, res) => {
       {
         roomId,
         text: `گروه توسط مالک گروه بروز شد`,
-        senderId: userId,
         system: true,
       }]
 
@@ -290,7 +288,6 @@ export const addMembers = async (req, res) => {
       {
         roomId,
         text: `${user.name}, توسط ${userName} عضو گروه شد`,
-        senderId: user._id,
         system: true,
       }
     )
