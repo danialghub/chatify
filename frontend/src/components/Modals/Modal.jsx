@@ -38,7 +38,7 @@ const Modal = ({ isOpen, onClose, title, children, footer, size = "md", classNam
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             onClick={(e) => e.stopPropagation()} // جلوگیری از بستن با کلیک روی داخل
           >
-            <div className={`${className} bg-zinc-900  rounded-2xl shadow-2xl overflow-hidden`}>
+            <div className={`${className} bg-zinc-900 text-white/80  rounded-2xl shadow-2xl overflow-hidden`}>
               {/* Header */}
               {title && (
                 <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800">
