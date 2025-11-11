@@ -41,8 +41,8 @@ const Modal = ({ isOpen, onClose, title, children, footer, size = "md", classNam
             <div className={`${className} bg-zinc-900 text-white/80  rounded-2xl shadow-2xl overflow-hidden`}>
               {/* Header */}
               {title && (
-                <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                <div className="flex items-center justify-between p-5 border-b border-slate-800">
+                  <h3 className="text-lg font-semibold text-slate-100">
                     {title}
                   </h3>
                   <button
