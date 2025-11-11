@@ -95,7 +95,7 @@ export const getAllRooms = async (req, res) => {
           await Message.countDocuments({
             roomId: r._id,
             seenBy: { $ne: userId },
-            system:false,
+            system: false,
             senderId: { $ne: userId },
           }),
         ])
@@ -244,8 +244,8 @@ export const updateGroupRooms = async (req, res) => {
       ];
 
       messages = await Message.insertMany(notifs);
-
-      emitToOnlineMembers(kickedOutMembers, "room:remove", updatedRoom);
+      const kickedOutMemberIds = kickedOutMembers.map(m => m._id.toString())
+      emitToOnlineMembers(kickedOutMemberIds, "room:remove", updatedRoom);
     } else {
       messages = await Message.create(notifs[0])
     }
