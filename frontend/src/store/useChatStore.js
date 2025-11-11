@@ -9,6 +9,7 @@ export const useChatStore = create((set, get) => ({
   modalType: null,
   isUsersLoading: false,
   isMessagesLoading: false,
+  isMessageSending: false,
   replyToMsg: null,
   isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
 
@@ -69,24 +70,33 @@ export const useChatStore = create((set, get) => ({
     updateRoomStates(optimisticMessage)
 
     try {
+      set({ isMessageSending: optimisticMessage._id })
       const { data } = await axiosInstance.post(`/messages/send/${selectedRoom._id}`, { ...messageData, replyTo: messageData?.replyTo?._id || null });
       set({ messages: messages.concat(data) });
     } catch (error) {
       // remove optimistic message on failure
       set({ messages: messages });
       toast.error(error.response?.data?.message || "Something went wrong");
+    } finally {
+      set({ isMessageSending: false })
     }
   },
 
   removeMessage: async (msgId) => {
+    const { messages } = get()
+    const msgs = [...messages]
+
+    set(prev => (
+      {
+        messages: prev.messages.filter(m => m._id !== msgId)
+      }
+    ))
+
     try {
       await axiosInstance.delete(`/messages/remove/${msgId}`)
-      set(prev => (
-        {
-          messages: prev.messages.filter(m => m._id !== msgId)
-        }
-      ))
+
     } catch (error) {
+      set({ messages: msgs })
       toast.error(error.response?.data?.message || "خطا در برقراری")
     }
   },
@@ -95,7 +105,7 @@ export const useChatStore = create((set, get) => ({
     const { isSoundEnabled, checkMessageAsSeen } = get();
     const { selectedRoom } = useRoomStore.getState()
     if (!selectedRoom) return;
-    
+
     const isForCurrentChat = newMessage.roomId === selectedRoom?._id;
     if (!isForCurrentChat) return;
 
@@ -111,7 +121,7 @@ export const useChatStore = create((set, get) => ({
   },
   removeFromMessages: ({ msgId, room }) => {
     const { selectedRoom } = useRoomStore.getState()
-    const chatType = room.isGroup  ? "groupRooms" : "privateRooms"
+    const chatType = room.isGroup ? "groupRooms" : "privateRooms"
     if (!selectedRoom) return;
 
     set(({ messages }) => ({

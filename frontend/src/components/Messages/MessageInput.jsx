@@ -54,8 +54,16 @@ const MessageInput = ({ }) => {
           <div className="relative w-full text-white/80">
             < div className=" bg-white/5 border-r-8 border-r-cyan-600 rounded-r-lg">
               {/* msg content */}
-              <p dir="rtl" className="mt-2 pr-6 py-2 break-words text-right text-sm">
-                <span className="!text-md font-bold">{replyToMsg.senderId.name} :</span>  {replyToMsg.text}
+              <p dir="rtl" className="mt-2  py-2 break-words text-right text-sm">
+                <span className="!text-md font-bold pr-3">پاسخ به {replyToMsg.senderId.name} :</span>
+                <p className="text-xs truncate opacity-70 pr-6 mt-1.5">
+                  {replyToMsg.text
+                    ?
+                    replyToMsg.text
+                    : replyToMsg.image
+                      ? "📷 Photo"
+                      : "هیچ محتوایی وجود ندارد"}
+                </p>
               </p>
             </div>
             <button
@@ -120,7 +128,7 @@ const MessageInput = ({ }) => {
           disabled={!text.trim() && !imagePreview}
           className="absolute bottom-1.5 right-1.5 bg-gradient-to-r from-cyan-500  to-cyan-600 text-white rounded-md  font-medium hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 "
         >
-          <SendIcon className="w-5 h-5" />
+          <SendIcon className="w-5 h-5 " />
         </button>
       </form>
     </div >

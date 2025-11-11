@@ -16,20 +16,20 @@ export const useRoomStore = create((set, get) => ({
     activeTab: "chats",
 
     setActiveTab: (tab) => set({ activeTab: tab }),
-    setSelectedRoom: (newRoom) => {
+    setSelectedRoom: async (newRoom) => {
         const { joinNewRoomSocket, leaveRoomSocket, selectedRoom } = get();
 
         // اگر همون اتاق رو دوباره انتخاب کرده، هیچ کاری نکن
         if (selectedRoom?._id === newRoom?._id) return;
 
         // اول از اتاق قبلی خارج شو
-        if (selectedRoom?._id) leaveRoomSocket();
-
+        if (selectedRoom?._id) await leaveRoomSocket();
         // بعد اتاق جدید رو ست کن
         set({ selectedRoom: newRoom });
 
         // سپس به اتاق جدید بپیوند
         if (newRoom?._id) joinNewRoomSocket();
+
     },
     //apis
     getRooms: async ({ isGroup }) => {
@@ -162,6 +162,8 @@ export const useRoomStore = create((set, get) => ({
         set({
             selectedRoom: null,
         });
+        useChatStore.getState().setReplyToMsg(null)
+
     },
     //socket listeners
     addToRooms: (newRoom) => {
@@ -192,7 +194,7 @@ export const useRoomStore = create((set, get) => ({
             const chats = prev[roomType];
             const unSeenMessages = prev.unSeenMessages;
             const newDate = newMessage.createddAt;
-
+            const isFromSys = newMessage.system
             const targetChat = chats.find(chat => chat._id === newMessage.roomId._id);
 
             if (!targetChat) return prev;
@@ -209,7 +211,7 @@ export const useRoomStore = create((set, get) => ({
                 [roomType]: updatedChats,
                 unSeenMessages: {
                     ...unSeenMessages,
-                    [newMessage.roomId._id]: isCurrentRoomOpen
+                    [newMessage.roomId._id]: isCurrentRoomOpen || isFromSys
                         ? 0
                         : (unSeenMessages[newMessage.roomId._id] || 0) + 1
                 }

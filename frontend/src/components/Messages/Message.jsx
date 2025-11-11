@@ -3,35 +3,51 @@ import { ChatIcon } from '@/components/index'
 import { TrashIcon, ReplyIcon } from 'lucide-react'
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { handleSwipe } from '@/lib/helper'
 
-const Message = memo(({ msg, isMyMessage, isGroup, isStillSame }) => {
-  const { setReplyToMsg, removeMessage } = useChatStore()
+const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }) => {
+  const { setReplyToMsg, removeMessage, isMessageSending } = useChatStore()
   const { authUser } = useAuthStore()
-  const RepliedByMe = msg?.replyTo?.senderId?._id === authUser._id ? "YOU" : msg?.replyTo?.senderId?.name
+  const RepliedByMe = msg?.replyTo?.senderId?._id === authUser._id ? "شما" : msg?.replyTo?.senderId?.name
 
+  const replySwiper = () => {
+    if (isMyMessage) return
+    return {
+      onTouchStart: (e) => handleSwipe(e, msg, setReplyToMsg, index),
+      onMouseDown: (e) => handleSwipe(e, msg, setReplyToMsg, index)
+    }
+  }
   return (
 
     <div
-      key={msg._id}
-      className={`chat ${!isMyMessage ? "chat-end" : "chat-start group"}`}
+      
+      {...replySwiper()}
+      id={`msg_${index}`}
+      className={`chat ${!isMyMessage ? "chat-end" : "chat-start group transition-transform duration-200 will-change: transform relative "}`}
     >
       <div
+
         className={`flex items-end gap-2 ${isMyMessage ? "flex-row-reverse" : "flex-row"
-          } justify-center relative`}
+          } justify-center relative  cursor-pointer`}
       >
         <div
-          className={`chat-bubble max-w-[55vw] sm:max-w-[30vw] relative ${isMyMessage ? "bg-sky-600/50 text-white" : "bg-slate-800 text-slate-200"
+
+          className={`chat-bubble max-w-[55vw] sm:max-w-[30vw] relative ${isMyMessage ? "bg-sky-600/50 text-white" : "bg-slate-800 text-slate-200 "
             }`}
         >
           {/* 🩵 بخش Reply مثل تلگرام */}
           {msg.replyTo && (
             <div
+              onClick={() => goToMsg(msg.replyTo._id)}
               className={`mb-2 px-3 py-1 rounded-md text-sm border-r-4 ${isMyMessage ? "border-sky-300" : "border-cyan-500"
                 } bg-black/10`}
             >
-              {isGroup && <p className="font-semibold text-xs opacity-80">
-                {RepliedByMe || "Unknown"}
-              </p>}
+              {isGroup &&
+                <p className="font-semibold text-xs opacity-80">
+                  {RepliedByMe || "Unknown"}
+                </p>
+              }
+
               <p dir="auto" className="text-xs truncate opacity-70">
                 {msg.replyTo.text
                   ? msg.replyTo.text.length > 50
@@ -41,6 +57,7 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame }) => {
                     ? "📷 Photo"
                     : ""}
               </p>
+
             </div>
           )}
 
@@ -66,19 +83,23 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame }) => {
           )}
 
           {/* 🕓 زمان پیام */}
-          <p className="text-xs mt-2 opacity-75 flex items-center gap-1 justify-start">
-            {new Date(msg.createdAt).toLocaleTimeString(undefined, {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
+          {isMessageSending === msg._id
+            ? <span className="text-xs font-bold animate-pulse">درحال ارسال...</span>
+            : <p className="text-xs mt-2 opacity-75 flex items-center gap-1 justify-start">
+              {new Date(msg.createdAt).toLocaleTimeString(undefined, {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+
+          }
         </div>
 
         {/* آیکون یا پروفایل */}
         {isGroup && !isStillSame && !isMyMessage ? (
-          <ChatIcon profile={msg.senderId?.profilePic} name={msg?.senderId?.name} />
+          <ChatIcon classProps="size-10" profile={msg.senderId?.profilePic} name={msg?.senderId?.name} />
         ) : (
-          <div className={`shrink-0 ${isGroup && !isMyMessage ? "w-12" : "w-3"}`} />
+          <div className={`shrink-0 ${isGroup && !isMyMessage ? "w-10" : "w-3"}`} />
         )}
 
         {/* دکمه حذف برای پیام خودت */}
@@ -96,8 +117,9 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame }) => {
         ) : (
           // دکمه Reply برای پیام‌های دیگران 
           <button
+            id={`replyToBtn${index}`}
             onClick={() => setReplyToMsg(msg)}
-            className="absolute -right-10 top-1/2 -translate-y-1/2 p-1 bg-white/5 hover:bg-white/10 transition-colors duration-200 rounded-full"
+            className="absolute -right-10 top-1/2 -translate-y-1/2 p-1 bg-white/5 hover:bg-white/10 transition-colors duration-200 rounded-full hidden"
           >
             <ReplyIcon size={18} color="white" />
           </button>

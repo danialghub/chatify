@@ -106,7 +106,7 @@ const GroupForm = ({ state }) => {
                             ref={groupNameRef}
                             value={groupName}
                             onChange={e => setGroupName(e.target.value)}
-                            className="w-full rounded-lg border border-gray-700 :bg-zinc-800 p-2.5  text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none"
+                            className="w-full rounded-lg border border-gray-700 bg-zinc-800 p-2.5  text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none"
                             placeholder="نام گروه"
                         />
                     </div>

@@ -35,6 +35,38 @@ const ChatContainer = () => {
 
   const messageEndRef = useRef(null);
 
+  const goToMsg = (id) => {
+  const targetMsgIdx = messages.findIndex(msg => msg._id === id);
+  const targetMsg = document.getElementById(`msg_${targetMsgIdx}`);
+
+  if (!targetMsg) return;
+
+  // اسکرول به سمت پیام
+  targetMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  // ساخت observer برای تشخیص ورود به viewport
+  const observer = new IntersectionObserver(
+    (entries, observerInstance) => {
+      const entry = entries[0];
+      if (entry.isIntersecting) {
+        // وقتی وارد viewport شد:
+        targetMsg.classList.add('flash');
+
+        setTimeout(() => {
+          targetMsg.classList.remove('flash');
+        }, 1000);
+
+        // بعد از اجرا فقط یکبار نظارت کن
+        observerInstance.disconnect();
+      }
+    },
+    { threshold: 0.5 } // یعنی حداقل ۵۰٪ از المنت داخل دید باشه
+  );
+
+  observer.observe(targetMsg);
+};
+
+
   // 📩 گرفتن پیام‌ها
   useEffect(() => {
     if (!selectedRoom?._id) return;
@@ -63,12 +95,12 @@ const ChatContainer = () => {
         dir="rtl"
       >
         {messages.length > 0 && !isMessagesLoading ? (
-          <div className="max-w-3xl mx-auto space-y-4">
-            {messages.map((msg,idx) => {
+          <div className="max-w-3xl mx-auto space-y-4 overflow-hidden">
+            {messages.map((msg, idx) => {
               const isMyMessage = msg?.senderId?._id === authUser._id;
               const isFromSystem = msg.system
-            const isStillSame = messages[idx+1]?.senderId?._id === msg?.senderId?._id
-
+              const isStillSame = messages[idx + 1]?.senderId?._id === msg?.senderId?._id
+              const isStillSystem = messages[idx - 1]?.system === isFromSystem
 
               return !isFromSystem ? (
                 <Message
@@ -77,10 +109,14 @@ const ChatContainer = () => {
                   isMyMessage={isMyMessage}
                   isGroup={selectedRoom.isGroup}
                   isStillSame={isStillSame}
+                  goToMsg={goToMsg}
+                  index={idx}
                 />
               ) : (
                 <div key={msg._id} className="text-center text-white/80">
-                  <div className="text-xs pb-0.5">{formatChatTime(msg.createdAt)}</div>
+                  {!isStillSystem &&
+                    <div className="text-xs my-0.5 mt-10">{formatChatTime(msg.createdAt)}</div>
+                  }
                   <span className="px-4 py-1 text-sm bg-black/10 rounded">
                     {msg.text}
                   </span>

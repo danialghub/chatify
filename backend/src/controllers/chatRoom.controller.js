@@ -95,6 +95,7 @@ export const getAllRooms = async (req, res) => {
           await Message.countDocuments({
             roomId: r._id,
             seenBy: { $ne: userId },
+            system:false,
             senderId: { $ne: userId },
           }),
         ])
@@ -147,7 +148,7 @@ export const leavingTheGroup = async (req, res) => {
     const { roomId } = req.params;
 
     // 1️⃣ بررسی وجود گروه
-    const room = await chatRoomService.findById(roomId).populate("members", "_id name profilePic");
+    const room = await chatRoomService.findById(roomId)
     if (!room)
       return res.status(404).json({ message: "گروهی یافت نشد" });
 
@@ -194,6 +195,7 @@ export const updateGroupRooms = async (req, res) => {
     const { roomId } = req.params
     const userId = req.user._id
     const userName = req.user.name
+    let messages = null;
 
     if (!groupImage && !groupName && !memberIds.length)
       return res.status(400).json({ message: "مقادیر نامعتبر است" })
@@ -225,6 +227,7 @@ export const updateGroupRooms = async (req, res) => {
 
 
     const kickedOutMembers = currentGroup.members.filter(m => !memberIds.includes(m._id.toString()) && m._id.toString() !== userId.toString())
+    const updatedRoom = await chatRoomService.update(roomId, updatedGroup)
 
     if (kickedOutMembers.length) {
 
@@ -232,7 +235,7 @@ export const updateGroupRooms = async (req, res) => {
         ...kickedOutMembers.map(m => (
           {
             roomId,
-            text: `بیرون انداخته شد${userName} توسط ,${m.name}`,
+            text: `${m.name} توسط  ${userName} بیرون انداخته شد`,
             senderId: m._id,
             system: true,
           }
@@ -240,14 +243,14 @@ export const updateGroupRooms = async (req, res) => {
         ...notifs
       ];
 
-      await Message.insertMany(notifs);
+      messages = await Message.insertMany(notifs);
 
       emitToOnlineMembers(kickedOutMembers, "room:remove", updatedRoom);
+    } else {
+      messages = await Message.create(notifs[0])
     }
-    const msg = await Message.create(notifs[0])
-    const updatedRoom = await chatRoomService.update(roomId, updatedGroup)
 
-    io.to(roomId).emit('message:send', { roomId, messages: msg })
+    io.to(roomId).emit('message:send', { roomId, messages })
     emitToOnlineMembers([userId, ...memberIds], "room:update", updatedRoom);
     res.status(201).json({ message: "گروه با موفقیت آپدیت شد" });
 
