@@ -69,7 +69,7 @@ const GroupForm = ({ state }) => {
         <div className="w-full max-w-md mx-auto px-5 rounded-2xl ">
             {/* Header: Selected Users */}
             {selectedUsers.length > 0 && (
-                <div className="flex items-center gap-3 overflow-x-auto pb-1 mb-4 border-b border-white/40 ">
+                <div className="flex items-center gap-3 overflow-x-auto pb-1 mb-4 border-b border-white/40 text-gray-200">
                     {selectedUsers.map((user) => (
                         <div
                             key={user._id}
@@ -84,7 +84,7 @@ const GroupForm = ({ state }) => {
                             >
                                 <XIcon size={16} />
                             </button>
-                            <span className="text-xs mt-1 text-gray-700 dark:text-gray-200 truncate max-w-[60px]">
+                            <span className="text-xs mt-1 text-gray-200 truncate max-w-[60px]">
                                 {user.name}
                             </span>
                         </div>
@@ -106,7 +106,7 @@ const GroupForm = ({ state }) => {
                             ref={groupNameRef}
                             value={groupName}
                             onChange={e => setGroupName(e.target.value)}
-                            className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-zinc-800 p-2.5 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none"
+                            className="w-full rounded-lg border border-gray-700 :bg-zinc-800 p-2.5  text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none"
                             placeholder="نام گروه"
                         />
                     </div>
@@ -140,10 +140,10 @@ const GroupForm = ({ state }) => {
 
                 {/* Contact List */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-200 mb-2">
                         انتخاب اعضای گروه
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-52 overflow-y-auto overflow-x-hidden p-1">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-52 overflow-y-auto overflow-x-hidden p-1 text-gray-200">
                         {privateRooms.map(r => {
                             const members = r.members.filter(m => m._id !== authUser._id)[0]
                             const isSelected = selectedUsers.some((u) => u._id === members._id)
@@ -154,7 +154,7 @@ const GroupForm = ({ state }) => {
                                     onClick={() => toggleUser(members)}
                                     className={`cursor-pointer flex items-center gap-2 p-2 rounded-xl border transition-all duration-200  ${isSelected
                                         ? "border-indigo-500 hover:bg-indigo-800/50 dark:bg-indigo-800/30"
-                                        : "border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-700"
+                                        : "border-gray-700 hover:bg-zinc-700"
                                         }`}
                                 >
 
@@ -164,7 +164,7 @@ const GroupForm = ({ state }) => {
                                         classProps="size-9"
                                     />
 
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    <span className="text-sm font-medium text-gray-200">
                                         {members.name.length > 6
                                             ? members.name.slice(0, 6).concat('...')
                                             : members.name

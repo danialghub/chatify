@@ -40,7 +40,7 @@ const GroupChatHeader = () => {
 
                 <div>
                     <h3 className="text-slate-200 font-medium">{selectedRoom.name}</h3>
-                    <p className="text-slate-400 text-sm text-center" dir="rtl">
+                    <p className="text-slate-400 text-sm text-left" dir="rtl">
                         {`${selectedRoom.members.length} عضو`}
                     </p>
                 </div>

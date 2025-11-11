@@ -146,39 +146,48 @@ export const leavingTheGroup = async (req, res) => {
     const userName = req.user.name;
     const { roomId } = req.params;
 
-    const room = await chatRoomService.findById(roomId)
+    // 1️⃣ بررسی وجود گروه
+    const room = await chatRoomService.findById(roomId).populate("members", "_id name profilePic");
     if (!room)
       return res.status(404).json({ message: "گروهی یافت نشد" });
 
-    const member = room.members.find(m => m._id.toString() === userId.toString());
-    if (!member) return res.status(403).json({ message: "عضو این گروه نیستید" });
+    // 2️⃣ بررسی عضویت کاربر
+    const isMember = room.members.some(m => m._id.toString() === userId.toString());
+    if (!isMember)
+      return res.status(403).json({ message: "عضو این گروه نیستید" });
 
-    const isOwner = room.createdBy.toString() === member._id.toString()
+    // 3️⃣ بررسی مالک بودن کاربر
+    const isOwner = room.createdBy.toString() === userId.toString();
     if (isOwner)
       return res.status(403).json({ message: "مالک گروه نمی‌تواند خارج شود" });
-    const notif =
-    {
-      roomId,
-      senderId: userId,
-      system: true,
-      text: `${userName} , از گروه خارج شد`
-    }
-    const msg = await Message.create(notif)
+
+    // 4️⃣ حذف کاربر از اعضا
     room.members = room.members.filter(m => m._id.toString() !== userId.toString());
     await room.save();
 
-    await room.populate("members", "name profilePic");
+    // 5️⃣ ساخت پیام سیستمی خروج کاربر
+    const msg = await Message.create({
+      roomId,
+      senderId: userId,
+      system: true,
+      text: `${userName} از گروه خارج شد`
+    });
 
+    // 6️⃣ بروزرسانی اعضا (در صورت نیاز)
+    const updatedRoom = await room.populate("members", "name profilePic");
 
-    io.to(roomId).emit("room:update", room);
+    // 7️⃣ اطلاع‌رسانی به کلاینت‌ها
+    io.to(roomId).emit("room:update", updatedRoom);
     io.to(roomId).emit("message:send", { roomId, messages: [msg] });
 
-    res.status(200).json({ message: "با موفقیت از گروه خارج شدید" });
+    return res.status(200).json({ message: "با موفقیت از گروه خارج شدید" });
+
   } catch (error) {
     console.error("leavingTheGroup:", error);
-    res.status(500).json({ message: "خطای داخلی سرور" });
+    return res.status(500).json({ message: "خطای داخلی سرور" });
   }
 };
+
 //  آپدیت گروه
 export const updateGroupRooms = async (req, res) => {
   try {
@@ -234,14 +243,13 @@ export const updateGroupRooms = async (req, res) => {
       ];
 
       await Message.insertMany(notifs);
-      updatedGroup["lastMessage"] = notifs.at(-2)
 
       emitToOnlineMembers(kickedOutMembers, "room:remove", updatedRoom);
     }
-
+    const msg = await Message.create(notifs[0])
     const updatedRoom = await chatRoomService.update(roomId, updatedGroup)
 
-    io.to(roomId).emit('message:send', { roomId, messages: notifs })
+    io.to(roomId).emit('message:send', { roomId, messages: msg })
     emitToOnlineMembers([userId, ...memberIds], "room:update", updatedRoom);
     res.status(201).json({ message: "گروه با موفقیت آپدیت شد" });
 
