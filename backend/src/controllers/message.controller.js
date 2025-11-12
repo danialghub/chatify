@@ -80,23 +80,26 @@ export const removeMsg = async (req, res) => {
     if (message.senderId.toString() !== userId.toString())
       return res.status(403).json({ message: "اجازه حذف ندارید" });
 
-    const room = await ChatRoom.findById(message.roomId);
+    let room = await chatRoomService.findById(message.roomId);
     if (!room) return res.status(404).json({ message: "اتاق یافت نشد" });
 
     // حذف پیام
     await message.deleteOne();
 
     // به‌روزرسانی پیام آخر در صورت نیاز
-    if (room.lastMessage?.toString() === msgId) {
-      const prevMsg = await Message.findOne({ roomId: room._id })
+    if (room.lastMessage?._id?.toString() === msgId.toString()) {
+      const prevMsg = await Message.findOne({ roomId: room._id, system: false })
         .sort({ createdAt: -1 })
-        .select("_id");
-      room.lastMessage = prevMsg?._id || null;
-      await room.save();
+
+      console.log(prevMsg);
+
+      room = await chatRoomService.updateLastMessage(room._id, prevMsg?._id || null)
+
     }
 
     res.json({ message: "پیام با موفقیت حذف شد" });
     io.to(room._id.toString()).emit("message:remove", { msgId, room });
+
   } catch (err) {
     console.error("removeMsg:", err);
     res.status(500).json({ message: "خطای سرور" });

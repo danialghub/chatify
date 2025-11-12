@@ -58,16 +58,19 @@ const Room = memo(({ room, userId, name, logo }) => {
           dir="auto"
           className="truncate [unicode-bidi:plaintext] text-xs text-slate-400 opacity-70 w-60"
         >
-          {room?.lastMessage?.text || "بدون پیام"}
+          {room?.lastMessage?.text ? room.lastMessage.text : room?.lastMessage?.image 
+          ? <img src={room?.lastMessage?.image} className='size-5' />
+          :"بدون پیام"
+          }
         </span>
       </div>
 
       {/* نشانگر پیام خوانده‌نشده */}
       {unSeenMessages[room._id] > 0 && (
-        <div className="absolute right-0.5 bottom-2">
+        <div className="absolute right-2 bottom-2">
           <span
             className="
-        bg-cyan-800 text-white text-[10px] font-semibold 
+        bg-cyan-800 text-white text-[10px] font-bold 
         w-6 h-6 rounded-full flex items-center justify-center
         shadow-sm select-none
       "

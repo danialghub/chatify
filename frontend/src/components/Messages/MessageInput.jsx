@@ -54,9 +54,9 @@ const MessageInput = ({ }) => {
           <div className="relative w-full text-white/80">
             < div className=" bg-white/5 border-r-8 border-r-cyan-600 rounded-r-lg">
               {/* msg content */}
-              <p dir="rtl" className="mt-2  py-2 break-words text-right text-sm">
+              <div dir="rtl" className="mt-2 py-2  text-right text-sm">
                 <span className="!text-md font-bold pr-3">پاسخ به {replyToMsg.senderId.name} :</span>
-                <p className="text-xs truncate opacity-70 pr-6 mt-1.5">
+                <p className="text-xs truncate opacity-70 pr-6 mt-1.5 ">
                   {replyToMsg.text
                     ?
                     replyToMsg.text
@@ -64,7 +64,7 @@ const MessageInput = ({ }) => {
                       ? "📷 Photo"
                       : "هیچ محتوایی وجود ندارد"}
                 </p>
-              </p>
+              </div>
             </div>
             <button
               onClick={() => setReplyToMsg(null)}

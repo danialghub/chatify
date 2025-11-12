@@ -188,6 +188,8 @@ export const useRoomStore = create((set, get) => ({
     },
     updateRoomStates: (newMessage) => {
         const { isSoundEnabled } = useChatStore.getState();
+console.log(newMessage);
+
 
         set(prev => {
             const roomType = newMessage.roomId.isGroup ? "groupRooms" : "privateRooms"

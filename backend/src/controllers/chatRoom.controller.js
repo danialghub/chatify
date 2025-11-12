@@ -225,8 +225,12 @@ export const updateGroupRooms = async (req, res) => {
         system: true,
       }]
 
-
+//danial ali #memberIds
+//danial reza #currentGroup
     const kickedOutMembers = currentGroup.members.filter(m => !memberIds.includes(m._id.toString()) && m._id.toString() !== userId.toString())
+
+    const newMembers = memberIds.filter(m => !currentGroup.members.includes(m.toString()) && m._id.toString() !== userId.toString())
+
     const updatedRoom = await chatRoomService.update(roomId, updatedGroup)
 
     if (kickedOutMembers.length) {

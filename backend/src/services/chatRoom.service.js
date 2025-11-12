@@ -22,11 +22,13 @@ export const chatRoomService = {
     async findById(roomId) {
         return await ChatRoom.findOne({ _id: roomId })
             .populate("members", "name profilePic bio")
-            .populate("lastMessage", "text createdAt")
+            .populate("lastMessage", "text image createdAt")
 
     },
     async updateLastMessage(roomId, msgId) {
-        return ChatRoom.findByIdAndUpdate(roomId, { lastMessage: msgId });
+        return ChatRoom.findByIdAndUpdate(roomId, { lastMessage: msgId }, { new: true })
+        .populate('members',"name profilePic")
+        .populate('lastMessage','text image createdAt');
     },
     async update(roomId, body) {
         return await ChatRoom.findByIdAndUpdate(roomId, body, { new: true })

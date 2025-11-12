@@ -21,14 +21,15 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }
 
     <div
       
-      {...replySwiper()}
+     
       id={`msg_${index}`}
-      className={`chat ${!isMyMessage ? "chat-end" : "chat-start group transition-transform duration-200 will-change: transform relative "}`}
+       {...replySwiper()}
+      className={`chat ${!isMyMessage ? "chat-end" : "chat-start group  transition-transform duration-200 will-change:transform relative"}`}
     >
       <div
 
         className={`flex items-end gap-2 ${isMyMessage ? "flex-row-reverse" : "flex-row"
-          } justify-center relative  cursor-pointer`}
+          } justify-center relative   `}
       >
         <div
 

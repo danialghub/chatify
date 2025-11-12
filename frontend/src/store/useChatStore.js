@@ -51,7 +51,7 @@ export const useChatStore = create((set, get) => ({
       },
       roomId: {
         _id: selectedRoom?._id,
-        type: selectedRoom?.type
+        isGroup: selectedRoom?.isGroup
       },
       replyTo: messageData.replyTo && {
         _id: messageData.replyTo._id,

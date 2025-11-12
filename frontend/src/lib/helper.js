@@ -22,55 +22,68 @@ export const formatChatTime = (date) => {
 
 
 export const handleSwipe = (e, msg, setReplyTo, index) => {
+    if (e.type === "mousedown") e.preventDefault();
+
     let startX = 0;
     let moved = 0;
-    const el = e.currentTarget;
-    el.style.transition = "none"; // جلوگیری از transition هنگام drag
+    let isDragging = false;
+    let isMouseDown = false;
 
+    const el = e.currentTarget;
+    const replyBtn = document.getElementById(`replyToBtn${index}`);
     const getClientX = (event) =>
         event.touches ? event.touches[0].clientX : event.clientX;
 
-    const onMove = (moveEvent) => {
-        const currentX = getClientX(moveEvent);
+    const move = (event) => {
+        if (!isMouseDown) return; // فقط وقتی دکمه موس پایین است
+        const currentX = getClientX(event);
         moved = currentX - startX;
-        if (moved < 0) {
-            
-            moveEvent.preventDefault(); // جلوگیری از اسکرول عمودی
+
+        if (moved < -10) {
+            isDragging = true;
+            event.preventDefault();
+            el.style.transition = "none";
             el.style.transform = `translateX(${moved}px)`;
-            document.documentElement.style.pointerEvents = `none`;
-
-            document.getElementById(`replyToBtn${index}`).style.display = "block"
-            
+            replyBtn?.classList.add("visible");
         }
-
     };
 
-    const onEnd = () => {
-        el.style.transition = "transform 0.25s ease"; // بازگشت نرم
-        if (moved < -80) {
-            setReplyTo(msg);
+    const end = () => {
+        // ❗ حذف سریع لیسنرها قبل از هر تغییر
+        window.removeEventListener("mousemove", move);
+        window.removeEventListener("mouseup", end);
+        window.removeEventListener("touchmove", move);
+        window.removeEventListener("touchend", end);
 
-        }
+        isMouseDown = false;
 
-        el.style.transform = "translateX(0)";
-        document.documentElement.style.pointerEvents = `unset`;
-        document.getElementById(`replyToBtn${index}`).style.display = "none"
+        el.style.transition = "transform 0.25s ease";
 
-        // پاکسازی لیسنرها
-        document.removeEventListener("mousemove", onMove);
-        document.removeEventListener("mouseup", onEnd);
-        el.removeEventListener("touchmove", onMove);
-        el.removeEventListener("touchend", onEnd);
+        if (moved < -80) setReplyTo(msg);
+
+        // برگردوندن به حالت اولیه
+        requestAnimationFrame(() => {
+            el.style.transform = "translateX(0)";
+            replyBtn?.classList.remove("visible");
+        });
+
+        isDragging = false;
     };
 
-    startX = getClientX(e);
+    const start = (event) => {
+        startX = getClientX(event);
+        moved = 0;
+        isDragging = false;
+        isMouseDown = true;
 
-    if (e.type === "touchstart") {
-        el.addEventListener("touchmove", onMove, { passive: false });
-        el.addEventListener("touchend", onEnd);
-    } else {
-        document.addEventListener("mousemove", onMove);
-        document.addEventListener("mouseup", onEnd);
-    }
+        window.addEventListener("mousemove", move, { passive: false });
+        window.addEventListener("mouseup", end);
+        window.addEventListener("touchmove", move, { passive: false });
+        window.addEventListener("touchend", end);
+    };
+
+    start(e);
 };
+
+
 
