@@ -1,9 +1,10 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import useKeyboardSound from "@/hooks/useKeyboardSound";
 import { useChatStore } from "@/store/useChatStore";
 import { Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
 import { ImageUploader } from '@/components/index'
 import StickerPanel from "./Sticker/Sticker";
+import TextArea from "./TextArea";
 
 const MessageInput = ({ }) => {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
@@ -13,11 +14,13 @@ const MessageInput = ({ }) => {
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
+  const inputContainerRef = useRef(null);
+
   const [open, setOpen] = useState(false)
   const maxHeight = 0.15 * window.innerHeight; // معادل 15vh
 
   const { sendMessage, isSoundEnabled, replyToMsg, setReplyToMsg } = useChatStore();
-
+  
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (!text.trim() && !imagePreview) return;
@@ -61,9 +64,45 @@ const MessageInput = ({ }) => {
     });
   }, [text]);
 
+  useEffect(() => {
+    if (!textareaRef.current) return;
+
+    const handleFocus = () => {
+      // اسکرول کانتینر بالای فرم وقتی کیبورد باز شد
+      setTimeout(() => {
+        inputContainerRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 300); // کمی تاخیر بده تا کیبورد باز شود
+    };
+
+    const textarea = textareaRef.current;
+    textarea.addEventListener("focus", handleFocus);
+
+    return () => {
+      textarea.removeEventListener("focus", handleFocus);
+    };
+  }, []);
+
+  useEffect(() => {
+    // موبایل: وقتی ویوپورت تغییر کرد (کیبورد باز/بسته شد)
+    const handleViewportResize = () => {
+      const container = inputContainerRef.current;
+      if (!container) return;
+
+      const vh = window.innerHeight;
+      container.style.maxHeight = `${vh}px`;
+      container.scrollIntoView({ behavior: "smooth", block: "end" });
+    };
+
+    window.visualViewport?.addEventListener("resize", handleViewportResize);
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", handleViewportResize);
+    };
+  }, []);
+
 
   return (
-    <div className="relative">
+    <div className="relative" ref={inputContainerRef}>
       <div className="p-4 pt-1 border-t border-slate-700/50">
 
         <div className="max-w-3xl mx-auto mb-3 ">
@@ -136,8 +175,8 @@ const MessageInput = ({ }) => {
             </button>
           </div>
 
-          <textarea
-            ref={textareaRef}
+          <TextArea
+            // ref={textareaRef}
             dir="auto"
             rows={1}
             value={text}
@@ -146,14 +185,12 @@ const MessageInput = ({ }) => {
               isSoundEnabled && playRandomKeyStrokeSound();
             }}
             placeholder="متن خود را تایپ کنید..."
-            style={{
-              resize: "none",
-              maxHeight: `${maxHeight}px`,
-              overflowY: "hidden",
-              WebkitOverflowScrolling: "touch", // scroll smooth در موبایل
-              transition: "height 0.1s ease",
-            }}
-            className="w-full bg-transparent rounded text-white focus:outline-none focus:border-slate-500 px-2"
+            // style={{
+            //   maxHeight: `${maxHeight}px`,
+            //   WebkitOverflowScrolling: "touch", // scroll smooth در موبایل
+            //   transition: "height 0.1s ease",
+            // }}
+            // className="w-full bg-transparent rounded text-white focus:outline-none focus:border-slate-500 mx-1 px-2 resize-none overflow-y-hidden input-scrollbar"
           />
 
           <ImageUploader

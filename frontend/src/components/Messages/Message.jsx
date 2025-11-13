@@ -57,7 +57,10 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }
                     : msg.replyTo.text
                   : msg.replyTo.image
                     ? "📷 Photo"
-                    : ""}
+                    : msg.replyTo.sticker
+                      ? `${msg.replyTo.sticker.emoji} Sticker`
+                      : "محتوایی ندارد"
+                }
               </p>
 
             </div>
