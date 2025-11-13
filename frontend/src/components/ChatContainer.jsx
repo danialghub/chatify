@@ -24,7 +24,6 @@ const ChatContainer = () => {
     isMessagesLoading,
     addToMessages,
     removeFromMessages,
-    removeMessage
 
   } = useChatStore();
 
@@ -93,20 +92,19 @@ const ChatContainer = () => {
         : <GroupChatHeader />
       }
       <div
-        className="flex-1 px-3 pr-5 overflow-y-auto py-8 will-change-transform transform-gpu scroll-smooth chat-scrollbar"
+        className="flex-1 px-3 pr-5 overflow-y-auto py-8 will-change-transform transform-gpu scroll-smooth chat-scrollbar" id="chatContainer"
         dir="rtl"
       >
         {messages.length > 0 && !isMessagesLoading ? (
           <div className="max-w-3xl mx-auto space-y-4 overflow-hidden">
             {messages.map((msg, idx) => {
               const isMyMessage = msg?.senderId?._id === authUser._id;
-              const isSticker = msg?.sticker?.url
               const isFromSystem = msg.system
               const isStillSame = messages[idx + 1]?.senderId?._id === msg?.senderId?._id
               const isStillSystem = messages[idx - 1]?.system === isFromSystem
 
 
-              return !isFromSystem ? !isSticker ? (
+              return !isFromSystem ? (
                 <Message
                   key={msg._id}
                   msg={msg}
@@ -116,23 +114,7 @@ const ChatContainer = () => {
                   goToMsg={goToMsg}
                   index={idx}
                 />
-              ) : <div className="relative group max-w-[35vw] sm:max-w-[12vw]">
-             
-                 <TgsPlayer url={isSticker}
-                  autoPlay={true} size={150} loop={true} />
-          
-                <div
-                  tabIndex={0}
-                  className="absolute top-1/2  right-full  hidden group-hover:block text-white/40 font-bold "
-                >
-                  <button
-                    onClick={() => removeMessage(msg._id)}
-                    className="bg-white/5 hover:text-red-600 transition-colors duration-200 rounded-full p-2">
-                    <TrashIcon />
-                  </button>
-                </div>
-              </div>
-                :
+              ) :
                 (
                   <div key={msg._id} className="text-center text-white/80">
                     {!isStillSystem &&

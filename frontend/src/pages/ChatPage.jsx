@@ -11,21 +11,23 @@ import { useRoomStore } from "@/store/useRoomStore";
 const ChatPage = () => {
 
   const { authUser } = useAuthStore();
-  const {selectedRoom,activeTab } = useRoomStore()
+  const { selectedRoom, activeTab } = useRoomStore()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
-    <div className="relative w-full sm:max-w-6xl h-[100dvh] sm:h-[95dvh] overflow-hidden">
+    <div
+      id="appContainer"
+      className="relative w-full sm:max-w-6xl h-[100dvh] sm:h-[95dvh] overflow-hidden">
 
       <BorderAnimatedContainer>
 
         {/*  SIDEBAR */}
-          <ChatSidebar
-            isOpen={isSidebarOpen}
-            onClose={() => setIsSidebarOpen(prev => !prev)}
-            user={authUser}
-          />
-        
+        <ChatSidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(prev => !prev)}
+          user={authUser}
+        />
+
         {/* LEFT SIDE */}
         <div
           className={`h-full bg-slate-800/50 backdrop-blur-sm flex flex-col w-full md:w-1/3 ${selectedRoom && "max-md:hidden w-full"}`}

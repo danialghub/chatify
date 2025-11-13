@@ -1,15 +1,13 @@
-import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
+import { useEffect, useRef, useState, forwardRef, useImperativeHandle, memo } from "react";
 import Lottie from "lottie-react";
 import pako from "pako";
 
 const TgsPlayer = forwardRef(({ url, autoPlay = false, loop = false, onComplete, onReady, onPlay, onStop ,size}, ref) => {
-  console.log(url);
-
   const [data, setData] = useState(null);
-  const [ready, setReady] = useState(false);
   const lottieRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const isPlayingRef = useRef(false); // به جای state
 
+  // Load TGS
   useEffect(() => {
     let active = true;
     (async () => {
@@ -23,48 +21,41 @@ const TgsPlayer = forwardRef(({ url, autoPlay = false, loop = false, onComplete,
         console.error("TGS load error:", err);
       }
     })();
-    return () => {
-      active = false;
-    };
+    return () => { active = false; }
   }, [url]);
 
-  // وقتی data آماده شد، صبر یک tick تا Lottie mount بشه، سپس ready = true و callback
+  // Ready
   useEffect(() => {
     if (!data) return;
-    // give Lottie one tick to mount and expose instance
     const id = setTimeout(() => {
-      setReady(true);
-      // set default speed to 1 (در صورت نیاز می‌تونی مقداری دیگر قرار بدی)
-      try { lottieRef.current?.setSpeed?.(1); } catch (e) { }
+      try { lottieRef.current?.setSpeed?.(1); } catch(e){}
       onReady?.();
     }, 0);
     return () => clearTimeout(id);
   }, [data, onReady]);
 
-  // expose کنترل‌ها به بیرون
+  // Expose controls
   useImperativeHandle(ref, () => ({
     play: () => {
-      if (!ready) return;
-      try { lottieRef.current?.setSpeed?.(1); } catch (e) { }
+      try { lottieRef.current?.setSpeed?.(1); } catch(e){}
       lottieRef.current?.play?.();
-      setIsPlaying(true);
+      isPlayingRef.current = true;
       onPlay?.();
-    },
-    stop: () => {
-      lottieRef.current?.stop?.();
-      setIsPlaying(false);
-      onStop?.();
     },
     pause: () => {
       lottieRef.current?.pause?.();
-      setIsPlaying(false);
+      isPlayingRef.current = false;
     },
-    setSpeed: (s) => {
-      lottieRef.current?.setSpeed?.(s);
+    stop: () => {
+      lottieRef.current?.stop?.();
+      isPlayingRef.current = false;
+      onStop?.();
     },
-    isReady: () => ready,
-    isPlaying: () => isPlaying,
-  }), [ready, isPlaying, onPlay, onStop]);
+    setSpeed: (s) => lottieRef.current?.setSpeed?.(s),
+    isPlaying: () => isPlayingRef.current,
+    goToFrame: (frame) => lottieRef.current?.goToAndStop?.(frame, true),
+    getCurrentFrame: () => lottieRef.current?.currentFrame || 0
+  }), [onPlay, onStop]); // بدون isPlaying و ready
 
   if (!data) return null;
 
@@ -74,13 +65,11 @@ const TgsPlayer = forwardRef(({ url, autoPlay = false, loop = false, onComplete,
       animationData={data}
       loop={loop}
       autoplay={autoPlay}
-      onComplete={() => {
-        setIsPlaying(false);
-        onComplete?.();
-      }}
+      renderer="canvas"
+      onComplete={() => onComplete?.()}
       style={{ width: size, height: size }}
     />
   );
 });
 
-export default TgsPlayer;
+export default memo(TgsPlayer);

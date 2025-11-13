@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import useKeyboardSound from "@/hooks/useKeyboardSound";
 import { useChatStore } from "@/store/useChatStore";
 import { ImageIcon, Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
@@ -13,6 +13,7 @@ const MessageInput = ({ }) => {
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const [open, setOpen] = useState(false)
+  const maxHeight = 0.15 * window.innerHeight; // معادل 15vh
 
   const { sendMessage, isSoundEnabled, replyToMsg, setReplyToMsg } = useChatStore();
 
@@ -37,13 +38,26 @@ const MessageInput = ({ }) => {
     setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = "auto"; // ارتفاع رو ریست کن
-      textarea.style.height = textarea.scrollHeight + "px"; // تنظیم به اندازه متن
-    }
+    if (!textarea) return;
+
+    // Height را فقط وقتی لازم است تغییر بده
+    requestAnimationFrame(() => {
+      textarea.style.height = "auto"; // reset برای محاسبه scrollHeight
+      const newHeight = Math.min(textarea.scrollHeight, maxHeight);
+      if (textarea.offsetHeight !== newHeight) {
+        textarea.style.height = newHeight + "px";
+      }
+
+      // Scroll داخلی وقتی لازم است
+      if (textarea.scrollHeight > maxHeight) {
+        textarea.style.overflowY = "auto";
+        textarea.scrollTop = textarea.scrollHeight;
+      } else {
+        textarea.style.overflowY = "hidden";
+      }
+    });
   }, [text]);
 
 
@@ -99,34 +113,43 @@ const MessageInput = ({ }) => {
         <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto relative flex items-center py-3 px-16 bg-slate-800/50 border border-slate-700/50" >
 
           {/* دکمه اموجی یا استیکر */}
-          <div className="flex absolute left-0 ">
+          <div className="flex absolute left-1 bottom-1.5 text-white">
             <button
-            onClick={()=>setOpen(true)}
+              onClick={() => setOpen(true)}
+              type="button"
               className="text-2xl p-1 hover:bg-gray-700 rounded-full transition"
             >
               <Sticker className="w-6 h-6" />
             </button>
 
             {/* آیکون انتخاب فایل */}
-            <button className="p-2 text-gray-500 hover:text-blue-500 hover:bg-gray-700 rounded-full transition">
+            <button
+              type="button"
+              className="p-2 text-gray-500 hover:text-blue-500 hover:bg-gray-700 rounded-full transition"
+              onClick={() => fileInputRef.current?.click()}
+            >
               <Paperclip className="w-5 h-5" />
             </button>
           </div>
-
-          <input type="file" className="hidden" />
 
           <textarea
             ref={textareaRef}
             dir="auto"
             rows={1}
             value={text}
-
             onChange={(e) => {
               setText(e.target.value);
               isSoundEnabled && playRandomKeyStrokeSound();
             }}
-            className="w-full max-h-[15vh]  [unicode-bidi:plaintext]  resize-none overflow-y-auto bg-transparent rounded  text-white focus:outline-none focus:border-slate-500 transition-all "
             placeholder="متن خود را تایپ کنید..."
+            style={{
+              resize: "none",
+              maxHeight: `${maxHeight}px`,
+              overflowY: "hidden",
+              WebkitOverflowScrolling: "touch", // scroll smooth در موبایل
+              transition: "height 0.1s ease",
+            }}
+            className="w-full bg-transparent rounded text-white focus:outline-none focus:border-slate-500 px-2"
           />
 
           <ImageUploader
@@ -154,7 +177,7 @@ const MessageInput = ({ }) => {
         </form>
       </div >
 
-      <StickerPanel open={open} setOpen={setOpen} setText={setText} textareaRef={textareaRef}/>
+      <StickerPanel open={open} setOpen={setOpen} setText={setText} textareaRef={textareaRef} />
     </div>
   );
 }

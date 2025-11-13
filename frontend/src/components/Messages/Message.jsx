@@ -4,6 +4,9 @@ import { TrashIcon, ReplyIcon } from 'lucide-react'
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { handleSwipe } from '@/lib/helper'
+import TgsPlayer from "./TgsPlayer";
+import { formatChatTime } from '@/lib/helper'
+import StickerWrapper from "./StickerWrapper";
 
 const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }) => {
   const { setReplyToMsg, removeMessage, isMessageSending } = useChatStore()
@@ -20,19 +23,19 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }
   return (
 
     <div
-    
+
       id={`msg_${index}`}
-       {...replySwiper()}
+
       className={`chat ${!isMyMessage ? "chat-end" : "chat-start group  transition-transform duration-200 will-change:transform relative"}`}
     >
       <div
-
+        {...replySwiper()}
         className={`flex items-end gap-2 ${isMyMessage ? "flex-row-reverse" : "flex-row"
           } justify-center relative   `}
       >
         <div
 
-          className={`chat-bubble max-w-[55vw] sm:max-w-[30vw] relative ${isMyMessage ? "bg-sky-600/50 text-white" : "bg-slate-800 text-slate-200 "
+          className={`chat-bubble max-w-[55vw] sm:max-w-[30vw] relative ${!msg.sticker ? isMyMessage ? "bg-sky-600/50 text-white" : "bg-slate-800 text-slate-200 " : "bg-black/5"
             }`}
         >
           {/* 🩵 بخش Reply مثل تلگرام */}
@@ -81,7 +84,12 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }
               dir="auto"
               className="mt-2 break-words whitespace-pre-line [unicode-bidi:plaintext]">{msg.text}</p>
           )}
+          {/* 🤙 استیکر  */}
+          {msg.sticker && (
+            <StickerWrapper url={msg.sticker.url} size={140} />
+          )
 
+          }
           {/* 🕓 زمان پیام */}
           {isMessageSending === msg._id
             ? <span className="text-xs font-bold animate-pulse">درحال ارسال...</span>

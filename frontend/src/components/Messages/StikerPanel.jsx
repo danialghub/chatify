@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import TgsPlayer from "./TgsPlayer";
 import { useChatStore } from "@/store/useChatStore";
 
-export default function StickerPanel({ stickers = [] ,setOpen}) {
+export default function StickerPanel({ stickers = [], setOpen }) {
   const [currentIndex, setCurrentIndex] = useState(0); // index که داریم تلاش می‌کنیم پخشش کنیم
   const [playingIndex, setPlayingIndex] = useState(null); // index که واقعاً در حال پخشه (برای border)
   const panelRef = useRef(null);
@@ -20,6 +20,12 @@ export default function StickerPanel({ stickers = [] ,setOpen}) {
     setOpen(false)
 
   };
+  const handleChangeStickerPreview = (sticker ,i) => {
+    playersRef.current.forEach((p, idx) => { if (idx !== i) p?.stop?.(); });
+    setCurrentIndex(i);
+    startPlayAt(i);
+    onSelect?.(sticker.url);
+  }
 
   // helper: شروع پخش برای index مشخص (اگر آماده باشد)
   const startPlayAt = useCallback((i) => {
@@ -67,12 +73,9 @@ export default function StickerPanel({ stickers = [] ,setOpen}) {
                     ${playingIndex === i ? "ring-2 ring-blue-400 scale-105" : "bg-white/10 hover:scale-110"}`}
             onClick={() => {
               handleSendSticker(sticker)
-              // اگر کاربر کلیک کرد: انتخاب و ارسال/پخش آن استیکر (stop بقیه)
-              // playersRef.current.forEach((p, idx) => { if (idx !== i) p?.stop?.(); });
-              // setCurrentIndex(i);
-              // startPlayAt(i);
-              // onSelect?.(sticker.url);
             }}
+            onTouchStart={()=>handleChangeStickerPreview(sticker,i)}
+            onMouseDown={()=>handleChangeStickerPreview(sticker,i)}
           >
 
             <TgsPlayer

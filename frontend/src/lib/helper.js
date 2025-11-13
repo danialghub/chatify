@@ -22,7 +22,7 @@ export const formatChatTime = (date) => {
 
 
 export const handleSwipe = (e, msg, setReplyTo, index) => {
-    if (e.type === "mousedown") e.preventDefault();
+    // فقط اگر موجود بود
 
     let startX = 0;
     let moved = 0;
@@ -30,38 +30,43 @@ export const handleSwipe = (e, msg, setReplyTo, index) => {
     let isMouseDown = false;
 
     const el = e.currentTarget;
+    const width = e.target.offsetWidth+30;
     const replyBtn = document.getElementById(`replyToBtn${index}`);
     const getClientX = (event) =>
         event.touches ? event.touches[0].clientX : event.clientX;
 
     const move = (event) => {
-        if (!isMouseDown) return; // فقط وقتی دکمه موس پایین است
+        if (!isMouseDown) return;
+
         const currentX = getClientX(event);
         moved = currentX - startX;
 
         if (moved < -10) {
             isDragging = true;
-            event.preventDefault();
-            el.style.transition = "none";
-            el.style.transform = `translateX(${moved}px)`;
-            replyBtn?.classList.add("visible");
+
+            // فقط اگر event قابل لغو باشد
+            
+            if (event.cancelable) event.preventDefault();
+            if (moved > (width * -1)) {
+
+                el.style.transition = "none";
+                el.style.transform = `translateX(${moved}px)`;
+                replyBtn?.classList.add("visible");
+            }
         }
     };
 
     const end = () => {
-        // ❗ حذف سریع لیسنرها قبل از هر تغییر
         window.removeEventListener("mousemove", move);
         window.removeEventListener("mouseup", end);
-        window.removeEventListener("touchmove", move);
+        window.removeEventListener("touchmove", move, { passive: false });
         window.removeEventListener("touchend", end);
 
         isMouseDown = false;
-
         el.style.transition = "transform 0.25s ease";
 
         if (moved < -80) setReplyTo(msg);
 
-        // برگردوندن به حالت اولیه
         requestAnimationFrame(() => {
             el.style.transform = "translateX(0)";
             replyBtn?.classList.remove("visible");
@@ -76,7 +81,7 @@ export const handleSwipe = (e, msg, setReplyTo, index) => {
         isDragging = false;
         isMouseDown = true;
 
-        window.addEventListener("mousemove", move, { passive: false });
+        window.addEventListener("mousemove", move);
         window.addEventListener("mouseup", end);
         window.addEventListener("touchmove", move, { passive: false });
         window.addEventListener("touchend", end);
