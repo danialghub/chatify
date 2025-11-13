@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import StickerPanel from './StikerPanel'
-const Sticker = ({ open = true, setOpen, setText, textareaRef }) => {
+const Sticker = ({ open , setOpen, setText, inputContainerRef }) => {
     const [tab, setTab] = useState('emoji');
     const panelRef = useRef(null);
     const [query, setQuery] = useState('')
@@ -30,16 +30,15 @@ const Sticker = ({ open = true, setOpen, setText, textareaRef }) => {
     );
     
 
-
     useEffect(() => {
         function handleClickOutside(e) {
             const panelEl = panelRef.current;
-            const textAreaEl = textareaRef.current;
+            const inputContainerEl = inputContainerRef?.current;
 
             if (
                 panelEl &&
                 !panelEl.contains(e.target) &&
-                !textAreaEl.contains(e.target)
+                !inputContainerEl.contains(e.target)
             ) {
                 setOpen(false);
             }

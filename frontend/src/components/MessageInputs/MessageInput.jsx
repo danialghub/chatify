@@ -158,7 +158,7 @@ const MessageInput = ({ }) => {
           {/* دکمه اموجی یا استیکر */}
           <div className="flex absolute left-1 bottom-1.5 text-white">
             <button
-              onClick={() => setOpen(true)}
+              onClick={() => setOpen(prev=>!prev)}
               type="button"
               className="text-2xl p-1 hover:bg-gray-700 rounded-full transition"
             >
@@ -218,7 +218,7 @@ const MessageInput = ({ }) => {
         </form>
       </div >
 
-      <StickerPanel open={open} setOpen={setOpen} setText={setText} textareaRef={textareaRef} />
+      <StickerPanel open={open} setOpen={setOpen} setText={setText} inputContainerRef={inputContainerRef} />
     </div>
   );
 }
