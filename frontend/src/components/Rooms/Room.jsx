@@ -58,9 +58,16 @@ const Room = memo(({ room, userId, name, logo }) => {
           dir="auto"
           className="truncate [unicode-bidi:plaintext] text-xs text-slate-400 opacity-70 w-60"
         >
-          {room?.lastMessage?.text ? room.lastMessage.text : room?.lastMessage?.image 
-          ? <img src={room?.lastMessage?.image} className='size-5' />
-          :"بدون پیام"
+          {room?.lastMessage?.text
+            ? room.lastMessage.text
+            : room?.lastMessage?.image
+              ? <img src={room.lastMessage.image} className='size-5' />
+              : room?.lastMessage?.sticker
+                ? <p>
+                  {room.lastMessage.sticker.name}
+                  <span>{room.lastMessage.sticker.emoji}</span>
+                </p>
+                : "بدون پیام"
           }
         </span>
       </div>

@@ -22,6 +22,11 @@ const messageSchema = new mongoose.Schema(
     image: {
       type: String,
     },
+    sticker: {
+      url: String,
+      emoji: String,
+      name: String
+    },
     seenBy:
       [
         {

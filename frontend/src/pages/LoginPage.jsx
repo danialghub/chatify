@@ -23,7 +23,7 @@ const LoginPage = () => {
             {/* سمت راست */}
             <AuthIllustration
               title="در هر زمان و هر مکان، در ارتباط باشید"
-              image="/login.png"
+              image="/login.webp"
             />
           </div>
         </BorderAnimatedContainer>

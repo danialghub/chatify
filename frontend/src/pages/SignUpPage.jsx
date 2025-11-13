@@ -23,7 +23,7 @@ const SignUpPage = () => {
             {/* سمت راست */}
             <AuthIllustration
               title=" از همین امروز مسیرت را شروع کن"
-              image="/signup.png"
+              image="/signup.webp"
             />
           </div>
         </BorderAnimatedContainer>

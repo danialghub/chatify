@@ -24,9 +24,9 @@ export const sendMessage = async (req, res) => {
   try {
     const senderId = req.user._id;
     const { roomId } = req.params;
-    const { text, image, replyTo: replyId } = req.body;
+    const { text, image, replyTo: replyId, sticker = null } = req.body;
 
-    if (!text && !image)
+    if (!text && !image && !sticker)
       return res.status(400).json({ message: "متن یا تصویر الزامی است" });
 
     if (!roomId)
@@ -48,6 +48,7 @@ export const sendMessage = async (req, res) => {
       senderId,
       roomId,
       text,
+      sticker,
       image: imageUrl,
       replyTo,
     });
