@@ -1,7 +1,7 @@
-import {  useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import useKeyboardSound from "@/hooks/useKeyboardSound";
 import { useChatStore } from "@/store/useChatStore";
-import {  Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
+import { Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
 import { ImageUploader } from '@/components/index'
 import StickerPanel from "./Sticker/Sticker";
 
@@ -79,7 +79,10 @@ const MessageInput = ({ }) => {
                       replyToMsg.text
                       : replyToMsg.image
                         ? "📷 Photo"
-                        : "هیچ محتوایی وجود ندارد"}
+                        : replyToMsg.sticker
+                          ? `${replyToMsg.sticker.emoji} Sticker`
+                          : "هیچ محتوایی وجود ندارد"
+                    }
                   </p>
                 </div>
               </div>

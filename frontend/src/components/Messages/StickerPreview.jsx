@@ -8,6 +8,7 @@ export default function StickerPreview({ url, size }) {
     const isVisibleRef = useRef(false); // آیا استیکر داخل viewport هست
 
     useEffect(() => {
+    
         // Intersection Observer برای بررسی اینکه استیکر در viewport هست یا نه
         const observer = new IntersectionObserver(
             ([entry]) => {
@@ -29,15 +30,13 @@ export default function StickerPreview({ url, size }) {
             },
             {
                 root: null, // viewport
-                threshold: 0.7, // حداقل 10٪ دیده شود
+                threshold: 0.7, // حداقل 70٪ دیده شود
             }
         );
 
         if (containerRef.current) observer.observe(containerRef.current);
 
-        // به محض mount شدن صفحه، شروع پخش
-        playerRef.current?.play();
-        isActiveRef.current = true;
+        
 
         // کنترل کلیک و ترک پنجره
         const handleClick = (e) => {
@@ -83,13 +82,14 @@ export default function StickerPreview({ url, size }) {
             if (containerRef.current) observer.unobserve(containerRef.current);
         };
     }, []);
+  
 
     return (
         <div id="chatContainer" ref={containerRef}>
             <TgsPlayer
                 ref={playerRef}
                 url={url}
-                autoPlay={false} // مدیریت با play/pause خودمون
+                autoPlay={true} // مدیریت با play/pause خودمون
                 loop={true}
                 size={size}
             />
