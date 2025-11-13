@@ -2,10 +2,11 @@ import { useEffect, useRef, useState, forwardRef, useImperativeHandle, memo } fr
 import Lottie from "lottie-react";
 import pako from "pako";
 
-const TgsPlayer = forwardRef(({ url, autoPlay = false, loop = false, onComplete, onReady, onPlay, onStop ,size}, ref) => {
+const TgsPlayer = forwardRef(({ url, autoPlay = false, loop = false, onComplete, onReady, onPlay, onStop, size }, ref) => {
   const [data, setData] = useState(null);
   const lottieRef = useRef(null);
   const isPlayingRef = useRef(false); // به جای state
+  console.log(url);
 
   // Load TGS
   useEffect(() => {
@@ -28,7 +29,7 @@ const TgsPlayer = forwardRef(({ url, autoPlay = false, loop = false, onComplete,
   useEffect(() => {
     if (!data) return;
     const id = setTimeout(() => {
-      try { lottieRef.current?.setSpeed?.(1); } catch(e){}
+      try { lottieRef.current?.setSpeed?.(1); } catch (e) { }
       onReady?.();
     }, 0);
     return () => clearTimeout(id);
@@ -37,7 +38,7 @@ const TgsPlayer = forwardRef(({ url, autoPlay = false, loop = false, onComplete,
   // Expose controls
   useImperativeHandle(ref, () => ({
     play: () => {
-      try { lottieRef.current?.setSpeed?.(1); } catch(e){}
+      try { lottieRef.current?.setSpeed?.(1); } catch (e) { }
       lottieRef.current?.play?.();
       isPlayingRef.current = true;
       onPlay?.();

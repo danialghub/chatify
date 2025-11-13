@@ -3,7 +3,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useRoomStore } from "@/store/useRoomStore";
 import { formatChatTime } from '@/lib/helper'
-import TgsPlayer from "./Messages/TgsPlayer";
+
 import {
   PrivateChatHeader,
   GroupChatHeader,
@@ -13,7 +13,6 @@ import {
   Message
 } from '@/components/index';
 import useSocket from "../hooks/useSocket";
-import { TrashIcon } from "lucide-react";
 
 const ChatContainer = () => {
 

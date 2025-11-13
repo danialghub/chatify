@@ -1,9 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {  useLayoutEffect, useRef, useState } from "react";
 import useKeyboardSound from "@/hooks/useKeyboardSound";
 import { useChatStore } from "@/store/useChatStore";
-import { ImageIcon, Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
+import {  Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
 import { ImageUploader } from '@/components/index'
-import StickerPanel from "./Sticker";
+import StickerPanel from "./Sticker/Sticker";
+
 const MessageInput = ({ }) => {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
 

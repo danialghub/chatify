@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import TgsPlayer from "./TgsPlayer";
+import StickerItem from "./StickerItem";
 import { useChatStore } from "@/store/useChatStore";
 
 export default function StickerPanel({ stickers = [], setOpen }) {
@@ -20,7 +20,7 @@ export default function StickerPanel({ stickers = [], setOpen }) {
     setOpen(false)
 
   };
-  const handleChangeStickerPreview = (sticker ,i) => {
+  const handleChangeStickerPreview = (sticker, i) => {
     playersRef.current.forEach((p, idx) => { if (idx !== i) p?.stop?.(); });
     setCurrentIndex(i);
     startPlayAt(i);
@@ -62,35 +62,28 @@ export default function StickerPanel({ stickers = [], setOpen }) {
     setTimeout(() => startPlayAt(next), 120);
   };
 
+  const handleClick = useCallback((sticker) => {
+    handleSendSticker(sticker);
+  }, [handleSendSticker]);
+
+  const handlePreview = useCallback((sticker, i) => {
+    handleChangeStickerPreview(sticker, i);
+  }, [handleChangeStickerPreview]);
+
   return (
     <div ref={panelRef} className="relative flex flex-wrap gap-3">
 
       {stickers.length ? (
         stickers.map((sticker, i) => (
-          <div
+          <StickerItem
             key={i}
-            className={`rounded-xl p-1 transition-all duration-150
-                    ${playingIndex === i ? "ring-2 ring-blue-400 scale-105" : "bg-white/10 hover:scale-110"}`}
-            onClick={() => {
-              handleSendSticker(sticker)
-            }}
-            onTouchStart={()=>handleChangeStickerPreview(sticker,i)}
-            onMouseDown={()=>handleChangeStickerPreview(sticker,i)}
-          >
-
-            <TgsPlayer
-              ref={(el) => (playersRef.current[i] = el)}
-              url={sticker.url}
-              autoPlay={false}
-              loop={false}
-              onReady={() => handleReady(i)}
-              onComplete={() => handleComplete(i)}
-              onPlay={() => setPlayingIndex(i)}
-              onStop={() => setPlayingIndex(null)}
-              size={80}
-            />
-
-          </div>
+            sticker={sticker}
+            i={i}
+            isPlaying={playingIndex === i}
+            onClick={handleSendSticker}
+            onPreview={handleChangeStickerPreview}
+            registerPlayer={(el, idx) => (playersRef.current[idx] = el)}
+          />
         ))
       ) : (
         <div className="text-white text-xl text-center w-full py-8">😅 هیچ استیکری وجود ندارد</div>

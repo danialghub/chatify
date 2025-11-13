@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import TgsPlayer from "./TgsPlayer";
+import TgsPlayer from "../helper/TgsPlayer";
 
-export default function StickerController({ url, size }) {
+export default function StickerPreview({ url, size }) {
     const playerRef = useRef(null);
     const containerRef = useRef(null);
     const isActiveRef = useRef(false); // آیا استیکر در حال پخش است

@@ -4,9 +4,7 @@ import { TrashIcon, ReplyIcon } from 'lucide-react'
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { handleSwipe } from '@/lib/helper'
-import TgsPlayer from "./TgsPlayer";
-import { formatChatTime } from '@/lib/helper'
-import StickerWrapper from "./StickerWrapper";
+import StickerPreview from "./StickerPreview";
 
 const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }) => {
   const { setReplyToMsg, removeMessage, isMessageSending } = useChatStore()
@@ -20,6 +18,7 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }
       onMouseDown: (e) => handleSwipe(e, msg, setReplyToMsg, index)
     }
   }
+
   return (
 
     <div
@@ -86,7 +85,7 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }
           )}
           {/* 🤙 استیکر  */}
           {msg.sticker && (
-            <StickerWrapper url={msg.sticker.url} size={140} />
+            <StickerPreview url={msg.sticker.url} size={140} />
           )
 
           }
