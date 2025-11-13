@@ -11,6 +11,7 @@ const MessageInput = ({ }) => {
 
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+  const [emojiTab, setEmojiTab] = useState('emoji');
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
@@ -20,7 +21,7 @@ const MessageInput = ({ }) => {
   const maxHeight = 0.15 * window.innerHeight; // معادل 15vh
 
   const { sendMessage, isSoundEnabled, replyToMsg, setReplyToMsg } = useChatStore();
-  
+
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (!text.trim() && !imagePreview) return;
@@ -153,17 +154,23 @@ const MessageInput = ({ }) => {
           )}
         </div>
 
-        <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto relative flex items-center py-3 px-16 bg-slate-800/50 border border-slate-700/50" >
+        <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto relative flex items-center py-3 px-16 bg-slate-800/50 border border-slate-700/50 " >
 
           {/* دکمه اموجی یا استیکر */}
-          <div className="flex absolute left-1 bottom-1.5 text-white">
+          <div className="flex absolute left-1 bottom-1.5 text-white items-center ">
             <button
-              onClick={() => setOpen(prev=>!prev)}
+              onClick={() => setOpen(prev => !prev)}
               type="button"
-              className="text-2xl p-1 hover:bg-gray-700 rounded-full transition"
+              className="
+    w-8 h-8 ml-0.5 text-2xl  rounded-full hover:bg-gradient-to-br hover:from-cyan-500/80 hover:to-blue-500/80 shadow-lg  hover:scale-110  hover:shadow-xl transition-all duration-300 ease-out
+    ring-2 ring-transparent hover:ring-white/30 backdrop-blur-sm  text-center  flex justify-center items-center
+  "
             >
-              <Sticker className="w-6 h-6" />
+              {emojiTab === "emoji"
+                ? <span className="pt-2">🤣</span>
+                : <Sticker className="w-6 h-6" />}
             </button>
+
 
             {/* آیکون انتخاب فایل */}
             <button
@@ -175,6 +182,7 @@ const MessageInput = ({ }) => {
             </button>
           </div>
 
+
           <TextArea
             // ref={textareaRef}
             dir="auto"
@@ -185,12 +193,12 @@ const MessageInput = ({ }) => {
               isSoundEnabled && playRandomKeyStrokeSound();
             }}
             placeholder="متن خود را تایپ کنید..."
-            // style={{
-            //   maxHeight: `${maxHeight}px`,
-            //   WebkitOverflowScrolling: "touch", // scroll smooth در موبایل
-            //   transition: "height 0.1s ease",
-            // }}
-            // className="w-full bg-transparent rounded text-white focus:outline-none focus:border-slate-500 mx-1 px-2 resize-none overflow-y-hidden input-scrollbar"
+          // style={{
+          //   maxHeight: `${maxHeight}px`,
+          //   WebkitOverflowScrolling: "touch", // scroll smooth در موبایل
+          //   transition: "height 0.1s ease",
+          // }}
+          // className="w-full bg-transparent rounded text-white focus:outline-none focus:border-slate-500 mx-1 px-2 resize-none overflow-y-hidden input-scrollbar"
           />
 
           <ImageUploader
@@ -218,7 +226,14 @@ const MessageInput = ({ }) => {
         </form>
       </div >
 
-      <StickerPanel open={open} setOpen={setOpen} setText={setText} inputContainerRef={inputContainerRef} />
+      <StickerPanel
+        open={open}
+        setOpen={setOpen}
+        setText={setText}
+        inputContainerRef={inputContainerRef}
+        tab={emojiTab}
+        setTab={setEmojiTab}
+      />
     </div>
   );
 }

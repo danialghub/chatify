@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import StickerPanel from './StikerPanel'
-const Sticker = ({ open , setOpen, setText, inputContainerRef }) => {
-    const [tab, setTab] = useState('emoji');
+const Sticker = ({ tab, setTab, open, setOpen, setText, inputContainerRef }) => {
+
     const panelRef = useRef(null);
     const [query, setQuery] = useState('')
     const EMOJIS = [
@@ -28,7 +28,7 @@ const Sticker = ({ open , setOpen, setText, inputContainerRef }) => {
     const filteredStickers = stikers.filter((s) =>
         s.name.toLowerCase().includes(query.toLowerCase())
     );
-    
+
 
     useEffect(() => {
         function handleClickOutside(e) {
@@ -166,7 +166,7 @@ const Sticker = ({ open , setOpen, setText, inputContainerRef }) => {
                                     </div>
                                 ) : <div className="text-white text-lg text-center w-full py-8">😅 هیچ ایموجی وجود ندارد</div>
                                     : (
-                                        <StickerPanel stickers={filteredStickers} setOpen={setOpen}/>
+                                        <StickerPanel stickers={filteredStickers} setOpen={setOpen} />
                                     )}
                             </motion.div>
                         </AnimatePresence>
