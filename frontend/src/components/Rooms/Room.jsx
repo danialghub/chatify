@@ -64,7 +64,7 @@ const Room = memo(({ room, userId, name, logo }) => {
               ? <img src={room.lastMessage.image} className='size-5' />
               : room?.lastMessage?.sticker
                 ? <p>
-                  {room.lastMessage.sticker.name}
+                  Sticker
                   <span>{room.lastMessage.sticker.emoji}</span>
                 </p>
                 : "بدون پیام"
