@@ -13,6 +13,7 @@ import {
   Message
 } from '@/components/index';
 import useSocket from "../hooks/useSocket";
+import { TrashIcon } from "lucide-react";
 
 const ChatContainer = () => {
 
@@ -23,6 +24,7 @@ const ChatContainer = () => {
     isMessagesLoading,
     addToMessages,
     removeFromMessages,
+    removeMessage
 
   } = useChatStore();
 
@@ -114,8 +116,22 @@ const ChatContainer = () => {
                   goToMsg={goToMsg}
                   index={idx}
                 />
-              ) : <TgsPlayer url={isSticker}
-                autoPlay={true} size={150} loop={true}/>
+              ) : <div className="relative group max-w-[35vw] sm:max-w-[12vw]">
+             
+                 <TgsPlayer url={isSticker}
+                  autoPlay={true} size={150} loop={true} />
+          
+                <div
+                  tabIndex={0}
+                  className="absolute top-1/2  right-full  hidden group-hover:block text-white/40 font-bold "
+                >
+                  <button
+                    onClick={() => removeMessage(msg._id)}
+                    className="bg-white/5 hover:text-red-600 transition-colors duration-200 rounded-full p-2">
+                    <TrashIcon />
+                  </button>
+                </div>
+              </div>
                 :
                 (
                   <div key={msg._id} className="text-center text-white/80">

@@ -20,8 +20,7 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }
   return (
 
     <div
-      
-     
+    
       id={`msg_${index}`}
        {...replySwiper()}
       className={`chat ${!isMyMessage ? "chat-end" : "chat-start group  transition-transform duration-200 will-change:transform relative"}`}
