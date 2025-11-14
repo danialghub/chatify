@@ -64,7 +64,7 @@ const MessageInput = ({ }) => {
       // اسکرول کانتینر بالای فرم وقتی کیبورد باز شد
       setOpen(false)
       setTimeout(() => {
-        document.getElementById('chatContainer').scrollIntoView({ behavior: "smooth", block: "end" });
+        document.getElementById('chatContainer').scrollIntoView({ behavior: "smooth" });
       }, 300); // کمی تاخیر بده تا کیبورد باز شود
     };
 
