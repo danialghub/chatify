@@ -11,49 +11,22 @@ export default function TextArea({
   const containerRef = useRef(null);
   const [maxHeight, setMaxHeight] = useState(null);
 
-  // =============================
-  // Measure max height
-  // =============================
-  useEffect(() => {
+
+  const resize = () => {
     const ta = taRef.current;
     if (!ta) return;
 
-    const prevOverflow = ta.style.overflowY;
-    const prevHeight = ta.style.height;
-
-    ta.style.height = "auto";
-    ta.rows = 1;
-    ta.style.overflowY = "hidden";
-
-    const singleRowHeight = ta.scrollHeight;
-    const paddingOffset =
-      (parseFloat(getComputedStyle(ta).paddingTop) || 0) +
-      (parseFloat(getComputedStyle(ta).paddingBottom) || 0);
-
-    const computedMax = singleRowHeight * maxRows + paddingOffset;
-    setMaxHeight(Math.ceil(computedMax));
-
-    ta.style.height = prevHeight;
-    ta.style.overflowY = prevOverflow;
-  }, [maxRows]);
-
-  // =============================
-  // adjust height
-  // =============================
-  const adjustHeight = () => {
-    const ta = taRef.current;
-    if (!ta) return;
-
+    // ریست برای محاسبه صحیح scrollHeight
     ta.style.height = "auto";
 
-    if (!maxHeight) {
-      ta.style.height = ta.scrollHeight + "px";
-      ta.style.overflowY = "hidden";
-      return;
-    }
+    // ارتفاع یک خط = scrollHeight زمانی که rows = 1
+    const lineHeight = parseInt(getComputedStyle(ta).lineHeight, 10);
+    const maxHeight = lineHeight * maxRows;
 
+    // ارتفاع واقعی متن
     const desired = ta.scrollHeight;
 
+    // اعمال محدودیت
     if (desired > maxHeight) {
       ta.style.height = maxHeight + "px";
       ta.style.overflowY = "auto";
@@ -63,35 +36,27 @@ export default function TextArea({
     }
   };
 
+  // هنگام تغییر value
   useEffect(() => {
-    // prevent flicker: run after 2 animation frames
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        adjustHeight();
-      });
-    });
-  }, [value, maxHeight]);
+    resize();
+  }, [value]);
 
-
-
-
-
-
-  // =============================
-  // Handle change
-  // =============================
-  const handleChange = (e) => {
-    onChange?.(e);
-    requestAnimationFrame(adjustHeight);
-  };
+  // برای اولین رندر
+  useEffect(() => {
+    window.visualViewport.addEventListener('resize', () => {
+      containerRef.current.scrollIntoView({ block: "center" })
+    })
+    resize();
+  }, []);
 
   return (
     <div ref={containerRef} className={`w-full`}>
       <textarea
         {...rest}
         ref={taRef}
+        dir="auto"
         value={value}
-        onChange={handleChange}
+        onChange={onChange}
         rows={1}
         inputMode="text"
         aria-label={rest["aria-label"] || "message input"}

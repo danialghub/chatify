@@ -44,9 +44,7 @@ const MessageInput = ({ }) => {
     setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
-  const handleCursor = e => {
-    setCursorPos(e.target.selectionStart)
-  }
+
 
   const addEmoji = emoji => {
     const before = text.slice(0, cursorPos)
@@ -57,24 +55,6 @@ const MessageInput = ({ }) => {
     setCursorPos(cursorPos + emoji.length)
   }
 
-  useEffect(() => {
-    if (!textareaRef.current) return;
-
-    const handleFocus = () => {
-      // اسکرول کانتینر بالای فرم وقتی کیبورد باز شد
-      setOpen(false)
-      setTimeout(() => {
-        document.documentElement.scrollIntoView({ behavior: "smooth" });
-      }, 300); // کمی تاخیر بده تا کیبورد باز شود
-    };
-
-    const textarea = textareaRef.current;
-    textarea.addEventListener("focus", handleFocus);
-
-    return () => {
-      textarea.removeEventListener("focus", handleFocus);
-    };
-  }, []);
 
 
   return (
@@ -160,14 +140,13 @@ const MessageInput = ({ }) => {
 
           <TextArea
             taRef={textareaRef}
-            dir="auto"
-            rows={1}
             value={text}
             onChange={(e) => {
               setText(e.target.value);
               isSoundEnabled && playRandomKeyStrokeSound();
             }}
-            onSelect={handleCursor}
+            onSelect={e => setCursorPos(e.target.selectionStart)}
+            onFocus={() => setOpen(false)}
             placeholder="متن خود را تایپ کنید..."
           />
 

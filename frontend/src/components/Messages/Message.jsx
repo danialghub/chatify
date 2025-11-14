@@ -3,7 +3,7 @@ import { ChatIcon } from '@/components/index'
 import { TrashIcon, ReplyIcon } from 'lucide-react'
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
-import { handleSwipe } from '@/lib/helper'
+import { handleSwipe, parseDynamicContent } from '@/lib/helper'
 import StickerPreview from "./StickerPreview";
 
 const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }) => {
@@ -84,7 +84,10 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }
           {msg.text && (
             <p
               dir="auto"
-              className="mt-2 break-words whitespace-pre-line [unicode-bidi:plaintext]">{msg.text}</p>
+              className="mt-2 break-words whitespace-pre-line [unicode-bidi:plaintext]"
+              dangerouslySetInnerHTML={{__html:parseDynamicContent(msg.text)}}
+              >
+            </p>
           )}
           {/* 🤙 استیکر  */}
           {msg.sticker && (
