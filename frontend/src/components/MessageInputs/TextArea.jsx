@@ -5,6 +5,7 @@ export default function TextArea({
   onChange,
   maxRows = 5,
   taRef,
+  setOpen,
   ...rest
 }) {
 
@@ -75,27 +76,28 @@ export default function TextArea({
   // =============================
   // Smooth keyboard handling (fix jumping)
   // =============================
-  // const smoothKeyboardFix = () => {
-  //   const vv = window.visualViewport;
-  //   if (!vv) return;
+  const smoothKeyboardFix = () => {
+    const vv = window.visualViewport;
+    if (!vv) return;
 
-  //   let last = vv.height;
-  //   const ta = taRef.current;
+    setOpen(false)
+    let last = vv.height;
+    const ta = taRef.current;
 
-  //   const check = setInterval(() => {
-  //     if (Math.abs(last - vv.height) < 2) {
-  //       clearInterval(check);
-  //       requestAnimationFrame(() => {
-  //         try {
-  //           ta?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  //         } catch { }
-  //       });
-  //     }
-  //     last = vv.height;
-  //   }, 30);
+    const check = setInterval(() => {
+      if (Math.abs(last - vv.height) < 2) {
+        clearInterval(check);
+        requestAnimationFrame(() => {
+          try {
+            ta?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          } catch { }
+        });
+      }
+      last = vv.height;
+    }, 30);
 
-  //   setTimeout(() => clearInterval(check), 200);
-  // };
+    setTimeout(() => clearInterval(check), 200);
+  };
 
   // =============================
   // visualViewport padding
@@ -162,7 +164,7 @@ export default function TextArea({
           overflowY: "hidden",
           WebkitOverflowScrolling: "touch",
         }}
-        // onFocus={smoothKeyboardFix}
+        onFocus={smoothKeyboardFix}
       />
     </div>
   );

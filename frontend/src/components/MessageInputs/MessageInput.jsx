@@ -57,17 +57,7 @@ const MessageInput = ({ }) => {
     setCursorPos(cursorPos + emoji.length)
   }
 
-  const focusInput = ()=>{
-    setOpen(false)
-    console.log('focus');
-    
-    const input = textareaRef.current
-    input.focus()
-
-    setTimeout(() => {
-      input.selectionStart = input.selectionEnd = cursorPos
-    }, 0);
-  }
+ 
 
 
   return (
@@ -156,12 +146,12 @@ const MessageInput = ({ }) => {
             dir="auto"
             rows={1}
             value={text}
+            setOpen={setOpen}
             onChange={(e) => {
               setText(e.target.value);
               isSoundEnabled && playRandomKeyStrokeSound();
             }}
             onSelect={handleCursor}
-            onFocus={focusInput}
             placeholder="متن خود را تایپ کنید..."
           />
 
