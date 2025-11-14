@@ -1,14 +1,15 @@
 import { useEffect, useRef } from "react";
 import TgsPlayer from "../helper/TgsPlayer";
+import { useChatStore } from "../../store/useChatStore";
 
 export default function StickerPreview({ url, size }) {
     const playerRef = useRef(null);
     const containerRef = useRef(null);
     const isActiveRef = useRef(false); // آیا استیکر در حال پخش است
     const isVisibleRef = useRef(false); // آیا استیکر داخل viewport هست
-
+    const { isFetchingSticker } = useChatStore()
     useEffect(() => {
-    
+
         // Intersection Observer برای بررسی اینکه استیکر در viewport هست یا نه
         const observer = new IntersectionObserver(
             ([entry]) => {
@@ -36,7 +37,7 @@ export default function StickerPreview({ url, size }) {
 
         if (containerRef.current) observer.observe(containerRef.current);
 
-        
+
 
         // کنترل کلیک و ترک پنجره
         const handleClick = (e) => {
@@ -82,9 +83,9 @@ export default function StickerPreview({ url, size }) {
             if (containerRef.current) observer.unobserve(containerRef.current);
         };
     }, []);
-  
 
-    return (
+
+    return  (
         <div id="chatContainer" ref={containerRef}>
             <TgsPlayer
                 ref={playerRef}
@@ -94,5 +95,5 @@ export default function StickerPreview({ url, size }) {
                 size={size}
             />
         </div>
-    );
+    ) 
 }

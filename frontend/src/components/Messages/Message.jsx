@@ -6,7 +6,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { handleSwipe, parseDynamicContent } from '@/lib/helper'
 import StickerPreview from "./StickerPreview";
 
-const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }) => {
+const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index,inputRef }) => {
   const { setReplyToMsg, removeMessage, isMessageSending } = useChatStore()
   const { authUser } = useAuthStore()
 
@@ -28,10 +28,10 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }
       className={`chat ${!isMyMessage ? "chat-end" : "chat-start group  transition-transform duration-200 will-change:transform relative "}`}
     >
       <div
-        onTouchStart={(e) => handleSwipe(e, msg, setReplyToMsg, index)}
+        onTouchStart={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
         onMouseDown={(e) => {
           e.preventDefault();
-          handleSwipe(e, msg, setReplyToMsg, index);
+          handleSwipe(e, msg, setReplyToMsg, inputRef);
         }}
 
         className={`flex items-end gap-2 ${isMyMessage ? "flex-row-reverse" : "flex-row"

@@ -1,9 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useRoomStore } from "@/store/useRoomStore";
 import { formatChatTime } from '@/lib/helper'
-
+import { ChevronDown } from "lucide-react"
 import {
   PrivateChatHeader,
   GroupChatHeader,
@@ -34,6 +34,8 @@ const ChatContainer = () => {
   useSocket('message:remove', removeFromMessages)
 
   const messageEndRef = useRef(null);
+  const textareaRef = useRef(null);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
 
   const goToMsg = (id) => {
     const targetMsgIdx = messages.findIndex(msg => msg._id === id);
@@ -80,11 +82,28 @@ const ChatContainer = () => {
   // 🔽 اسکرول خودکار
   useEffect(() => {
 
-  setTimeout(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, 200);
-  
-}, [isMessagesLoading]);
+    setTimeout(() => {
+      messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 200);
+
+  }, [isMessagesLoading]);
+
+  useEffect(() => {
+    const container = document.getElementById("chatContainer");
+    if (!container) return;
+
+    const handleScroll = () => {
+      const distanceFromBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight;
+
+      // اگر 200px یا بیشتر از پایین فاصله گرفت → دکمه ظاهر شود
+      setShowScrollBtn(distanceFromBottom > 400);
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
+
 
   return (
     <>
@@ -93,11 +112,12 @@ const ChatContainer = () => {
         : <GroupChatHeader />
       }
       <div
-        className="flex-1 px-3 pr-5 overflow-y-auto py-8 will-change-transform transform-gpu scroll-smooth chat-scrollbar" id="chatContainer"
+        className="flex-1 px-3 pr-5 overflow-y-auto py-8 will-change-transform transform-gpu scroll-smooth chat-scrollbar relative" id="chatContainer"
         dir="rtl"
       >
         {messages.length > 0 && !isMessagesLoading ? (
-          <div className="max-w-3xl mx-auto space-y-4 overflow-hidden ">
+          <div className="max-w-3xl mx-auto space-y-4 overflow-hidden  ">
+
             {messages.map((msg, idx) => {
               const isMyMessage = msg?.senderId?._id === authUser._id;
               const isFromSystem = msg.system
@@ -114,6 +134,7 @@ const ChatContainer = () => {
                   isStillSame={isStillSame}
                   goToMsg={goToMsg}
                   index={idx}
+                  inputRef={textareaRef}
                 />
               ) :
                 (
@@ -126,8 +147,11 @@ const ChatContainer = () => {
                     </span>
                   </div>
                 )
+
             })}
-            <div ref={messageEndRef} />
+
+            <div ref={messageEndRef} id="messageEndRef" />
+
           </div>
         ) : isMessagesLoading ? (
           <MessagesLoadingSkeleton />
@@ -136,9 +160,33 @@ const ChatContainer = () => {
             name={selectedRoom?.user?.name || selectedRoom.name}
           />
         )}
+
+
       </div>
 
-      <MessageInput />
+      {showScrollBtn && < button
+        onClick={() =>
+          document.getElementById("chatContainer")?.scrollTo({
+            top: document.getElementById("chatContainer").scrollHeight,
+            behavior: "smooth",
+          })
+        }
+        className="
+      fixed bottom-28 left-4
+      p-2 rounded-full
+      backdrop-blur-xl bg-white/10
+      shadow-lg shadow-black/30
+      border border-white/20
+      hover:bg-white/20
+      transition-all duration-300
+      hover:scale-110 active:scale-95
+      "
+      >
+        <ChevronDown className="w-6 h-6 text-white drop-shadow" />
+      </button >
+      }
+      <MessageInput textareaRef={textareaRef} />
+
     </>
   );
 }

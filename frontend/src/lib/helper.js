@@ -21,7 +21,7 @@ export const formatChatTime = (date) => {
 };
 
 
-export const handleSwipe = (e, msg, setReplyTo, index) => {
+export const handleSwipe = (e, msg, setReplyTo, inputRef) => {
     let startX = 0;
     let startY = 0;
     let movedX = 0;
@@ -32,7 +32,7 @@ export const handleSwipe = (e, msg, setReplyTo, index) => {
 
     const el = e.currentTarget;
     const width = e.target.offsetWidth + 30; // محدودیت جابجایی
-    const replyBtn = document.getElementById(`replyToBtn${index}`);
+
 
     const getClientX = (event) =>
         event.touches ? event.touches[0].clientX : event.clientX;
@@ -67,7 +67,6 @@ export const handleSwipe = (e, msg, setReplyTo, index) => {
             if (event.cancelable) event.preventDefault(); // فقط وقتی افقی است جلوی scroll را بگیر
             el.style.transition = "none";
             el.style.transform = `translateX(${translateX}px)`;
-            replyBtn?.classList.add("visible");
         }
     };
 
@@ -81,11 +80,14 @@ export const handleSwipe = (e, msg, setReplyTo, index) => {
         el.style.transition = "transform 0.25s ease";
 
         // فقط اگر به حد لازم رسیده بود trigger reply
-        if (movedX < -80) setReplyTo(msg);
+        if (movedX < -80) {
+            setReplyTo(msg);
+            inputRef.current.focus()
+        }
+
 
         requestAnimationFrame(() => {
             el.style.transform = "translateX(0)";
-            replyBtn?.classList.remove("visible");
         });
 
         isDragging = false;

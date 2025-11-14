@@ -1,4 +1,4 @@
-import {  useRef, useState } from "react";
+import { useRef, useState } from "react";
 import useKeyboardSound from "@/hooks/useKeyboardSound";
 import { useChatStore } from "@/store/useChatStore";
 import { Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
@@ -6,7 +6,7 @@ import { ImageUploader } from '@/components/index'
 import StickerPanel from "./Sticker/Sticker";
 import TextArea from "./TextArea";
 
-const MessageInput = ({ }) => {
+const MessageInput = ({ textareaRef }) => {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
 
   const [text, setText] = useState("");
@@ -15,7 +15,6 @@ const MessageInput = ({ }) => {
   const [emojiTab, setEmojiTab] = useState('emoji');
 
   const fileInputRef = useRef(null);
-  const textareaRef = useRef(null);
   const inputContainerRef = useRef(null);
 
   const [open, setOpen] = useState(false)
@@ -34,6 +33,9 @@ const MessageInput = ({ }) => {
       image: imagePreview,
       replyTo: replyToMsg
     });
+    setTimeout(() => {
+      document.getElementById('messageEndRef').scrollIntoView({ behavior: "smooth"})
+    }, 100);
     setText("");
     setImagePreview("");
     setReplyToMsg(null);

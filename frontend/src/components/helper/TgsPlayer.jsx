@@ -20,10 +20,11 @@ const TgsPlayer = forwardRef(
     const lottieRef = useRef(null);
     const isPlayingRef = useRef(false);
     const initializedRef = useRef(false);
+    const [isFetching, setIsFetching] = useState(false)
 
     // --- Load TGS ---
     useEffect(() => {
-      let active = true;
+      setIsFetching(true);
       setData(null);
       initializedRef.current = false;
 
@@ -32,16 +33,16 @@ const TgsPlayer = forwardRef(
           const res = await fetch(url);
           const buf = await res.arrayBuffer();
           const json = JSON.parse(pako.inflate(new Uint8Array(buf), { to: "string" }));
-          if (!active) return;
+
           setData(json);
         } catch (err) {
           console.error("TGS load error:", err);
+        } finally {
+          setIsFetching(false);
         }
       })();
 
-      return () => {
-        active = false;
-      };
+      
     }, [url]);
 
     // --- Ready + AutoPlay ---
@@ -100,7 +101,7 @@ const TgsPlayer = forwardRef(
 
     if (!data) return null;
 
-    return (
+    return !isFetching?(
       <Lottie
         lottieRef={lottieRef}
         animationData={data}
@@ -110,7 +111,7 @@ const TgsPlayer = forwardRef(
         onComplete={() => onComplete?.()}
         style={{ width: size, height: size }}
       />
-    );
+    ): <div className="size-36 bg-gray-700/10 animate-pulse"></div>;;
   }
 );
 
