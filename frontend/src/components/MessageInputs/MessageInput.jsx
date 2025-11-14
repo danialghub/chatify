@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useKeyboardSound from "@/hooks/useKeyboardSound";
 import { useChatStore } from "@/store/useChatStore";
 import { Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
@@ -57,7 +57,24 @@ const MessageInput = ({ }) => {
     setCursorPos(cursorPos + emoji.length)
   }
 
- 
+  useEffect(() => {
+    if (!textareaRef.current) return;
+
+    const handleFocus = () => {
+      // اسکرول کانتینر بالای فرم وقتی کیبورد باز شد
+      setOpen(false)
+      setTimeout(() => {
+        inputContainerRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 300); // کمی تاخیر بده تا کیبورد باز شود
+    };
+
+    const textarea = textareaRef.current;
+    textarea.addEventListener("focus", handleFocus);
+
+    return () => {
+      textarea.removeEventListener("focus", handleFocus);
+    };
+  }, []);
 
 
   return (
@@ -146,7 +163,6 @@ const MessageInput = ({ }) => {
             dir="auto"
             rows={1}
             value={text}
-            setOpen={setOpen}
             onChange={(e) => {
               setText(e.target.value);
               isSoundEnabled && playRandomKeyStrokeSound();

@@ -5,7 +5,6 @@ export default function TextArea({
   onChange,
   maxRows = 5,
   taRef,
-  setOpen,
   ...rest
 }) {
 
@@ -80,7 +79,6 @@ export default function TextArea({
     const vv = window.visualViewport;
     if (!vv) return;
 
-    setOpen(false)
     let last = vv.height;
     const ta = taRef.current;
 
