@@ -72,69 +72,9 @@ export default function TextArea({
     });
   }, [value, maxHeight]);
 
-  // =============================
-  // Smooth keyboard handling (fix jumping)
-  // =============================
-  const smoothKeyboardFix = () => {
-    const vv = window.visualViewport;
-    if (!vv) return;
 
-    let last = vv.height;
-    const ta = taRef.current;
 
-    const check = setInterval(() => {
-      if (Math.abs(last - vv.height) < 2) {
-        clearInterval(check);
-        requestAnimationFrame(() => {
-          try {
-            ta?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-          } catch { }
-        });
-      }
-      last = vv.height;
-    }, 30);
 
-    setTimeout(() => clearInterval(check), 200);
-  };
-
-  // =============================
-  // visualViewport padding
-  // =============================
-  useEffect(() => {
-    const container = containerRef.current || document.body;
-    const vv = window.visualViewport;
-    let initialPad = container.style.paddingBottom || "";
-
-    function updatePad() {
-      if (!vv) return;
-
-      const keyboardHeight = Math.max(
-        0,
-        window.innerHeight - vv.height - (vv.offsetTop || 0)
-      );
-
-      container.style.paddingBottom = keyboardHeight
-        ? `${keyboardHeight}px`
-        : initialPad;
-    }
-
-    if (vv) {
-      vv.addEventListener("resize", updatePad);
-      vv.addEventListener("scroll", updatePad);
-    } else {
-      window.addEventListener("resize", updatePad);
-    }
-
-    return () => {
-      if (vv) {
-        vv.removeEventListener("resize", updatePad);
-        vv.removeEventListener("scroll", updatePad);
-      } else {
-        window.removeEventListener("resize", updatePad);
-      }
-      container.style.paddingBottom = initialPad;
-    };
-  }, []);
 
 
   // =============================
@@ -162,7 +102,7 @@ export default function TextArea({
           overflowY: "hidden",
           WebkitOverflowScrolling: "touch",
         }}
-        onFocus={smoothKeyboardFix}
+
       />
     </div>
   );

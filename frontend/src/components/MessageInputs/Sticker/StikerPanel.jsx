@@ -91,7 +91,6 @@ const StickerItem = React.memo(
             : "bg-white/10 hover:scale-110"
         }`}
         onClick={() => handleSendSticker(sticker)}
-        onTouchStart={() => handleChangeStickerPreview(sticker, i)}
         onMouseDown={() => handleChangeStickerPreview(sticker, i)}
       >
         <TgsPlayer
