@@ -79,10 +79,12 @@ const ChatContainer = () => {
 
   // 🔽 اسکرول خودکار
   useEffect(() => {
-    if (messageEndRef.current) {
-      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages]);
+
+  setTimeout(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, 200);
+  
+}, [isMessagesLoading]);
 
   return (
     <>
@@ -95,7 +97,7 @@ const ChatContainer = () => {
         dir="rtl"
       >
         {messages.length > 0 && !isMessagesLoading ? (
-          <div className="max-w-3xl mx-auto space-y-4 overflow-hidden">
+          <div className="max-w-3xl mx-auto space-y-4 overflow-hidden ">
             {messages.map((msg, idx) => {
               const isMyMessage = msg?.senderId?._id === authUser._id;
               const isFromSystem = msg.system

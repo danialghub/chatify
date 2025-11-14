@@ -9,15 +9,15 @@ import StickerPreview from "./StickerPreview";
 const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }) => {
   const { setReplyToMsg, removeMessage, isMessageSending } = useChatStore()
   const { authUser } = useAuthStore()
+
+  const isMyMsgRepliedByMe = msg?.replyTo?.senderId?._id === authUser._id && msg?.senderId?._id === authUser?._id
+
   const RepliedByMe = msg?.replyTo?.senderId?._id === authUser._id ? "شما" : msg?.replyTo?.senderId?.name
 
-  const replySwiper = () => {
-    if (isMyMessage) return
-    return {
-      onTouchStart: (e) => handleSwipe(e, msg, setReplyToMsg, index),
-      onMouseDown: (e) => handleSwipe(e, msg, setReplyToMsg, index)
-    }
-  }
+
+  const [_, isOnlySticker] = parseDynamicContent(msg.text)
+
+
 
   return (
 
@@ -25,24 +25,30 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }
 
       id={`msg_${index}`}
 
-      className={`chat ${!isMyMessage ? "chat-end" : "chat-start group  transition-transform duration-200 will-change:transform relative"}`}
+      className={`chat ${!isMyMessage ? "chat-end" : "chat-start group  transition-transform duration-200 will-change:transform relative "}`}
     >
       <div
-        {...replySwiper()}
+        onTouchStart={(e) => handleSwipe(e, msg, setReplyToMsg, index)}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          handleSwipe(e, msg, setReplyToMsg, index);
+        }}
+
         className={`flex items-end gap-2 ${isMyMessage ? "flex-row-reverse" : "flex-row"
-          } justify-center relative   `}
+          } justify-center relative  `}
       >
         <div
 
-          className={`chat-bubble max-w-[55vw] sm:max-w-[30vw] relative ${!msg.sticker ? isMyMessage ? "bg-sky-600/50 text-white" : "bg-slate-800 text-slate-200 " : "bg-black/5"
+          className={`chat-bubble max-w-[55vw] sm:max-w-[30vw] relative ${!msg.sticker && !isOnlySticker ? isMyMessage ? "bg-sky-600/50 text-white" : "bg-slate-800 text-slate-200 " : "bg-black/0"
             }`}
         >
           {/* 🩵 بخش Reply مثل تلگرام */}
           {msg.replyTo && (
             <div
               onClick={() => goToMsg(msg.replyTo._id)}
-              className={`mb-2 px-3 py-1 rounded-md text-sm border-r-4 ${isMyMessage ? "border-sky-300" : "border-cyan-500"
-                } bg-black/10`}
+              className={`mb-2 px-3 py-1 rounded-md text-sm border-r-4 ${isMyMessage
+                ? "border-sky-300" : "border-cyan-500"
+                } ${!isMyMsgRepliedByMe ? "bg-black/10" : "bg-white/10 text-cyan-100"} `}
             >
               {isGroup &&
                 <p className="font-semibold text-xs opacity-80">
@@ -50,7 +56,7 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }
                 </p>
               }
 
-              <p dir="auto" className="text-xs truncate opacity-70">
+              <p dir="rtl" className="text-xs truncate opacity-70">
                 {msg.replyTo.text
                   ? msg.replyTo.text.length > 50
                     ? msg.replyTo.text.slice(0, 50) + "..."
@@ -84,9 +90,9 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index }
           {msg.text && (
             <p
               dir="auto"
-              className="mt-2 break-words whitespace-pre-line [unicode-bidi:plaintext]"
-              dangerouslySetInnerHTML={{__html:parseDynamicContent(msg.text)}}
-              >
+              className="mt-2 max-sm:text-sm break-words whitespace-pre-line [unicode-bidi:plaintext]"
+              dangerouslySetInnerHTML={{ __html: parseDynamicContent(msg.text)[0] }}
+            >
             </p>
           )}
           {/* 🤙 استیکر  */}

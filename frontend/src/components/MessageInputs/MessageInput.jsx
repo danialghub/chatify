@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import {  useRef, useState } from "react";
 import useKeyboardSound from "@/hooks/useKeyboardSound";
 import { useChatStore } from "@/store/useChatStore";
 import { Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
@@ -22,6 +22,7 @@ const MessageInput = ({ }) => {
 
 
   const { sendMessage, isSoundEnabled, replyToMsg, setReplyToMsg } = useChatStore();
+
 
   const handleSendMessage = (e) => {
     e.preventDefault();

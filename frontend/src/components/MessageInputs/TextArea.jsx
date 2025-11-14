@@ -8,9 +8,6 @@ export default function TextArea({
   ...rest
 }) {
 
-  const containerRef = useRef(null);
-  const [maxHeight, setMaxHeight] = useState(null);
-
 
   const resize = () => {
     const ta = taRef.current;
@@ -43,14 +40,17 @@ export default function TextArea({
 
   // برای اولین رندر
   useEffect(() => {
+    
     window.visualViewport.addEventListener('resize', () => {
-      containerRef.current.scrollIntoView({ block: "center" })
-    })
+        if (taRef?.current) {
+          taRef.current.scrollIntoView({ block: "center" })
+        }
+      })
     resize();
-  }, []);
+  }, [taRef.current]);
 
   return (
-    <div ref={containerRef} className={`w-full`}>
+    <div  className={`w-full`}>
       <textarea
         {...rest}
         ref={taRef}
@@ -63,7 +63,6 @@ export default function TextArea({
         className={`w-full  resize-none  outline-none block mx-1 px-3  text-sm placeholder-slate-400 bg-transparent text-white/80 input-scrollbar focus:border-slate-500 `}
         style={{
           height: "auto",
-          maxHeight: maxHeight ? `${maxHeight}px` : undefined,
           overflowY: "hidden",
           WebkitOverflowScrolling: "touch",
         }}

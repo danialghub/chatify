@@ -84,25 +84,26 @@ const StickerItem = React.memo(
     playersRef,
   }) => {
     return (
-      <div
-        className={`rounded-xl p-1 transition-all duration-150 ${
-          playingIndex === i
-            ? "ring-2 ring-blue-400 scale-105"
-            : "bg-white/10 hover:scale-110"
-        }`}
-        onClick={() => handleSendSticker(sticker)}
-        onMouseDown={() => handleChangeStickerPreview(sticker, i)}
-      >
-        <TgsPlayer
-          ref={(el) => (playersRef.current[i] = el)}
-          url={sticker.url}
-          autoPlay={false}
-          loop={false}
-          onReady={() => handleReady(i)}
-          onComplete={() => handleComplete(i)}
-          size={75}
-        />
-      </div>
+    <div
+  className={`rounded-xl p-1 transition-all duration-150 ${
+    playingIndex === i
+      ? "ring-2 ring-blue-400 scale-105"
+      : "bg-white/10 hover:scale-110"
+  }`}
+  onPointerDown={() => handleChangeStickerPreview(sticker, i)}
+  onClick={() => handleSendSticker(sticker)}
+>
+  <TgsPlayer
+    ref={(el) => (playersRef.current[i] = el)}
+    url={sticker.url}
+    autoPlay={false}
+    loop={false}
+    onReady={() => handleReady(i)}
+    onComplete={() => handleComplete(i)}
+    size={75}
+  />
+</div>
+
     );
   }
 );

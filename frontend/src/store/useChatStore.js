@@ -15,7 +15,7 @@ export const useChatStore = create((set, get) => ({
 
   setModalType: (modalType) => set({ modalType: modalType }),
 
-  setReplyToMsg: (val) => set({ replyToMsg: val }),
+  setReplyToMsg: (val) => set(({ replyToMsg }) => ({ replyToMsg: replyToMsg?._id === val?._id ? null : val })),
 
   toggleSound: () => {
     localStorage.setItem("isSoundEnabled", !get().isSoundEnabled);
