@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import useKeyboardSound from "@/hooks/useKeyboardSound";
 import { useChatStore } from "@/store/useChatStore";
 import { Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
@@ -10,6 +10,7 @@ const MessageInput = ({ }) => {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
 
   const [text, setText] = useState("");
+  const [cursorPos, setCursorPos] = useState(0)
   const [imagePreview, setImagePreview] = useState(null);
   const [emojiTab, setEmojiTab] = useState('emoji');
 
@@ -18,7 +19,7 @@ const MessageInput = ({ }) => {
   const inputContainerRef = useRef(null);
 
   const [open, setOpen] = useState(false)
-  const maxHeight = 0.15 * window.innerHeight; // معادل 15vh
+
 
   const { sendMessage, isSoundEnabled, replyToMsg, setReplyToMsg } = useChatStore();
 
@@ -43,63 +44,30 @@ const MessageInput = ({ }) => {
     setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
-  useLayoutEffect(() => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+  const handleCursor = e => {
+    setCursorPos(e.target.selectionStart)
+  }
 
-    // Height را فقط وقتی لازم است تغییر بده
-    requestAnimationFrame(() => {
-      textarea.style.height = "auto"; // reset برای محاسبه scrollHeight
-      const newHeight = Math.min(textarea.scrollHeight, maxHeight);
-      if (textarea.offsetHeight !== newHeight) {
-        textarea.style.height = newHeight + "px";
-      }
+  const addEmoji = emoji => {
+    const before = text.slice(0, cursorPos)
+    const after = text.slice(cursorPos)
+    const newMsg = before + emoji + after
+    setText(newMsg)
 
-      // Scroll داخلی وقتی لازم است
-      if (textarea.scrollHeight > maxHeight) {
-        textarea.style.overflowY = "auto";
-        textarea.scrollTop = textarea.scrollHeight;
-      } else {
-        textarea.style.overflowY = "hidden";
-      }
-    });
-  }, [text]);
+    setCursorPos(cursorPos + emoji.length)
+  }
 
-  useEffect(() => {
-    if (!textareaRef.current) return;
+  const focusInput = ()=>{
+    setOpen(false)
+    console.log('focus');
+    
+    const input = textareaRef.current
+    input.focus()
 
-    const handleFocus = () => {
-      // اسکرول کانتینر بالای فرم وقتی کیبورد باز شد
-      setTimeout(() => {
-        inputContainerRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-      }, 300); // کمی تاخیر بده تا کیبورد باز شود
-    };
-
-    const textarea = textareaRef.current;
-    textarea.addEventListener("focus", handleFocus);
-
-    return () => {
-      textarea.removeEventListener("focus", handleFocus);
-    };
-  }, []);
-
-  useEffect(() => {
-    // موبایل: وقتی ویوپورت تغییر کرد (کیبورد باز/بسته شد)
-    const handleViewportResize = () => {
-      const container = inputContainerRef.current;
-      if (!container) return;
-
-      const vh = window.innerHeight;
-      container.style.maxHeight = `${vh}px`;
-      container.scrollIntoView({ behavior: "smooth", block: "end" });
-    };
-
-    window.visualViewport?.addEventListener("resize", handleViewportResize);
-
-    return () => {
-      window.visualViewport?.removeEventListener("resize", handleViewportResize);
-    };
-  }, []);
+    setTimeout(() => {
+      input.selectionStart = input.selectionEnd = cursorPos
+    }, 0);
+  }
 
 
   return (
@@ -184,7 +152,7 @@ const MessageInput = ({ }) => {
 
 
           <TextArea
-            // ref={textareaRef}
+            taRef={textareaRef}
             dir="auto"
             rows={1}
             value={text}
@@ -192,13 +160,9 @@ const MessageInput = ({ }) => {
               setText(e.target.value);
               isSoundEnabled && playRandomKeyStrokeSound();
             }}
+            onSelect={handleCursor}
+            onFocus={focusInput}
             placeholder="متن خود را تایپ کنید..."
-          // style={{
-          //   maxHeight: `${maxHeight}px`,
-          //   WebkitOverflowScrolling: "touch", // scroll smooth در موبایل
-          //   transition: "height 0.1s ease",
-          // }}
-          // className="w-full bg-transparent rounded text-white focus:outline-none focus:border-slate-500 mx-1 px-2 resize-none overflow-y-hidden input-scrollbar"
           />
 
           <ImageUploader
@@ -229,8 +193,8 @@ const MessageInput = ({ }) => {
       <StickerPanel
         open={open}
         setOpen={setOpen}
-        setText={setText}
         inputContainerRef={inputContainerRef}
+        addEmoji={addEmoji}
         tab={emojiTab}
         setTab={setEmojiTab}
       />

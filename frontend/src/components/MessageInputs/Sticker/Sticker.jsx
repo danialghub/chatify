@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import StickerPanel from './StikerPanel'
-const Sticker = ({ tab, setTab, open, setOpen, setText, inputContainerRef }) => {
+const Sticker = ({ tab, setTab, open, setOpen, inputContainerRef,addEmoji }) => {
 
     const panelRef = useRef(null);
     const [query, setQuery] = useState('')
@@ -84,6 +84,7 @@ const Sticker = ({ tab, setTab, open, setOpen, setText, inputContainerRef }) => 
         }
     };
 
+
     return (
         <AnimatePresence>
             {open && (
@@ -156,7 +157,7 @@ const Sticker = ({ tab, setTab, open, setOpen, setText, inputContainerRef }) => 
                                         {filteredEmojis.map((emo, i) => (
                                             <button
                                                 key={i}
-                                                onClick={() => setText((m) => m + emo)}
+                                                onClick={() => addEmoji(emo)}
                                                 className="p-2 rounded-lg hover:bg-gray-600 text-2xl sm:text-4xl flex items-center justify-center"
                                             >
                                                 {emo}

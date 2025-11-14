@@ -54,13 +54,10 @@ export const useChatStore = create((set, get) => ({
         isGroup: selectedRoom?.isGroup
       },
       replyTo: messageData?.replyTo && {
-        _id: messageData?.replyTo?._id,
-        text: messageData?.replyTo?.text,
+        ...messageData.replyTo,
         senderId: { name: messageData?.replyTo?.senderId?.name }
       },
-      text: messageData?.text,
-      image: messageData?.image,
-      sticker:messageData?.sticker,
+      ...messageData,
       createdAt: new Date().toISOString(),
       isOptimistic: true, // flag to identify optimistic messages (optional)
     };

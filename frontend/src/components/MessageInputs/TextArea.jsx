@@ -3,13 +3,11 @@ import React, { useEffect, useRef, useState } from "react";
 export default function TextArea({
   value,
   onChange,
-  placeholder = "",
   maxRows = 5,
-  className = "",
-  textareaClassName = "",
+  taRef,
   ...rest
 }) {
-  const taRef = useRef(null);
+
   const containerRef = useRef(null);
   const [maxHeight, setMaxHeight] = useState(null);
 
@@ -77,27 +75,27 @@ export default function TextArea({
   // =============================
   // Smooth keyboard handling (fix jumping)
   // =============================
-  const smoothKeyboardFix = () => {
-    const vv = window.visualViewport;
-    if (!vv) return;
+  // const smoothKeyboardFix = () => {
+  //   const vv = window.visualViewport;
+  //   if (!vv) return;
 
-    let last = vv.height;
-    const ta = taRef.current;
+  //   let last = vv.height;
+  //   const ta = taRef.current;
 
-    const check = setInterval(() => {
-      if (Math.abs(last - vv.height) < 2) {
-        clearInterval(check);
-        requestAnimationFrame(() => {
-          try {
-            ta?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-          } catch { }
-        });
-      }
-      last = vv.height;
-    }, 30);
+  //   const check = setInterval(() => {
+  //     if (Math.abs(last - vv.height) < 2) {
+  //       clearInterval(check);
+  //       requestAnimationFrame(() => {
+  //         try {
+  //           ta?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  //         } catch { }
+  //       });
+  //     }
+  //     last = vv.height;
+  //   }, 30);
 
-    setTimeout(() => clearInterval(check), 200);
-  };
+  //   setTimeout(() => clearInterval(check), 200);
+  // };
 
   // =============================
   // visualViewport padding
@@ -148,24 +146,23 @@ export default function TextArea({
   };
 
   return (
-    <div ref={containerRef} className={`w-full ${className}`}>
+    <div ref={containerRef} className={`w-full`}>
       <textarea
         {...rest}
         ref={taRef}
         value={value}
         onChange={handleChange}
-        placeholder={placeholder}
         rows={1}
         inputMode="text"
         aria-label={rest["aria-label"] || "message input"}
-        className={`w-full  resize-none  outline-none block mx-1 px-3  text-sm placeholder-slate-400 bg-transparent text-white/80 input-scrollbar ${textareaClassName}`}
+        className={`w-full  resize-none  outline-none block mx-1 px-3  text-sm placeholder-slate-400 bg-transparent text-white/80 input-scrollbar focus:border-slate-500 `}
         style={{
           height: "auto",
           maxHeight: maxHeight ? `${maxHeight}px` : undefined,
           overflowY: "hidden",
           WebkitOverflowScrolling: "touch",
         }}
-        onFocus={smoothKeyboardFix}
+        // onFocus={smoothKeyboardFix}
       />
     </div>
   );
