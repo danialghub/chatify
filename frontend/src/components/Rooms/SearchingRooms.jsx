@@ -24,7 +24,7 @@ const SearchingRooms = () => {
     useEffect(() => {
         inputRef.current.focus()
         setTimeout(() => {
-            document.getElementById('messageEndRef').scrollIntoView({ behavior: "smooth" })
+            window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
         }, 100);
     }, [])
 
