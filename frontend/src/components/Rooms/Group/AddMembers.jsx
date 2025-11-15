@@ -13,7 +13,7 @@ const AddMembers = () => {
 
     const { addMembers, privateRooms, selectedRoom, isJoining } = useRoomStore()
     const { onlineUsers, authUser } = useAuthStore()
-    const { setModalType } = useChatStore()
+    const { openModal } = useChatStore()
 
     const toggleMember = (id) => {
         setSelectedMembers((prev) =>
@@ -34,7 +34,7 @@ const AddMembers = () => {
                 {/* Header */}
                 <div className="bg-blue-500/90 text-white p-4 flex items-center justify-between shadow-sm">
                     <button
-                        onClick={() => setModalType('groupInfo')}
+                        onClick={() => openModal('GroupInfo')}
                         className="bg-white/20 hover:bg-white/30 p-2 rounded-full transition"
                     >
                         <X size={18} />

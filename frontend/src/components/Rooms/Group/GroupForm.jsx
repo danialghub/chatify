@@ -15,7 +15,7 @@ const GroupForm = ({ state }) => {
 
 
     const [groupName, setGroupName] = useState(
-        isCreateMode ? null : selectedRoom.name
+        isCreateMode ? "" : selectedRoom.name
     )
     const [groupImage, setGroupImage] = useState(
         isCreateMode ? null : selectedRoom.logo

@@ -6,8 +6,8 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { handleSwipe, parseDynamicContent } from '@/lib/helper'
 import StickerPreview from "./StickerPreview";
 
-const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index,inputRef }) => {
-  const { setReplyToMsg, removeMessage, isMessageSending } = useChatStore()
+const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index, inputRef }) => {
+  const { setReplyToMsg, removeMessage, isMessageSending ,openModal} = useChatStore()
   const { authUser } = useAuthStore()
 
   const isMyMsgRepliedByMe = msg?.replyTo?.senderId?._id === authUser._id && msg?.senderId?._id === authUser?._id
@@ -128,7 +128,15 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index,i
             className="absolute top-1/2  -left-12 -translate-y-1/2 hidden group-hover:block text-white/40 font-bold "
           >
             <button
-              onClick={() => removeMessage(msg._id)}
+              onClick={() =>
+                openModal(
+                  'Alert',
+                  {
+                    title: "حذف پیام",
+                    onComplete: () => removeMessage(msg._id),
+                    size: "sm"
+                  })
+              }
               className="bg-white/5 hover:text-red-600 transition-colors duration-200 rounded-full p-2">
               <TrashIcon />
             </button>

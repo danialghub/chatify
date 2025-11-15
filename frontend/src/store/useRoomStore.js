@@ -11,8 +11,9 @@ export const useRoomStore = create((set, get) => ({
     selectedRoom: null,
     isRoomsLoading: false,
     isCreatingLoading: null,
-    isRemovingLoading: null,
+    isRemovingLoading: false,
     isJoining: false,
+    isLeaving:false,
     activeTab: "chats",
 
     setActiveTab: (tab) => set({ activeTab: tab }),
@@ -46,7 +47,7 @@ export const useRoomStore = create((set, get) => ({
         }
     },
     createRoom: async (body, isChattingWith) => {
-        const { setModalType } = useChatStore.getState()
+        const { openModal } = useChatStore.getState()
         const roomType = body.isGroup ? "groupRooms" : "privateRooms"
 
         try {
@@ -67,7 +68,7 @@ export const useRoomStore = create((set, get) => ({
                 return payload;
             })
 
-            setModalType(null)
+            openModal(null)
             if (data?.message) {
                 toast.success(data?.message)
             }
@@ -78,46 +79,50 @@ export const useRoomStore = create((set, get) => ({
         }
     },
     removeRoom: async (room) => {
-        const { setModalType } = useChatStore.getState()
+        const { openModal } = useChatStore.getState()
         const { setSelectedRoom } = get()
         const roomType = room.isGroup ? "groupRooms" : "privateRooms"
 
         try {
             set({ isRemovingLoading: true })
-            setModalType(null)
+            
             const { data } = await axiosInstance.delete(`/room/remove/${room._id}`);
             set((prev) => ({
                 [roomType]: prev[roomType].filter(r => r._id !== room._id),
             }));
+            openModal(null)
             setSelectedRoom(null)
             toast.success(data.message);
         } catch (error) {
             console.log(error.response?.data?.message);
         } finally {
-            set({ isRemovingLoading: null })
+            set({ isRemovingLoading: false })
         }
     },
     leaveingTheGroup: async (roomId) => {
         const { setSelectedRoom } = get()
-        const { setModalType } = useChatStore.getState()
-        setModalType(null)
-
+        const { openModal } = useChatStore.getState()
+        
         try {
+            set({isLeaving:true})
             const { data } = await axiosInstance.put(`/room/leave/${roomId}`)
             set(({ groupRooms }) => ({ groupRooms: groupRooms.filter(g => g._id !== roomId) }))
             setSelectedRoom(null)
             toast.success(data.message)
+            openModal(null)
         } catch (error) {
             toast.error(error?.response?.data.message || "Internal Error")
+        }finally{
+            set({isLeaving:false})
         }
     },
     updateGroup: async (body, roomId) => {
-        const { setModalType } = useChatStore.getState()
+        const { openModal } = useChatStore.getState()
 
         try {
             set({ isUpdatingLoading: true })
             const { data } = await axiosInstance.put(`/room/update/${roomId}`, { ...body });
-            setModalType(null)
+            openModal(null)
             if (data?.message) {
                 toast.success(data?.message)
             }
@@ -128,12 +133,12 @@ export const useRoomStore = create((set, get) => ({
         }
     },
     addMembers: async (memberIds, roomId) => {
-        const { setModalType } = useChatStore.getState()
+        const { openModal } = useChatStore.getState()
         try {
             set({ isJoining: true })
 
             const { data } = await axiosInstance.put(`/room/addmember/${roomId}`, { memberIds })
-            setModalType(null)
+            openModal(null)
             toast.success(data.message)
         } catch (error) {
             console.log(error.response?.data?.message || "error in add members");
@@ -188,7 +193,6 @@ export const useRoomStore = create((set, get) => ({
     },
     updateRoomStates: (newMessage) => {
         const { isSoundEnabled } = useChatStore.getState();
-console.log(newMessage);
 
 
         set(prev => {

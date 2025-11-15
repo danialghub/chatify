@@ -9,6 +9,7 @@ export default function StickerPanel({ stickers = [], setOpen }) {
   const panelRef = useRef(null);
   const playersRef = useRef([]);
   const readyRef = useRef([]);
+  const [isFetching, setIsFetching] = useState({})
   const { sendMessage, isSoundEnabled } = useChatStore();
 
   const handleSendSticker = (sticker) => {
@@ -51,17 +52,20 @@ export default function StickerPanel({ stickers = [], setOpen }) {
     <div ref={panelRef} className="relative flex flex-wrap gap-4">
       {stickers.length ? (
         stickers.map((sticker, i) => (
-          <StickerItem
-            key={i}
-            sticker={sticker}
-            i={i}
-            playingIndex={playingIndex}
-            handleSendSticker={handleSendSticker}
-            handleChangeStickerPreview={handleChangeStickerPreview}
-            handleReady={handleReady}
-            handleComplete={handleComplete}
-            playersRef={playersRef}
-          />
+          !isFetching[sticker.url]
+            ?
+            <StickerItem
+              key={i}
+              sticker={sticker}
+              i={i}
+              playingIndex={playingIndex}
+              handleSendSticker={handleSendSticker}
+              handleChangeStickerPreview={handleChangeStickerPreview}
+              handleReady={handleReady}
+              handleComplete={handleComplete}
+              playersRef={playersRef}
+            />
+            : <div className="size-[75px] bg-white/10 rounded"></div>
         ))
       ) : (
         <div className="text-white text-xl text-center w-full py-8">
@@ -84,25 +88,24 @@ const StickerItem = React.memo(
     playersRef,
   }) => {
     return (
-    <div
-  className={`rounded-xl p-1 transition-all duration-150 ${
-    playingIndex === i
-      ? "ring-2 ring-blue-400 scale-105"
-      : "bg-white/10 hover:scale-110"
-  }`}
-  onPointerDown={() => handleChangeStickerPreview(sticker, i)}
-  onClick={() => handleSendSticker(sticker)}
->
-  <TgsPlayer
-    ref={(el) => (playersRef.current[i] = el)}
-    url={sticker.url}
-    autoPlay={false}
-    loop={false}
-    onReady={() => handleReady(i)}
-    onComplete={() => handleComplete(i)}
-    size={75}
-  />
-</div>
+      <div
+        className={`rounded-xl p-1 transition-all duration-150 ${playingIndex === i
+            ? "ring-2 ring-blue-400 scale-105"
+            : "bg-white/10 hover:scale-110"
+          }`}
+        onPointerDown={() => handleChangeStickerPreview(sticker, i)}
+        onClick={() => handleSendSticker(sticker)}
+      >
+        <TgsPlayer
+          ref={(el) => (playersRef.current[i] = el)}
+          url={sticker.url}
+          autoPlay={false}
+          loop={false}
+          onReady={() => handleReady(i)}
+          onComplete={() => handleComplete(i)}
+          size={75}
+        />
+      </div>
 
     );
   }

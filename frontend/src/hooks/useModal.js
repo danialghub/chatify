@@ -10,3 +10,4 @@ const useModal = () => {
     return [isOpen,  toggleHandler]
 }
 export default useModal
+

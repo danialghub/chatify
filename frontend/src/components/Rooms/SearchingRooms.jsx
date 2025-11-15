@@ -8,7 +8,7 @@ const SearchingRooms = () => {
 
     const inputRef = useRef()
 
-    const { createRoom, isCreatingLoading, privateRooms } = useRoomStore()
+    const { createRoom, isCreatingLoading } = useRoomStore()
     const { isSearching, foundUsers, getSeachedUsers } = useUserStore()
 
     const searchtHandler = (e) => {

@@ -8,11 +8,11 @@ const SIZES = {
   xl: "max-w-4xl",
 };
 
-const Modal = ({ isOpen, onClose, title, children, footer, size = "md", className = "" }) => {
+const Modal = ({ isOpen, onClose, title, children, size = "md", className = "" }) => {
   if (typeof window === "undefined") return null;
 
   return createPortal(
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isOpen && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center"
@@ -27,15 +27,16 @@ const Modal = ({ isOpen, onClose, title, children, footer, size = "md", classNam
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.6 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
           />
 
           {/* مدال */}
           <motion.div
             className={`relative w-full mx-4 ${SIZES[size]} transform text-white`}
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             onClick={(e) => e.stopPropagation()} // جلوگیری از بستن با کلیک روی داخل
           >
             <div className={`${className} bg-zinc-900 text-white/80  rounded-2xl shadow-2xl overflow-hidden`}>
@@ -57,12 +58,7 @@ const Modal = ({ isOpen, onClose, title, children, footer, size = "md", classNam
               {/* Body */}
               <div className="p-6 text-slate-700 dark:text-slate-300">{children}</div>
 
-              {/* Footer */}
-              {footer && (
-                <div className="px-5 py-4 border-t border-slate-200 dark:border-slate-800">
-                  {footer}
-                </div>
-              )}
+             
             </div>
           </motion.div>
         </motion.div>

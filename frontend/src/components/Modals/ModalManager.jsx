@@ -1,47 +1,36 @@
-import { useCallback } from "react";
-import { Modal, GroupInfo, GroupForm, SearchingRooms, AddMembers } from '@/components/index';
+import { Modal, GroupInfo, GroupForm, SearchingRooms, AddMembers, Alert } from '@/components/index';
+import { useChatStore } from '@/store/useChatStore';
+import { useMemo } from 'react';
 
-const ModalManager = ({ modalType, setModalType }) => {
+const ModalManager = () => {
+    const { modal, openModal } = useChatStore();
 
-    const titles =
-    {
-        GroupCreate: "ایجاد گروه جدید",
-        groupEdit: "ادیت گروه",
-        SearchingRooms: "جستجوی مخاطب "
-    }
+    // Always define the modals map first
+    const modals = useMemo(() => ({
+        Alert: { component: Alert, title: modal?.props?.title },
+        GroupInfo: { component: GroupInfo, title: '', isWithClass: true },
+        GroupCreate: { component: GroupForm, title: modal?.props?.title },
+        GroupEdit: { component: GroupForm, title: modal?.props?.title },
+        AddMembers: { component: AddMembers, title: '', isWithClass: true },
+        SearchingRooms: { component: SearchingRooms, title: modal?.props?.title },
+    }), [modal]);
 
-    const renderModal = useCallback(() => {
-        switch (modalType) {
-            case "groupInfo":
-                return <GroupInfo />;
+    // If no modal type, just render nothing
+    if (!modal?.type) return null;
 
-            case "groupEdit":
-                return <GroupForm state="edit" />;
+    const { component: Component, title, isWithClass } = modals[modal.type];
 
-            case "GroupCreate":
-                return <GroupForm state="create" />
-
-            case "AddMembers":
-                return <AddMembers />
-
-            case "SearchingRooms":
-                return <SearchingRooms />
-
-            default:
-                return null;
-        }
-    }, [modalType])
-    
     return (
         <Modal
-            title={titles[modalType]}
-            isOpen={!!modalType}
-            onClose={() => setModalType(null)}
-            className={(modalType === "groupInfo" || modalType === "AddMembers") && "!bg-transparent !shadow-none"}
+            title={title}
+            isOpen={!!modal?.type}
+            onClose={() => openModal(null)}
+            size={modal?.props?.size}
+            className={isWithClass ? "!bg-transparent !shadow-none" : ""}
         >
-            {renderModal()}
+            <Component {...modal.props} />
         </Modal>
-    )
+    );
 }
 
-export default ModalManager
+export default ModalManager;

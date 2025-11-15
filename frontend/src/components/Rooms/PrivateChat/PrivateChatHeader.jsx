@@ -2,13 +2,15 @@ import { XIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRoomStore } from "@/store/useRoomStore";
+import { useChatStore } from "@/store/useChatStore";
 import { ChatIcon } from '@/components/index'
 import { LoaderIcon } from "react-hot-toast";
 
 
 const PrivateChatContainer = () => {
   const { selectedRoom, setSelectedRoom, removeRoom, isRemovingLoading } = useRoomStore();
-  const { onlineUsers ,authUser} = useAuthStore();
+  const { onlineUsers, authUser } = useAuthStore();
+  const { openModal } = useChatStore();
   const user = selectedRoom.members.filter(m => m._id !== authUser._id)[0]
   const isOnline = onlineUsers.includes(user._id)
 
@@ -50,7 +52,15 @@ const PrivateChatContainer = () => {
 
       <div className="flex items-center gap-8">
         <button
-          onClick={() => removeRoom(selectedRoom)}
+          onClick={() =>
+            openModal(
+              'Alert',
+              {
+                title: "حذف چت",
+                onComplete: () => removeRoom(selectedRoom),
+                size: "sm"
+              })
+          }
           disabled={isRemovingLoading}
           className="px-4 py-1 bg-red-500 text-white rounded disabled:bg-gray-600">
           {isRemovingLoading

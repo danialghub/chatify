@@ -7,7 +7,7 @@ import { ChatIcon } from '@/components/index'
 
 const GroupChatHeader = () => {
     const { selectedRoom, setSelectedRoom } = useRoomStore();
-    const { setModalType } = useChatStore();
+    const { openModal } = useChatStore();
 
     useEffect(() => {
         const handleEscKey = (event) => {
@@ -33,7 +33,7 @@ const GroupChatHeader = () => {
                         profile={selectedRoom?.logo}
                         name={selectedRoom.name}
                         classProps="size-12 cursor-pointer"
-                        onClick={() => setModalType("groupInfo")}
+                        onClick={() =>openModal("GroupInfo")}
                     />
 
                 </div>

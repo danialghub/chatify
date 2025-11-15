@@ -5,13 +5,13 @@ import { useChatStore } from '@/store/useChatStore';
 import { Link } from 'react-router'
 const ChatSidebar = ({ isOpen, onClose, user }) => {
 
-    const { modalType, setModalType } = useChatStore()
+    const { openModal } = useChatStore()
 
     return (
         <>
-            <ModalManager modalType={modalType} setModalType={setModalType} />
+            <ModalManager />
 
-            <AnimatePresence>
+            <AnimatePresence mode='wait'>
 
                 {isOpen && (
                     <motion.div
@@ -45,14 +45,18 @@ const ChatSidebar = ({ isOpen, onClose, user }) => {
                         {/* Menu */}
                         <div className="flex flex-col p-3 space-y-2">
                             <button
-                                onClick={() => setModalType("SearchingRooms")}
+                                onClick={() =>
+                                    openModal("SearchingRooms", { title: "جستجو کاربر" })
+                                }
                                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition">
                                 <UserSearchIcon size={22} />
                                 <span className="text-base font-medium">جستجو مخاطب یا گروه</span>
                             </button>
 
                             <button
-                                onClick={() => setModalType("GroupCreate")}
+                                onClick={() =>
+                                    openModal("GroupCreate", { title: "ایجاد گروه", state: "create" })
+                                }
                                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-zinc-800 transition">
                                 <Users size={22} />
                                 <span className="text-base font-medium"> گروه جدید</span>

@@ -111,7 +111,7 @@ const TgsPlayer = forwardRef(
         onComplete={() => onComplete?.()}
         style={{ width: size, height: size }}
       />
-    ): <div className="size-36 bg-gray-700/10 animate-pulse"></div>;;
+    ): <div className="size-36 bg-gray-700/10 animate-pulse"></div>;
   }
 );
 

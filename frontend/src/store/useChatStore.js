@@ -6,14 +6,14 @@ import { useAuthStore } from "./useAuthStore";
 
 export const useChatStore = create((set, get) => ({
   messages: [],
-  modalType: null,
+  modal: null,
   isUsersLoading: false,
   isMessagesLoading: false,
   isMessageSending: false,
   replyToMsg: null,
   isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
 
-  setModalType: (modalType) => set({ modalType: modalType }),
+  openModal: (type, props = {}) => set({ modal: { type, props } }),
 
   setReplyToMsg: (val) => set(({ replyToMsg }) => ({ replyToMsg: replyToMsg?._id === val?._id ? null : val })),
 
@@ -81,17 +81,17 @@ export const useChatStore = create((set, get) => ({
   },
 
   removeMessage: async (msgId) => {
-    const { messages } = get()
+    const { messages, openModal } = get()
     const msgs = [...messages]
-
-    set(prev => (
-      {
-        messages: prev.messages.filter(m => m._id !== msgId)
-      }
-    ))
 
     try {
       await axiosInstance.delete(`/messages/remove/${msgId}`)
+      set(prev => (
+        {
+          messages: prev.messages.filter(m => m._id !== msgId)
+        }
+      ))
+      openModal(null)
 
     } catch (error) {
       set({ messages: msgs })

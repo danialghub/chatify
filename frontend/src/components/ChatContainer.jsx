@@ -172,7 +172,7 @@ const ChatContainer = () => {
           })
         }
         className="
-      fixed bottom-28 left-4
+      relative w-10 bottom-8 left-6
       p-2 rounded-full
       backdrop-blur-xl bg-white/10
       shadow-lg shadow-black/30

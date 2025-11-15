@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import { authService } from "../services/auth.services";
-import { useRoomStore } from './useRoomStore'
+import { authService } from "@/services/auth.services";
+import { useRoomStore } from '@/store/useRoomStore'
+import { useChatStore } from '@/store/useChatStore'
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 
@@ -68,6 +69,7 @@ export const useAuthStore = create((set, get) => ({
       toast.success("با موفقیت خارج شدید");
       get().disconnectSocket();
       useRoomStore.getState().setSelectedRoom(null)
+      useChatStore.getState().openModal(null)
     } catch (error) {
       toast.error("خطایی پیش آمد");
       console.log("Logout error:", error);

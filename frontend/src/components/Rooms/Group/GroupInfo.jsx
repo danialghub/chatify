@@ -9,19 +9,12 @@ const GroupInfo = () => {
     const [activeTab, setActiveTab] = useState("members");
 
     const { onlineUsers, authUser } = useAuthStore();
-    const { setModalType } = useChatStore()
-    const { leaveingTheGroup, selectedRoom: room, removeRoom } = useRoomStore();
+    const { openModal, messages } = useChatStore()
+    const { leaveingTheGroup,isLeaving, selectedRoom: room, removeRoom,isRemovingLoading } = useRoomStore();
 
-    const media = [
-        { id: 1, src: "https://picsum.photos/200?random=1" },
-        { id: 2, src: "https://picsum.photos/200?random=2" },
-        { id: 3, src: "https://picsum.photos/200?random=3" },
-        { id: 4, src: "https://picsum.photos/200?random=4" },
-        { id: 5, src: "https://picsum.photos/200?random=5" },
-        { id: 6, src: "https://picsum.photos/200?random=6" },
-        { id: 7, src: "https://picsum.photos/200?random=7" },
-        { id: 8, src: "https://picsum.photos/200?random=8" },
-    ];
+    const media = messages
+        .filter(msg => msg.image)
+        .map((msg, id) => ({ id, src: msg.image }))
 
     const visibleMembers = room?.members?.slice(0, 6);
     const isOwner = room.createdBy === authUser._id
@@ -38,7 +31,11 @@ const GroupInfo = () => {
                 <div className="bg-blue-700/80  text-white p-4 relative flex flex-col items-center">
                     {isOwner && (
                         <button
-                            onClick={() => setModalType("groupEdit")}
+                            onClick={() =>
+                                openModal(
+                                    "GroupEdit",
+                                    { title: "ادیت گروه", state: "edit" })
+                            }
                             className="absolute top-3 right-3 hover:bg-blue-700 p-2 rounded-full">
                             <Edit size={18} />
                         </button>
@@ -55,7 +52,7 @@ const GroupInfo = () => {
                     <p dir="rtl" className="text-sm text-blue-100">{room?.members?.length} عضو</p>
 
                     <button
-                        onClick={() => setModalType(null)}
+                        onClick={() => openModal(null)}
                         className="absolute top-3 left-3 bg-white/20 hover:bg-white/30 rounded-full p-2">
                         <X size={18} />
                     </button>
@@ -65,13 +62,32 @@ const GroupInfo = () => {
                         <div className="flex justify-center py-1 border-b-2 bg-black/10  hover:bg-black/20 rounded-md flex-1 transition">
                             {isOwner
                                 ? <button
-                                    onClick={() => removeRoom(room)}
+                                    onClick={() =>
+                                        openModal(
+                                            'Alert',
+                                            {
+                                                title: "حذف گروه",
+                                                onComplete: () => removeRoom(room),
+                                                size: "sm",
+                                                isProccessing:isRemovingLoading
+                                            })
+                                    }
                                     className="flex items-center gap-2  text-white font-medium px-4 py-2  ">
                                     <Trash size={18} />
                                     حذف گروه
                                 </button>
                                 : <button
-                                    onClick={() => leaveingTheGroup(room._id)}
+
+                                    onClick={() =>
+                                        openModal(
+                                            'Alert',
+                                            {
+                                                title: "ترک گروه",
+                                                onComplete: () => leaveingTheGroup(room._id),
+                                                size: "sm",
+                                                isProccessing:isLeaving
+                                            })
+                                    }
                                     className="flex items-center gap-2  text-white font-medium px-4 py-2  ">
                                     <LogOut size={18} />
                                     ترک گروه
@@ -82,7 +98,7 @@ const GroupInfo = () => {
                         {/* Add Members */}
                         <div className="flex justify-center py-1 border-b-2  bg-black/10 hover:bg-black/20 rounded-md flex-1 transition">
                             <button
-                                onClick={() => setModalType('AddMembers')}
+                                onClick={() => openModal('AddMembers')}
                                 className="flex items-center gap-2  font-medium  px-4 py-2 ">
                                 <span className="text-2xl leading-none"><UserPlus size={20} /></span> عضویت
                             </button>
@@ -104,7 +120,7 @@ const GroupInfo = () => {
                     >
                         اعضاء
                     </button>
-                    <button
+                    {media.length && <button
                         className={`flex-1 py-2 font-medium transition ${activeTab === "media"
                             ? "text-blue-600 border-b-2 border-blue-600 bg-white"
                             : "text-gray-500 hover:bg-gray-100"
@@ -112,7 +128,7 @@ const GroupInfo = () => {
                         onClick={() => setActiveTab("media")}
                     >
                         رسانه
-                    </button>
+                    </button>}
                 </div>
 
                 {/* Content */}

@@ -9,7 +9,7 @@ const mouseClickSound = new Audio("/sounds/mouse-click.mp3");
 const ProfileHeader = ({ showSidebar }) => {
 
   const { logout, authUser, updateProfile } = useAuthStore();
-  const { isSoundEnabled, toggleSound } = useChatStore();
+  const { isSoundEnabled, toggleSound ,openModal} = useChatStore();
 
 
   const fileInputRef = useRef(null);
@@ -72,7 +72,9 @@ const ProfileHeader = ({ showSidebar }) => {
           {/* LOGOUT BTN */}
           <button
             className="text-slate-400 hover:text-slate-200 transition-colors"
-            onClick={logout}
+            onClick={()=>
+              openModal('Alert' , {title:"خروج", onComplete:logout,size:"sm"})
+            }
           >
             <LogOutIcon className="size-5" />
           </button>
