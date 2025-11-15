@@ -12,7 +12,7 @@ import {
   MessageInput,
   Message
 } from '@/components/index';
-import useSocket from "../hooks/useSocket";
+import useSocket from "@/hooks/useSocket";
 
 const ChatContainer = () => {
 
