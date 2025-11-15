@@ -59,6 +59,9 @@ const GroupForm = ({ state }) => {
 
     useEffect(() => {
         groupNameRef?.current?.focus()
+        setTimeout(() => {
+            document.getElementById('messageEndRef').scrollIntoView({ behavior: "smooth" })
+        }, 100);
         return () => setSelectedUsers([])
     }, [])
     if (!privateRooms?.length)

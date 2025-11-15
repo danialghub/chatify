@@ -13,7 +13,7 @@ const Alert = ({ onComplete, title, message, isProccessing }) => {
                 className='flex justify-center mb-4'>
                 <AlertTriangle className='size-14 text-yellow-500' />
             </motion.div>
-            <h2 className='text-xl font-semibold text-center mb-2'>
+            <h2 className='text-xl font-semibold text-center mb-2 text-gray-300'>
                 {title || "هشدار!"}
             </h2>
             <p className='text-center text-zinc-500 mb-6'>
