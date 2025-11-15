@@ -31,5 +31,6 @@ export { default as ChatIcon } from './helper/ChatIcon'
 export { default as GroupInfo } from './Rooms/Group/GroupInfo'
 export { default as GroupEdit } from './Rooms/Group/GroupEdit'
 export { default as Message } from './Messages/Message'
+export { default as MessageList } from './Messages/MessageList'
 export { default as ImageUploader } from './helper/ImageUploader'
 

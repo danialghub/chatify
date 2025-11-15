@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useChatStore } from "@/store/useChatStore";
 import { useRoomStore } from "@/store/useRoomStore";
-import { formatChatTime } from '@/lib/helper'
+
 import { ChevronDown } from "lucide-react"
 import {
   PrivateChatHeader,
@@ -10,7 +10,7 @@ import {
   NoChatHistoryPlaceholder,
   MessagesLoadingSkeleton,
   MessageInput,
-  Message
+  MessageList
 } from '@/components/index';
 import useSocket from "@/hooks/useSocket";
 
@@ -105,66 +105,39 @@ const ChatContainer = () => {
   }, []);
 
 
-  return (
-    <>
-      {!selectedRoom.isGroup
-        ? <PrivateChatHeader />
-        : <GroupChatHeader />
-      }
-      <div
-        className="flex-1 px-3 pr-5 overflow-y-auto py-8 will-change-transform transform-gpu scroll-smooth chat-scrollbar relative" id="chatContainer"
-        dir="rtl"
-      >
-        {messages.length > 0 && !isMessagesLoading ? (
-          <div className="max-w-3xl mx-auto space-y-4 overflow-hidden  ">
+return (
+  <>
+    {selectedRoom.isGroup ? <GroupChatHeader /> : <PrivateChatHeader />}
 
-            {messages.map((msg, idx) => {
-              const isMyMessage = msg?.senderId?._id === authUser._id;
-              const isFromSystem = msg.system
-              const isStillSame = messages[idx + 1]?.senderId?._id === msg?.senderId?._id
-              const isStillSystem = messages[idx - 1]?.system === isFromSystem
+    <div
+      id="chatContainer"
+      className="
+        flex-1 px-3 pr-5 overflow-y-auto py-8
+        will-change-transform transform-gpu
+        scroll-smooth chat-scrollbar relative
+      "
+      dir="rtl"
+    >
+      {!isMessagesLoading && messages.length > 0 ? (
+        <MessageList
+          messages={messages}
+          authUser={authUser}
+          selectedRoom={selectedRoom}
+          goToMsg={goToMsg}
+          textareaRef={textareaRef}
+          messageEndRef={messageEndRef}
+        />
+      ) : isMessagesLoading ? (
+        <MessagesLoadingSkeleton />
+      ) : (
+        <NoChatHistoryPlaceholder
+          name={selectedRoom?.user?.name || selectedRoom.name}
+        />
+      )}
+    </div>
 
-
-              return !isFromSystem ? (
-                <Message
-                  key={msg._id}
-                  msg={msg}
-                  isMyMessage={isMyMessage}
-                  isGroup={selectedRoom.isGroup}
-                  isStillSame={isStillSame}
-                  goToMsg={goToMsg}
-                  index={idx}
-                  inputRef={textareaRef}
-                />
-              ) :
-                (
-                  <div key={msg._id} className="text-center text-white/80">
-                    {!isStillSystem &&
-                      <div className="text-xs my-0.5 mt-10">{formatChatTime(msg.createdAt)}</div>
-                    }
-                    <span className="px-4 py-1 text-sm bg-black/10 rounded">
-                      {msg.text}
-                    </span>
-                  </div>
-                )
-
-            })}
-
-            <div ref={messageEndRef} id="messageEndRef" />
-
-          </div>
-        ) : isMessagesLoading ? (
-          <MessagesLoadingSkeleton />
-        ) : (
-          <NoChatHistoryPlaceholder
-            name={selectedRoom?.user?.name || selectedRoom.name}
-          />
-        )}
-
-
-      </div>
-
-      {showScrollBtn && < button
+    {showScrollBtn && (
+      <button
         onClick={() =>
           document.getElementById("chatContainer")?.scrollTo({
             top: document.getElementById("chatContainer").scrollHeight,
@@ -172,23 +145,24 @@ const ChatContainer = () => {
           })
         }
         className="
-      absolute w-10 bottom-32 left-6
-      p-2 rounded-full
-      backdrop-blur-xl bg-white/10
-      shadow-lg shadow-black/30
-      border border-white/20
-      hover:bg-white/20
-      transition-all duration-300
-      hover:scale-110 active:scale-95
-      "
+          absolute w-10 bottom-32 left-6
+          p-2 rounded-full
+          backdrop-blur-xl bg-white/10
+          shadow-lg shadow-black/30
+          border border-white/20
+          hover:bg-white/20
+          transition-all duration-300
+          hover:scale-110 active:scale-95
+        "
       >
         <ChevronDown className="w-6 h-6 text-white drop-shadow" />
-      </button >
-      }
-      <MessageInput textareaRef={textareaRef} />
+      </button>
+    )}
 
-    </>
-  );
+    <MessageInput textareaRef={textareaRef} />
+  </>
+);
+
 }
 
 export default ChatContainer;

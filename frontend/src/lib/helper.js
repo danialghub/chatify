@@ -1,23 +1,50 @@
-import { format, isToday, isYesterday, isThisWeek } from "date-fns";
-import { faIR } from "date-fns/locale";
+import dayjs from "dayjs";
+import jalaliday from "jalaliday";
 
-const toPersianDigits = (str) => str.toString().replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+// افزونه Jalali برای dayjs
+dayjs.extend(jalaliday);
+
+// تبدیل اعداد انگلیسی به فارسی
+const toPersianDigits = (input) => {
+    if (input === null || input === undefined) return "";
+    const str = String(input); // ⚡ تبدیل به رشته
+    return str.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[d]);
+};
+
 
 export const formatChatTime = (date) => {
     if (!date) return "";
-    const newDate = new Date(date);
-    if (isNaN(newDate.getTime())) return "تاریخ نامعتبر";
+    const now = dayjs();
+    const d = dayjs(date).calendar("jalali"); // استفاده از تقویم شمسی
 
-    if (isToday(newDate))
-        return toPersianDigits(format(newDate, "HH:mm", { locale: faIR }));
+    if (!d.isValid()) return "تاریخ نامعتبر";
 
-    if (isYesterday(newDate))
+    // اگر امروز
+    if (d.isSame(now, "day")) {
+        return toPersianDigits(d.format("HH:mm"));
+    }
+
+    // اگر دیروز
+    if (d.isSame(now.subtract(1, "day"), "day")) {
         return "دیروز";
+    }
 
-    if (isThisWeek(newDate))
-        return format(newDate, "EEEE", { locale: faIR });
+    // اگر در همین هفته
+    if (d.isSame(now, "week")) {
+        // نام روز هفته به فارسی
+        const weekDays = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه"];
+        return weekDays[d.day()];
+    }
 
-    return toPersianDigits(format(newDate, "d MMM", { locale: faIR }));
+    // بقیه تاریخ‌ها: روز و ماه به شمسی
+    const monthNames = [
+        "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور",
+        "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"
+    ];
+
+    const day = toPersianDigits(d.date());
+    const month = monthNames[d.month()]; // month شمسی
+    return `${day} ${month}`;
 };
 
 
@@ -31,7 +58,7 @@ export const handleSwipe = (e, msg, setReplyTo, inputRef) => {
     let swipeLocked = false; // جهت lock
 
     const el = e.currentTarget;
-    const width = e.target.offsetWidth + 30; // محدودیت جابجایی
+    const width = e.target.offsetWidth + 20; // محدودیت جابجایی
 
 
     const getClientX = (event) =>
@@ -80,7 +107,7 @@ export const handleSwipe = (e, msg, setReplyTo, inputRef) => {
         el.style.transition = "transform 0.25s ease";
 
         // فقط اگر به حد لازم رسیده بود trigger reply
-        if (movedX < -80) {
+        if (movedX < -70) {
             setReplyTo(msg);
             inputRef.current.focus()
         }
