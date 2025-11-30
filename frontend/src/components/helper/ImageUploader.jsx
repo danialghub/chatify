@@ -1,34 +1,55 @@
-import { toast } from 'react-hot-toast'
-import { imgageSchema } from '@/lib/validation'
+import { toast } from "react-hot-toast";
+import { fileSchema } from "@/lib/validation";
 
-const ImageUploader = ({ inputRef, setImage ,...props}) => {
-
-    const handleImageChange = (e) => {
+const FileUploader = ({ inputRef, setFile, ...props }) => {
+    const handleChange = (e) => {
         const file = e.target.files[0];
+        if (!file) return;
 
-        if (!file) return
-        const validation = imgageSchema.safeParse(file)
+        const validation = fileSchema.safeParse(file);
         if (!validation.success) {
             toast.error(validation.error.issues[0].message);
-            
-            setImage(null)
-            return
+            setFile(null);
+            return;
         }
-        const reader = new FileReader()
-        reader.onloadend = () => setImage(reader.result)
-        reader.readAsDataURL(file)
+
+        // اگر عکس بود → Base64
+        if (file.type.startsWith("image/")) {
+            const reader = new FileReader();
+            reader.onloadend = () =>
+                setFile({
+                    type: "image",
+                    data: reader.result, // Base64 برای نمایش
+                    name: file.name,
+                    file,                // File object برای ارسال
+                });
+            reader.readAsDataURL(file);
+        }
+
+
+        // اگر PDF بود → فقط خود فایل را برگردان
+        else if (file.type === "application/pdf") {
+            setFile({
+                type: "pdf",
+                name: file.name,
+                size: file.size,
+                file, // خود File object را نگه دار
+            });
+
+
+        }
     };
 
     return (
         <input
             type="file"
             ref={inputRef}
-            accept='image/*'
+            accept="image/*,application/pdf"
             hidden
-            onChange={handleImageChange}
+            onChange={handleChange}
             {...props}
         />
-    )
-}
+    );
+};
 
-export default ImageUploader
+export default FileUploader;

@@ -16,6 +16,17 @@ export const imgageSchema = z
     .refine(file => file.size <= 4 * 1024 * 1024, "حجم عکس بیشتر از 4 مگابایت نباید باشد")
     .refine(file => ["image/jpeg", "image/png", "image/webp"].includes(file.type), "فرمت فایل درسیت نیست")
 
+export const fileSchema = z
+    .instanceof(File)
+    .refine(
+        file =>
+            ["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(file.type),
+        "قابل آپلود هست PDF فقط فایل های عکس و "
+    )
+    .refine(
+        file => file.size <= 4 * 1024 * 1024,
+        "حجم فایل نباید بیشتر از 4 مگابایت باشد"
+    );
 
 
 export const userSignUpSchema = z.object({

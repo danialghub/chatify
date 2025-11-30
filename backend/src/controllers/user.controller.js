@@ -1,23 +1,45 @@
 import User from '../models/User.js'
 
+
+/**
+ * جستجوی کاربران بر اساس متن ورودی
+ * - فیلتر بر اساس userName
+ * - حذف کاربر جاری از نتایج
+ */
 export const getUsers = async (req, res) => {
     try {
-        const { text='' } = req.query
-        const userId = req.user._id
-        if (!text.trim())
-            return res.status(400).json({ messages: "مقدار نامعتبر" })
+        const { text = '' } = req.query;
+        const userId = req.user._id;
 
+        /* --------------------------------------------------------------------------
+         * 1️⃣ بررسی متن ورودی
+         * --------------------------------------------------------------------------*/
+        if (!text.trim()) {
+            return res.status(400).json({ message: "مقدار نامعتبر" });
+        }
+
+        /* --------------------------------------------------------------------------
+         * 2️⃣ جستجوی کاربران
+         * --------------------------------------------------------------------------*/
         const users = await User.find({
-            _id: { $ne: userId },
-            userName: { $regex: text, $options: 'i' }
-        })
+            _id: { $ne: userId }, // حذف کاربر جاری
+            userName: { $regex: text, $options: 'i' } // جستجو بدون حساسیت به حروف بزرگ/کوچک
+        });
 
-        if (!users.length)
-            return res.status(404).json({ messages: "هیچ موردی یافت نشد" })
+        /* --------------------------------------------------------------------------
+         * 3️⃣ بررسی وجود نتیجه
+         * --------------------------------------------------------------------------*/
+        if (!users.length) {
+            return res.status(404).json({ message: "هیچ موردی یافت نشد" });
+        }
 
-        res.status(200).json(users)
+        /* --------------------------------------------------------------------------
+         * 4️⃣ پاسخ موفقیت‌آمیز
+         * --------------------------------------------------------------------------*/
+        res.status(200).json(users);
+
     } catch (error) {
-        console.log('get Users', error.messages)
-        res.status(500).json({ messages: "خطا داخلی" })
+        console.error('getUsers:', error.message);
+        res.status(500).json({ message: "خطای داخلی سرور" });
     }
-}
+};

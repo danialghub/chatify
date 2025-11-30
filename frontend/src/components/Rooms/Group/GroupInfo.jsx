@@ -10,11 +10,11 @@ const GroupInfo = () => {
 
     const { onlineUsers, authUser } = useAuthStore();
     const { openModal, messages } = useChatStore()
-    const { leaveingTheGroup,isLeaving, selectedRoom: room, removeRoom,isRemovingLoading } = useRoomStore();
+    const { leaveingTheGroup, isLeaving, selectedRoom: room, removeRoom, isRemovingLoading } = useRoomStore();
 
     const media = messages
-        .filter(msg => msg.image)
-        .map((msg, id) => ({ id, src: msg.image }))
+        .filter(msg => msg?.file?.type === "image")
+        .map((msg, id) => ({ id, src: msg?.file?.url }))
 
     const visibleMembers = room?.members?.slice(0, 6);
     const isOwner = room.createdBy === authUser._id
@@ -69,7 +69,7 @@ const GroupInfo = () => {
                                                 title: "حذف گروه",
                                                 onComplete: () => removeRoom(room),
                                                 size: "sm",
-                                                isProccessing:isRemovingLoading
+                                                isProccessing: isRemovingLoading
                                             })
                                     }
                                     className="flex items-center gap-2  text-white font-medium px-4 py-2  ">
@@ -85,7 +85,7 @@ const GroupInfo = () => {
                                                 title: "ترک گروه",
                                                 onComplete: () => leaveingTheGroup(room._id),
                                                 size: "sm",
-                                                isProccessing:isLeaving
+                                                isProccessing: isLeaving
                                             })
                                     }
                                     className="flex items-center gap-2  text-white font-medium px-4 py-2  ">
@@ -181,7 +181,7 @@ const GroupInfo = () => {
                             )}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-3 gap-2 p-3 max-h-[40vh] min-h-[40vh] overflow-y-auto">
+                        <div className="grid grid-cols-3 gap-2 p-3 ">
                             {visibleMedia.map((m) => (
                                 <a href={m.src} target='_blank'>
                                     <img

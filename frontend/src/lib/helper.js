@@ -56,7 +56,7 @@ export const handleSwipe = (e, msg, setReplyTo, inputRef) => {
     let isDragging = false;
     let isMouseDown = false;
     let swipeLocked = false; // جهت lock
-
+    
     const el = e.currentTarget;
     const width = e.target.offsetWidth + 20; // محدودیت جابجایی
 
@@ -97,7 +97,8 @@ export const handleSwipe = (e, msg, setReplyTo, inputRef) => {
         }
     };
 
-    const end = () => {
+    const end = (e) => {
+
         window.removeEventListener("mousemove", move);
         window.removeEventListener("mouseup", end);
         window.removeEventListener("touchmove", move, { passive: false });
@@ -119,6 +120,7 @@ export const handleSwipe = (e, msg, setReplyTo, inputRef) => {
 
         isDragging = false;
         swipeLocked = false;
+
     };
 
     const start = (event) => {

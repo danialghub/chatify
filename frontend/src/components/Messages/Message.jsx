@@ -1,46 +1,66 @@
 import { memo } from "react";
-import { ChatIcon } from '@/components/index';
-import { TrashIcon, ReplyIcon } from 'lucide-react';
+import { ChatIcon, SmartFileDownloader } from '@/components/index';
 import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { handleSwipe, parseDynamicContent } from '@/lib/helper';
 import StickerPreview from "./StickerPreview";
 
-const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index, inputRef }) => {
-  const { setReplyToMsg, removeMessage, isMessageSending, openModal } = useChatStore();
-  const { authUser } = useAuthStore();
+const Message = ({
+  msg,
+  isMyMessage,
+  isGroup,
+  isStillSame,
+  goToMsg,
+  inputRef,
+  selectedMsg,
+  openMenu,
+  isMessageSending
+}) => {
+  const setReplyToMsg = useChatStore(state => state.setReplyToMsg);
+
+
+  const authUser = useAuthStore(state => state.authUser);
 
   const isMyMsgRepliedByMe = msg?.replyTo?.senderId?._id === authUser._id && msg?.senderId?._id === authUser._id;
   const RepliedByMe = msg?.replyTo?.senderId?._id === authUser._id ? "شما" : msg?.replyTo?.senderId?.name;
 
+  console.log('salam');
+
+
   const [parsedText, isOnlySticker] = parseDynamicContent(msg.text);
+
+
 
   return (
     <div
-      id={`msg_${index}`}
-      className={`chat ${!isMyMessage ? "chat-end" : "chat-start group transition-transform duration-200 will-change-transform relative"}`}
+      id={`msg_${msg._id}`}
+
+      onTouchStart={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
+      onMouseDown={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
+
+      className={`chat relative  ${selectedMsg && "z-[100]"}   ${!isMyMessage ? "chat-end" : "chat-start group  duration-200  "}`}
     >
       <div
-        onTouchStart={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
-        onMouseDown={(e) => {
-          e.preventDefault();
-          handleSwipe(e, msg, setReplyToMsg, inputRef);
-        }}
-        className={`flex items-end gap-2 ${isMyMessage ? "flex-row-reverse" : "flex-row"} justify-center relative`}
+        onContextMenu={(e) => openMenu(e, isMyMessage, msg)}
+
+        className={`flex items-end gap-2 transition-transform ${isMyMessage ? "flex-row-reverse" : "flex-row"} justify-center  ${selectedMsg && "scale-105"}`}
       >
         {/* حباب پیام */}
+
         <div
-          className={`chat-bubble max-w-[55vw] sm:max-w-[30vw] relative ${!msg.sticker && !isOnlySticker
+          className={`chat-bubble  max-w-[70vw] md:max-w-[30vw]  relative    ${!msg.sticker && !isOnlySticker
             ? isMyMessage
               ? "bg-sky-600/50 text-white"
               : "bg-slate-800 text-slate-200"
             : "bg-black/0"
             }`}
         >
+
+
           {/* Reply */}
-          {msg.replyTo && (
+          {msg?.replyTo && (
             <div
-              onClick={() => goToMsg(msg.replyTo._id)}
+              onClick={(e) => goToMsg(e, msg.replyTo._id)}
               className={`mb-2 px-3 py-1 rounded-md text-sm border-r-4 ${isMyMessage ? "border-sky-300" : "border-cyan-500"
                 } ${!isMyMsgRepliedByMe ? "bg-black/10" : "bg-white/10 text-cyan-100"}`}
             >
@@ -48,21 +68,23 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index, 
                 <p className="font-semibold text-xs opacity-80">{RepliedByMe || "Unknown"}</p>
               )}
               <p dir="rtl" className="text-xs truncate opacity-70">
-                {msg.replyTo.text
+                {msg.replyTo?.text
                   ? msg.replyTo.text.length > 50
                     ? msg.replyTo.text.slice(0, 50) + "..."
-                    : msg.replyTo.text
-                  : msg.replyTo.image
+                    : msg.replyTo?.text
+                  : msg.replyTo?.file?.type == "image"
                     ? "📷 Photo"
-                    : msg.replyTo.sticker
-                      ? `${msg.replyTo.sticker.emoji} Sticker`
-                      : "محتوایی ندارد"}
+                    : msg.replyTo?.file?.type == "pdf"
+                      ? <span>📄 {msg.replyTo.file.name}</span>
+                      : msg.replyTo?.sticker
+                        ? `${msg.replyTo.sticker.emoji} Sticker`
+                        : "محتوایی ندارد"}
               </p>
             </div>
           )}
 
           {/* تصویر */}
-          {msg.image && (
+          {msg?.image && (
             <a href={msg.image} target="_blank">
               <img
                 src={msg.image}
@@ -74,9 +96,13 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index, 
               />
             </a>
           )}
+          {/* فایل PDF یا ضمیمه */}
+          {msg?.file && (
+            <SmartFileDownloader file={msg.file} isUploading={isMessageSending} isMyMsg={isMyMessage} />
+          )}
 
           {/* متن */}
-          {msg.text && (
+          {msg?.text && (
             <p
               dir="auto"
               className="mt-2 max-sm:text-sm break-words whitespace-pre-line [unicode-bidi:plaintext]"
@@ -85,19 +111,22 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index, 
           )}
 
           {/* استیکر */}
-          {msg.sticker && <StickerPreview url={msg.sticker.url} size={140} />}
+          {msg?.sticker && <StickerPreview url={msg.sticker.url} size={160} />}
 
           {/* زمان پیام */}
-          {isMessageSending === msg._id ? (
+          {isMessageSending ? (
             <span className="text-xs font-bold animate-pulse">درحال ارسال...</span>
           ) : (
-            <p className="text-xs mt-2 opacity-75 flex items-center gap-1 justify-start">
-              {new Date(msg.createdAt).toLocaleTimeString(undefined, {
+            <p className={`w-[70px] text-xs mt-1 opacity-75 flex items-center gap-1 justify-start ${isOnlySticker || msg.sticker ? "bg-black/20 text-white/80 pr-2 rounded-xl text-center" : ''}`}>
+              {new Date(msg.createdAt).toLocaleTimeString('en-GB', {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
             </p>
           )}
+
+
+
         </div>
 
         {/* آیکون پروفایل */}
@@ -107,30 +136,11 @@ const Message = memo(({ msg, isMyMessage, isGroup, isStillSame, goToMsg, index, 
           <div className={`shrink-0 ${isGroup && !isMyMessage ? "w-10" : "w-3"}`} />
         )}
 
-        {/* دکمه حذف یا reply */}
-        {isMyMessage && (
-          <div
-            tabIndex={0}
-            className="absolute top-1/2 -left-12 -translate-y-1/2 hidden group-hover:block text-white/40 font-bold"
-          >
-            <button
-              onClick={() =>
-                openModal("Alert", {
-                  title: "حذف پیام",
-                  onComplete: () => removeMessage(msg._id),
-                  size: "sm",
-                })
-              }
-              className="bg-white/5 hover:text-red-600 transition-colors duration-200 rounded-full p-2"
-            >
-              <TrashIcon />
-            </button>
-          </div>
-        )
-        }
+
+
       </div>
     </div>
   );
-});
+};
 
-export default Message;
+export default memo(Message);

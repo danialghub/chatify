@@ -32,5 +32,7 @@ export { default as GroupInfo } from './Rooms/Group/GroupInfo'
 export { default as GroupEdit } from './Rooms/Group/GroupEdit'
 export { default as Message } from './Messages/Message'
 export { default as MessageList } from './Messages/MessageList'
+export { default as SmartFileDownloader } from './Messages/SmartFileDownloader'
+export { default as ContextMenu } from './MessageInputs/ContextMenu'
 export { default as ImageUploader } from './helper/ImageUploader'
 

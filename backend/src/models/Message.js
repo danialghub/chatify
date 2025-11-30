@@ -2,46 +2,49 @@ import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
   {
-
     senderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
     roomId: {
-      type: mongoose.Schema.ObjectId,
-      ref: "ChatRoom"
-    }
-    ,
-    system: { type: Boolean, default: false }
-    ,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ChatRoom",
+    },
+    system: { type: Boolean, default: false },
     text: {
       type: String,
       trim: true,
       maxlength: 2000,
     },
     image: {
-      type: String,
+      type: String, // اگر تصویر آپلود شده باشد
+    },
+    file: {
+      type: { type: String },
+      url: { type: String },                  // secure_url از Cloudinary
+      name: { type: String },                 // نام فایل
+      size: { type: Number },                 // اختیاری: حجم فایل
     },
     sticker: {
       url: String,
       emoji: String,
-      name: String
+      name: String,
     },
-    seenBy:
-      [
-        {
-          type: mongoose.Schema.ObjectId,
-          ref: 'User'
-        }
-      ],
-    replyTo:
-    {
-      type: mongoose.Schema.ObjectId,
+    seenBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    replyTo: {
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Message",
-    }
+    },
   },
   { timestamps: true }
 );
+
+
 
 const Message = mongoose.model("Message", messageSchema);
 

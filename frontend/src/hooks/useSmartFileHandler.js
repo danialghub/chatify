@@ -1,0 +1,153 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+
+export function useSmartFileHandler(file, isMyMsg, isUploading) {
+    const [progress, setProgress] = useState(0);
+    const [downloading, setDownloading] = useState(false);
+    const [downloaded, setDownloaded] = useState(false);
+    const [url, setUrl] = useState("");
+    const [totalBytes, setTotalBytes] = useState(0);
+    const [downloadedBytes, setDownloadedBytes] = useState(0);
+    const [thumbUrl, setThumbUrl] = useState("");
+
+    const FILE_URL = file?.url;
+    const CACHE_NAME = `${file?.name}-cache`;
+
+    const isImage = file?.type?.startsWith("image/") || file?.type === "image";
+    const isPdf = file?.type === "application/pdf";
+
+
+    /* ---------------------- CHECK CACHE / LOAD ----------------------- */
+    useEffect(() => {
+        if (!file) return;
+
+        if (isMyMsg && file.url) {
+            setUrl(file.url);
+            setDownloaded(true);
+            setTotalBytes(file.size);
+        } else {
+            checkCache();
+        }
+
+        if (isImage) {
+            createThumbnail(FILE_URL);
+        }
+
+    }, [file, isMyMsg]);
+
+    /* ---------------------- CHECK CACHE ----------------------- */
+    const checkCache = async () => {
+        try {
+            if ("caches" in window) {
+                const cache = await caches.open(CACHE_NAME);
+                const cached = await cache.match(FILE_URL);
+                if (cached) {
+                    const blob = await cached.blob();
+                    const blobUrl = URL.createObjectURL(blob);
+                    setUrl(blobUrl);
+                    setDownloaded(true);
+                    setTotalBytes(blob.size);
+                    return;
+                }
+            }
+
+            // HEAD request for size
+            const head = await axios.head(FILE_URL);
+            const size = head.headers["content-length"];
+            if (size) setTotalBytes(parseInt(size, 10));
+
+        } catch (err) {
+            console.error("Cache check failed:", err);
+        }
+    };
+
+    /* ---------------------- CREATE THUMBNAIL FOR IMAGES ----------------------- */
+    const createThumbnail = async (imageUrl) => {
+        try {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                const scale = 0.1;
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+
+                const ctx = canvas.getContext("2d");
+                ctx.filter = "blur(5px)";
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                const lowQuality = canvas.toDataURL("image/jpeg", 0.3);
+                setThumbUrl(lowQuality);
+            };
+
+            img.src = imageUrl;
+
+        } catch (err) {
+            console.error("Thumbnail error:", err);
+        }
+    };
+
+    /* ---------------------- DOWNLOAD ----------------------- */
+    const downloadFile = async () => {
+        if (isUploading) return;
+
+        try {
+            setDownloading(true);
+            setProgress(0);
+            setDownloadedBytes(0);
+
+            const response = await axios({
+                url: FILE_URL,
+                method: "GET",
+                responseType: "blob",
+                onDownloadProgress: (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded * 100) / e.total);
+                        setProgress(percent);
+                        setDownloadedBytes(e.loaded);
+                    }
+                },
+            });
+
+            const blob = response.data;
+            const blobUrl = URL.createObjectURL(blob);
+
+            setUrl(blobUrl);
+            setDownloaded(true);
+
+            if ("caches" in window) {
+                const cache = await caches.open(CACHE_NAME);
+                await cache.put(FILE_URL, new Response(blob, { status: 200 }));
+            }
+
+        } catch (err) {
+            console.error("Download error:", err);
+        } finally {
+            setDownloading(false);
+        }
+    };
+
+    const formatBytes = (bytes) => {
+        if (!bytes) return "0 B";
+        const k = 1024;
+        const units = ["B", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${(bytes / Math.pow(k, i)).toFixed(1)} ${units[i]}`;
+    };
+
+    return {
+        isImage,
+        isPdf,
+        url,
+        thumbUrl,
+        progress,
+        downloading,
+        downloaded,
+        totalBytes,
+        downloadedBytes,
+
+        downloadFile,
+        formatBytes,
+    };
+}

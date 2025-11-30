@@ -41,7 +41,7 @@ const GroupForm = ({ state }) => {
         e.preventDefault();
         if (!groupNameRef.current.value.trim() || !selectedUsers.length) return;
         const memberIds = selectedUsers.map(m => m._id)
-        const img = imageInputRef.current?.files[0] ? groupImage : null
+        const img = imageInputRef.current?.files[0] ? groupImage.data : null
         const data = { isGroup: true, memberIds, groupName, groupImage: img }
         if (isCreateMode) {
             createRoom(data, true)
@@ -115,14 +115,14 @@ const GroupForm = ({ state }) => {
                     </div>
 
                     <ImageUploader
-                        setImage={setGroupImage}
+                        setFile={setGroupImage}
                         inputRef={imageInputRef}
                     />
                     {groupImage
                         ?
                         <div className="relative">
                             <ChatIcon
-                                profile={groupImage}
+                                profile={groupImage?.data || groupImage}
                                 classProps="!size-20"
                             />
                             <button

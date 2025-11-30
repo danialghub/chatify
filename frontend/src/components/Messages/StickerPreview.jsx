@@ -18,7 +18,7 @@ function StickerPreview({ url, size }) {
                 }
             },
             {
-                root: document.getElementById("chatContainer"),
+                root: null,
                 threshold: 0.6,
             }
         );

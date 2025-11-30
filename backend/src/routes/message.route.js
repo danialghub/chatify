@@ -7,7 +7,7 @@ import {
 } from "../controllers/message.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { arcjetProtection } from "../middleware/arcjet.middleware.js";
-
+import upload from '../lib/multer.js'
 const router = express.Router();
 
 // the middlewares execute in order - so requests get rate-limited first, then authenticated.
@@ -16,7 +16,7 @@ router.use(arcjetProtection, protectRoute);
 
 
 router.get("/:roomId", getMessagesByRoomId);
-router.post("/send/:roomId", sendMessage);
+router.post("/send/:roomId",upload.single('file'), sendMessage);
 router.post("/seenby/:roomId", markMessageAsSeen);
 router.delete("/remove/:msgId", removeMsg);
 

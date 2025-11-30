@@ -1,17 +1,17 @@
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import useKeyboardSound from "@/hooks/useKeyboardSound";
 import { useChatStore } from "@/store/useChatStore";
-import { Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
+import { FileText, Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
 import { ImageUploader } from '@/components/index'
 import StickerPanel from "./Sticker/Sticker";
 import TextArea from "./TextArea";
 
-const MessageInput = ({ textareaRef }) => {
+const MessageInput = memo(({ textareaRef }) => {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
 
   const [text, setText] = useState("");
   const [cursorPos, setCursorPos] = useState(0)
-  const [imagePreview, setImagePreview] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
   const [emojiTab, setEmojiTab] = useState('emoji');
 
   const fileInputRef = useRef(null);
@@ -20,31 +20,48 @@ const MessageInput = ({ textareaRef }) => {
   const [open, setOpen] = useState(false)
 
 
+
   const { sendMessage, isSoundEnabled, replyToMsg, setReplyToMsg } = useChatStore();
 
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!text.trim() && !imagePreview) return;
+
+    // اگر متن، تصویر یا فایل هیچ‌کدام موجود نیست → بازگشت
+    if (!text.trim() && !filePreview) return;
+
     if (isSoundEnabled) playRandomKeyStrokeSound();
 
-    sendMessage({
-      text: text.trim(),
-      image: imagePreview,
-      replyTo: replyToMsg
-    });
+    const formData = new FormData()
+
+    // اگر فایل وجود دارد و از نوع PDF یا تصویر است
+    if (text.trim()) formData.append('text', text)
+    if (replyToMsg) formData.append('replyTo', JSON.stringify(replyToMsg))
+
+    if (filePreview) {
+      formData.append("file", filePreview.file);
+    }
+
+    // console.log(formData.file);
+
+    sendMessage(formData, filePreview);
+
+    // Scroll به انتهای پیام‌ها
     setTimeout(() => {
-      document.getElementById('messageEndRef').scrollIntoView({ behavior: "smooth"})
+      document.getElementById('messageEndRef')?.scrollIntoView({ behavior: "smooth" });
     }, 100);
+
+    // ریست کردن فرم
     setText("");
-    setImagePreview("");
+    setFilePreview(null);
     setReplyToMsg(null);
 
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+
   const removeImage = () => {
-    setImagePreview(null);
+    setFilePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -58,6 +75,7 @@ const MessageInput = ({ textareaRef }) => {
     setCursorPos(cursorPos + emoji.length)
   }
 
+  console.log('input');
 
 
   return (
@@ -71,16 +89,18 @@ const MessageInput = ({ textareaRef }) => {
                 {/* msg content */}
                 <div dir="rtl" className="mt-2 py-2  text-right text-sm">
                   <span className="!text-md font-bold pr-3">پاسخ به {replyToMsg.senderId.name} :</span>
-                  <p className="text-xs truncate opacity-70 pr-6 mt-1.5 ">
+                  <p dir="rtl" className="text-xs truncate opacity-70 pr-6 mt-1.5" >
                     {replyToMsg.text
-                      ?
-                      replyToMsg.text
-                      : replyToMsg.image
+                      ? replyToMsg.text.length > 50
+                        ? replyToMsg.text.slice(0, 50) + "..."
+                        : replyToMsg.text
+                      : replyToMsg.file.type == "image"
                         ? "📷 Photo"
-                        : replyToMsg.sticker
-                          ? `${replyToMsg.sticker.emoji} Sticker`
-                          : "هیچ محتوایی وجود ندارد"
-                    }
+                        : replyToMsg.file.type == "pdf"
+                          ? <span>📄 {replyToMsg.file.name}</span>
+                          : replyToMsg.sticker
+                            ? `${replyToMsg.sticker.emoji} Sticker`
+                            : "محتوایی ندارد"}
                   </p>
                 </div>
               </div>
@@ -93,23 +113,39 @@ const MessageInput = ({ textareaRef }) => {
               </button>
             </div>
           )}
-          {imagePreview && (
+          {filePreview && (
             <div className="relative mt-2 w-fit">
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-20 h-20 object-cover rounded-lg border border-slate-700"
-              />
+              {filePreview.type === "image" ? (
+                <img
+                  src={filePreview?.data}
+                  alt="Preview"
+                  className="w-20 h-20 object-cover rounded-md border border-slate-700"
+                />
+              ) : filePreview.type === "pdf" ? (
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-600/20 via-blue-500/10 to-blue-700/10 
+                    rounded-md border border-blue-400/30 shadow flex flex-col items-center justify-center p-2 relative">
+                  <FileText className="size-7 text-red-400 mb-2 flex-shrink-0" />
+                  <p
+                    className="text-xs text-white text-center truncate w-full px-1"
+                    title={filePreview.name} // نمایش کامل هنگام hover
+                  >
+                    {filePreview.name}
+                  </p>
+                </div>
+              ) : null}
+
               <button
                 onClick={removeImage}
-                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700"
+                className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700"
                 type="button"
               >
-                <XIcon className="w-4 h-4" />
+                <XIcon className="size-4" />
               </button>
-
             </div>
           )}
+
+
+
         </div>
 
         <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto relative flex items-center py-3 px-16 bg-slate-800/50 border border-slate-700/50 " >
@@ -154,23 +190,16 @@ const MessageInput = ({ textareaRef }) => {
           />
 
           <ImageUploader
-            setImage={setImagePreview}
+            setFile={setFilePreview}
             inputRef={fileInputRef}
           />
 
-          {/* <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className={`absolute bottom-1.5 left-1.5 bg-slate-700/30 text-slate-400 hover:text-slate-200  rounded-md transition-colors px-3 py-2 ${imagePreview ? "text-cyan-500" : ""
-            }`}
-        >
-          <ImageIcon className="size-5" />
-        </button> */}
+
 
 
           <button
             type="submit"
-            disabled={!text.trim() && !imagePreview}
+            disabled={!text.trim() && !filePreview}
             className="absolute bottom-1.5 right-1.5 bg-gradient-to-r from-cyan-500  to-cyan-600 text-white rounded-md  font-medium hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 "
           >
             <SendIcon className="w-5 h-5 " />
@@ -188,5 +217,5 @@ const MessageInput = ({ textareaRef }) => {
       />
     </div>
   );
-}
+})
 export default MessageInput;

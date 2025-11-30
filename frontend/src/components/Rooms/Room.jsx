@@ -13,6 +13,7 @@ const Room = memo(({ room, userId, name, logo }) => {
   useSocket('message:notif', updateRoomStates)
   useSocket('room:remove', removeFromRooms)
 
+  const last = room?.lastMessage;
 
   return (
     <motion.div
@@ -58,17 +59,29 @@ const Room = memo(({ room, userId, name, logo }) => {
           dir="auto"
           className="truncate [unicode-bidi:plaintext] text-xs text-slate-400 opacity-70 w-60"
         >
-          {room?.lastMessage?.text
-            ? room.lastMessage.text
-            : room?.lastMessage?.image
-              ? <img src={room.lastMessage.image} className='size-5' />
-              : room?.lastMessage?.sticker
-                ? <p>
-                  <span>{room.lastMessage.sticker.emoji}</span>
-                  Sticker
-                </p>
-                : "بدون پیام"
-          }
+
+
+          {
+            last && (
+              <p dir="rtl" className="text-xs truncate opacity-70">
+                {last.text
+                  ? last.text.length > 50
+                    ? last.text.slice(0, 50) + "..."
+                    : last.text
+                  : last.file.type == "image"
+                    ? "📷 Photo"
+                    : last.file.type == "pdf"
+                      ? <span>📄 {msg.replyTo.file.name}</span>
+                      : last.sticker
+                        ? `${last.sticker.emoji} Sticker`
+                        : "محتوایی ندارد"}
+              </p>
+            )
+}
+
+
+
+
         </span>
       </div>
 

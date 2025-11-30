@@ -4,11 +4,21 @@ import bcrypt from "bcryptjs";
 import { ENV } from "../lib/env.js";
 import cloudinary from "../lib/cloudinary.js";
 
+
+/**
+ * ثبت‌نام کاربر جدید
+ * - بررسی صحت داده‌های ورودی
+ * - هش کردن رمز عبور
+ * - ذخیره در دیتابیس
+ * - صدور JWT
+ */
 export const signup = async (req, res) => {
   const { name, userName, password } = req.body;
 
-
   try {
+    /* --------------------------------------------------------------------------
+     * 1️⃣ بررسی داده‌های ورودی
+     * --------------------------------------------------------------------------*/
     if (!name || !userName || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -21,120 +31,177 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: "Invalid userName format" });
     }
 
-    const user = await User.findOne({ userName });
-    if (user) return res.status(400).json({ message: "userName already exists" });
+    /* --------------------------------------------------------------------------
+     * 2️⃣ بررسی یکتا بودن نام کاربری
+     * --------------------------------------------------------------------------*/
+    const existingUser = await User.findOne({ userName });
+    if (existingUser) {
+      return res.status(400).json({ message: "userName already exists" });
+    }
 
-    // 123456 => $dnjasdkasj_?dmsakmk
+    /* --------------------------------------------------------------------------
+     * 3️⃣ هش کردن رمز عبور
+     * --------------------------------------------------------------------------*/
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    /* --------------------------------------------------------------------------
+     * 4️⃣ ساخت نمونه کاربر جدید
+     * --------------------------------------------------------------------------*/
     const newUser = new User({
       name,
       userName,
       password: hashedPassword,
     });
 
-    if (newUser) {
-      // before CR:
-      // generateToken(newUser._id, res);
-      // await newUser.save();
+    /* --------------------------------------------------------------------------
+     * 5️⃣ ذخیره کاربر در دیتابیس و صدور JWT
+     * --------------------------------------------------------------------------*/
+    const savedUser = await newUser.save();
+    generateToken(savedUser._id, res);
 
-      // after CR:
-      // Persist user first, then issue auth cookie
-      const savedUser = await newUser.save();
-      generateToken(savedUser._id, res);
+    /* --------------------------------------------------------------------------
+     * 6️⃣ پاسخ موفقیت‌آمیز
+     * --------------------------------------------------------------------------*/
+    res.status(201).json({
+      _id: savedUser._id,
+      name: savedUser.name,
+      userName: savedUser.userName,
+      profilePic: savedUser.profilePic,
+    });
 
-      res.status(201).json({
-        _id: newUser._id,
-        name: newUser.name,
-        userName: newUser.userName,
-        profilePic: newUser.profilePic,
-      });
 
-      // try {
-      //   await sendWelcomeEmail(savedUser.email, savedUser.fullName, ENV.CLIENT_URL);
-      // } catch (error) {
-      //   console.error("Failed to send welcome email:", error);
-      // }
-    } else {
-      res.status(400).json({ message: "Invalid user data" });
-    }
   } catch (error) {
-    console.log("Error in signup controller:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("signup:", error);
+    res.status(500).json({ message: "خطای داخلی سرور" });
   }
 };
 
+
+
+/**
+ * ورود کاربر به سیستم
+ * - بررسی نام کاربری و رمز عبور
+ * - تولید JWT و ارسال کوکی
+ */
 export const login = async (req, res) => {
   const { userName, password } = req.body;
 
+  /* --------------------------------------------------------------------------
+   * 1️⃣ بررسی ورودی‌ها
+   * --------------------------------------------------------------------------*/
   if (!userName || !password) {
     return res.status(400).json({ message: "نام کاربری و رمزعبور ضروری است" });
   }
 
   try {
+    /* ------------------------------------------------------------------------
+     * 2️⃣ یافتن کاربر با نام کاربری
+     * ------------------------------------------------------------------------*/
     const user = await User.findOne({ userName });
+    if (!user)
+      return res.status(400).json({ message: "رمزعبور یا نام کاربری اشتباه است" });
+    // ⚠️ هرگز به کاربر نگویید کدام یک اشتباه است: نام کاربری یا رمز عبور
 
-    if (!user) return res.status(400).json({ message: "رمزعبور یا نام کاربری اشتباه است" });
-    // never tell the client which one is incorrect: password or email
-
+    /* ------------------------------------------------------------------------
+     * 3️⃣ بررسی صحت رمز عبور
+     * ------------------------------------------------------------------------*/
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) return res.status(400).json({ message: "نام کاربری یا ایمیل اشتباه است" });
+    if (!isPasswordCorrect)
+      return res.status(400).json({ message: "نام کاربری یا ایمیل اشتباه است" });
 
+    /* ------------------------------------------------------------------------
+     * 4️⃣ تولید JWT و ارسال کوکی
+     * ------------------------------------------------------------------------*/
     generateToken(user._id, res);
 
+    /* ------------------------------------------------------------------------
+     * 5️⃣ پاسخ موفقیت‌آمیز
+     * ------------------------------------------------------------------------*/
     res.status(200).json({
       _id: user._id,
       name: user.name,
       userName: user.userName,
       profilePic: user.profilePic,
     });
+
   } catch (error) {
-    console.error("Error in login controller:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("login:", error);
+    res.status(500).json({ message: "خطای داخلی سرور" });
   }
 };
 
+
+
+/**
+ * خروج کاربر از سیستم
+ * - پاک کردن کوکی JWT
+ */
 export const logout = (_, res) => {
-  res.clearCookie("jwt")
+  // حذف کوکی JWT
+  res.clearCookie("jwt");
+
+  // پاسخ موفقیت‌آمیز
   res.status(200).json({ message: "Logged out successfully" });
 };
 
+
+
+/**
+ * بروزرسانی پروفایل کاربر
+ * - شامل نام، بیو، تصویر پروفایل و رمز عبور
+ */
 export const updateProfile = async (req, res) => {
   try {
     const { profilePic, name, password, bio } = req.body;
 
-    if (!profilePic && !name && !password && !bio)
+    /* --------------------------------------------------------------------------
+     * 1️⃣ بررسی داده‌های ورودی
+     * --------------------------------------------------------------------------*/
+    if (!profilePic && !name && !password && !bio) {
       return res.status(400).json({ message: "داده نامعتبر است" });
+    }
 
     const userId = req.user._id;
+    const newInfo = { name, bio };
 
-    const newInfo = { name, bio }
-
+    /* --------------------------------------------------------------------------
+     * 2️⃣ آپلود تصویر پروفایل در Cloudinary (در صورت وجود)
+     * --------------------------------------------------------------------------*/
     if (profilePic) {
-      let uploadedImg = await cloudinary.uploader.upload(profilePic, {
+      const uploadedImg = await cloudinary.uploader.upload(profilePic, {
         transformation: [
-          { width: 500, crop: 'fill', gravity: 'face' },
-          { quality: 'auto', fetch_format: "auto" }
-        ]
+          { width: 500, crop: "fill", gravity: "face" },
+          { quality: "auto", fetch_format: "auto" },
+        ],
       });
-      newInfo.profilePic = uploadedImg.secure_url
+      newInfo.profilePic = uploadedImg.secure_url;
     }
+
+    /* --------------------------------------------------------------------------
+     * 3️⃣ هش کردن رمز عبور جدید (در صورت وجود)
+     * --------------------------------------------------------------------------*/
     if (password) {
       const salt = await bcrypt.genSalt(10);
-      newInfo.password = hashedPassword = await bcrypt.hash(password, salt);
+      newInfo.password = await bcrypt.hash(password, salt);
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      newInfo,
-      { new: true }
-    );
+    /* --------------------------------------------------------------------------
+     * 4️⃣ بروزرسانی کاربر در دیتابیس
+     * --------------------------------------------------------------------------*/
+    const updatedUser = await User.findByIdAndUpdate(userId, newInfo, { new: true });
 
+    /* --------------------------------------------------------------------------
+     * 5️⃣ پاسخ موفقیت‌آمیز
+     * --------------------------------------------------------------------------*/
+    res.status(200).json({
+      updatedUser,
+      message: "اطلاعات با موفقیت ویرایش شد",
+    });
 
-    res.status(200).json({ updatedUser, message: "اطلاعات با موفقیت ویرایش شد" });
   } catch (error) {
-    console.log("Error in update profile:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("updateProfile:", error);
+    res.status(500).json({ message: "خطای داخلی سرور" });
   }
 };
+
