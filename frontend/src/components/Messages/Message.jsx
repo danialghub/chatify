@@ -34,15 +34,12 @@ const Message = ({
   return (
     <div
       id={`msg_${msg._id}`}
-
-      onTouchStart={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
       onMouseDown={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
-
       className={`chat relative  ${selectedMsg && "z-[100]"}   ${!isMyMessage ? "chat-end" : "chat-start group  duration-200  "}`}
     >
       <div
         onContextMenu={(e) => openMenu(e, isMyMessage, msg)}
-
+        onTouchStart={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
         className={`flex items-end gap-2 transition-transform ${isMyMessage ? "flex-row-reverse" : "flex-row"} justify-center  ${selectedMsg && "scale-105"}`}
       >
         {/* حباب پیام */}
@@ -83,19 +80,6 @@ const Message = ({
             </div>
           )}
 
-          {/* تصویر */}
-          {msg?.image && (
-            <a href={msg.image} target="_blank">
-              <img
-                src={msg.image}
-                alt="Shared"
-                width={250}
-                height={250}
-                loading="lazy"
-                className="rounded-lg object-cover w-full transition-transform duration-300 hover:scale-[1.02]"
-              />
-            </a>
-          )}
           {/* فایل PDF یا ضمیمه */}
           {msg?.file && (
             <SmartFileDownloader file={msg.file} isUploading={isMessageSending} isMyMsg={isMyMessage} />
@@ -117,7 +101,7 @@ const Message = ({
           {isMessageSending ? (
             <span className="text-xs font-bold animate-pulse">درحال ارسال...</span>
           ) : (
-            <p className={`w-[70px] text-xs mt-1 opacity-75 flex items-center gap-1 justify-start ${isOnlySticker || msg.sticker ? "bg-black/20 text-white/80 pr-2 rounded-xl text-center" : ''}`}>
+            <p className={`w-[45px] text-xs mt-1.5 opacity-75 flex items-center gap-1 justify-center ${isOnlySticker || msg.sticker ? "bg-black/5 backdrop-blur-2xl text-white/80 px-2 py-1  rounded-xl text-center" : ''}`}>
               {new Date(msg.createdAt).toLocaleTimeString('en-GB', {
                 hour: "2-digit",
                 minute: "2-digit",

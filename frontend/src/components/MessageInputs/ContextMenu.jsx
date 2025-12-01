@@ -107,7 +107,7 @@ const ContextMenu = forwardRef((props, ref) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            
+
           />
 
         )}
@@ -125,7 +125,7 @@ const ContextMenu = forwardRef((props, ref) => {
             transition={{ duration: 0.12 }}
             style={{
               top: menuPos.y
-              , left: menuPos.x - chatContainerRef.current.getBoundingClientRect().left
+              , left: menuPos.x
             }}
           >
             {items.map((item, i) => (

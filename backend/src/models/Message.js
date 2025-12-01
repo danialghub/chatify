@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
   {
+    type: { type: String, enum: ["user", "system", "dailyDate"], default: "user" },
     senderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -10,14 +11,10 @@ const messageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "ChatRoom",
     },
-    system: { type: Boolean, default: false },
     text: {
       type: String,
       trim: true,
       maxlength: 2000,
-    },
-    image: {
-      type: String, // اگر تصویر آپلود شده باشد
     },
     file: {
       type: { type: String },

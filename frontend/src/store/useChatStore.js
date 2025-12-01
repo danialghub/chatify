@@ -77,7 +77,9 @@ export const useChatStore = create((set, get) => ({
     if (!selectedRoom?._id) return;
 
     const replyToRaw = formData.get("replyTo");
+    const stickerRaw = formData.get("sticker");
     const replyTo = replyToRaw ? JSON.parse(replyToRaw)._id : null;
+    const sticker = stickerRaw ? JSON.parse(stickerRaw) : null;
 
     // --------------------------
     // 🔹 ساخت پیام موقت (Optimistic)
@@ -87,6 +89,7 @@ export const useChatStore = create((set, get) => ({
       _id: `temp-${Date.now()}`,
       createdAt: new Date().toISOString(),
       isOptimistic: true,
+      type: "user",
       senderId: {
         _id: authUser._id,
         name: authUser.name,
@@ -97,14 +100,14 @@ export const useChatStore = create((set, get) => ({
         isGroup: selectedRoom.isGroup,
       },
       text: formData.get("text") || null,
-      sticker: null,
+      sticker,
       file: previewData
         ? {
-            type: previewData.type,
-            name: previewData.file.name,
-            size: previewData.file.size,
-            url: fileUrl,
-          }
+          type: previewData.type,
+          name: previewData.file.name,
+          size: previewData.file.size,
+          url: fileUrl,
+        }
         : null,
       replyTo: JSON.parse(formData.get("replyTo")) || null,
     };
@@ -121,7 +124,7 @@ export const useChatStore = create((set, get) => ({
     const controller = new AbortController();
     set({ uploadController: controller, isMessageSending: optimisticMessage._id });
 
-    const payload = { ...Object.fromEntries(formData), replyTo };
+    const payload = { ...Object.fromEntries(formData), replyTo, sticker };
 
     try {
       const { data } = await axiosInstance.post(
@@ -145,11 +148,12 @@ export const useChatStore = create((set, get) => ({
       // --------------------------
       // 🔹 جایگزینی پیام موقت با پیام واقعی
       // --------------------------
-      const serverMessage = Array.isArray(data) ? data[0] : data;
+
       set((state) => ({
-        messages: state.messages.map((msg) =>
-          msg._id === optimisticMessage._id ? serverMessage : msg
-        ),
+        messages: [
+          ...state.messages.filter((msg) => msg._id !== optimisticMessage._id),
+          ...data
+        ],
       }));
     } catch (error) {
       if (error.code === "ERR_CANCELED") {

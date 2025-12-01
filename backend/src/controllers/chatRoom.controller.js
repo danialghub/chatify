@@ -46,7 +46,7 @@ export const createRoom = async (req, res) => {
       /* ------------------ ارسال پیام سیستمی "گروه ایجاد شد" ------------------ */
       const systemNotif = {
         roomId: newRoom._id,
-        system: true,
+        type: "system",
         text: "گروه ایجاد شد"
       };
 
@@ -152,7 +152,6 @@ export const getAllRooms = async (req, res) => {
         rooms.map(async (room) => {
           const count = await Message.countDocuments({
             roomId: room._id,
-            system: false,
             senderId: { $ne: userId },
             seenBy: { $ne: userId },
           });
@@ -281,7 +280,7 @@ export const leavingTheGroup = async (req, res) => {
      * --------------------------------------------------------------------------*/
     const leaveMsg = await Message.create({
       roomId,
-      system: true,
+      type: "system",
       text: `${userName} از گروه خارج شد`,
     });
 
@@ -367,7 +366,7 @@ export const updateGroupRooms = async (req, res) => {
     systemMessages.push({
       roomId,
       text: `گروه توسط مالک گروه بروزرسانی شد`,
-      system: true
+      type: "system",
     });
 
     // پیام‌ها برای اعضای حذف‌شده
@@ -375,7 +374,7 @@ export const updateGroupRooms = async (req, res) => {
       systemMessages.push({
         roomId,
         text: `${m.name} از گروه حذف شد`,
-        system: true
+        type: "system",
       });
     });
 
@@ -386,7 +385,7 @@ export const updateGroupRooms = async (req, res) => {
       systemMessages.push({
         roomId,
         text: `${member.name} به گروه اضافه شد`,
-        system: true
+        type: "system",
       });
     });
 
@@ -480,7 +479,7 @@ export const addMembers = async (req, res) => {
     const systemMessages = newMembers.map(user => ({
       roomId,
       text: `${user.name}, توسط ${userName} عضو گروه شد`,
-      system: true,
+      type: "system",
     }));
 
     /* --------------------------------------------------------------------------

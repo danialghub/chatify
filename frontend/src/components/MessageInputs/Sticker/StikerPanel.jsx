@@ -1,4 +1,4 @@
-import {  memo } from "react";
+import { memo } from "react";
 import StickerPreview from "../../Messages/StickerPreview";
 import { useChatStore } from "@/store/useChatStore";
 
@@ -7,7 +7,9 @@ export default function StickerPanel({ stickers = [], setOpen }) {
 
   const handleSendSticker = (sticker) => {
     if (isSoundEnabled) playRandomKeyStrokeSound();
-    sendMessage({ sticker });
+    const formData = new FormData()
+    formData.append('sticker', JSON.stringify(sticker));
+    sendMessage(formData);
     setOpen(false);
   };
 

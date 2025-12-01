@@ -206,7 +206,7 @@ export const removeMsg = async (req, res) => {
       // یافتن آخرین پیام غیرسیستمی در اتاق
       const prevMsg = await Message.findOne({
         roomId: room._id,
-        system: false,
+        type : {$ne : "dailyDate"}
       }).sort({ createdAt: -1 });
 
       // بروزرسانی پیام آخر اتاق

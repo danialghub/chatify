@@ -39,9 +39,9 @@ export default function SmartImageViewer({
                 className="
                     relative 
                     sm:max-w-[20vw]
-                    sm:min-w-[20vw]
-                    max-w-[50vw]
-                    min-w-[50vw]
+                    sm:w-[20vw]
+                    w-[70vw]
+                    max-w-[70vw]
                     rounded-xl 
                     overflow-hidden 
                     bg-black/20 
@@ -53,11 +53,12 @@ export default function SmartImageViewer({
                 {(downloaded || thumbUrl) && (
                     <img
                         src={downloaded ? url : thumbUrl}
-                        className="w-full h-full object-cover transition-all duration-300"
+                        className="rounded-lg aspect-video object-cover w-full transition-transform duration-300 hover:scale-[1.02] "
                         loading="lazy"
                         onClick={() => downloaded && window.open(url, "_blank")}
                     />
                 )}
+
 
 
                 {/* TOP-LEFT FILE SIZE */}
@@ -66,6 +67,7 @@ export default function SmartImageViewer({
                     dir="ltr"
                     className="
     absolute top-2 left-2
+    z-10
     bg-black/60 backdrop-blur-sm
     text-white text-xs
     px-2 py-0.5
@@ -94,9 +96,10 @@ export default function SmartImageViewer({
                                     cancelUpload();       // مطمئن می‌شویم آخرین controller استفاده می‌شود
                                 }}
                                 className="
-    absolute inset-0 flex items-center justify-center
-    bg-black/50 
-    hover:bg-black/60
+    absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center
+    bg-black/30
+    hover:bg-black/40
+    backdrop-blur-sm
     transition
   "
                             >
@@ -107,13 +110,14 @@ export default function SmartImageViewer({
                             <button
                                 onClick={downloadFile}
                                 className="
-          absolute inset-0 flex items-center justify-center
-          bg-black/50 
-          hover:bg-black/60
+          absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center
+          bg-black/30
+          hover:bg-black/40
+          backdrop-blur-sm
           transition
         "
                             >
-                                <Download className="w-7 h-7 text-white" />
+                                <Download className="size-7 text-white" />
                             </button>
                         ) : null}
                     </>

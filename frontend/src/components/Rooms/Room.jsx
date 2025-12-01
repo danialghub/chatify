@@ -64,20 +64,25 @@ const Room = memo(({ room, userId, name, logo }) => {
           {
             last && (
               <p dir="rtl" className="text-xs truncate opacity-70">
-                {last.text
+                {last?.text
                   ? last.text.length > 50
                     ? last.text.slice(0, 50) + "..."
                     : last.text
-                  : last.file.type == "image"
-                    ? "📷 Photo"
-                    : last.file.type == "pdf"
-                      ? <span>📄 {msg.replyTo.file.name}</span>
-                      : last.sticker
-                        ? `${last.sticker.emoji} Sticker`
-                        : "محتوایی ندارد"}
+                  : last?.file
+                    ? last.file.type === "image"
+                      ? "📷 Photo"
+                      : last.file.type === "pdf"
+                        ? `📄 ${last.file.name}`
+                        : "محتوایی ندارد"
+                    : last?.sticker
+                      ? `${last.sticker.emoji} Sticker`
+                      : "محتوایی ندارد"
+                }
               </p>
+
             )
-}
+
+          }
 
 
 

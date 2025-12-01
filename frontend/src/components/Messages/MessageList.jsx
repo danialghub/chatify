@@ -6,12 +6,12 @@ import { useAuthStore } from '@/store/useAuthStore'
 
 function SystemMessage({ msg }) {
   return (
-    <div className="text-center text-white/80">
-
-      <span className="px-4  text-sm bg-black/10 rounded">
+    <div className="text-center text-white/60">
+      <span className="px-4 py-1 text-sm bg-slate-400/5 backdrop-blur-md rounded-lg shadow-lg">
         {msg.text}
       </span>
     </div>
+
   );
 }
 
@@ -103,7 +103,7 @@ const MessageList = ({
       y = container.scrollTop + menuH;
     }
 
-
+    x -= crect.left
 
     setTargetMsg(msg._id);
     setMenuPos({ x, y });
@@ -125,26 +125,26 @@ const MessageList = ({
       const isMyMessage = msg?.senderId?._id === authUser._id;
       const selectedMsg = targetMsg === msg._id;
 
-      
-        return !msg.system ?(
-          <Message
-            key={msg._id}
-            msg={msg}
-            isMyMessage={isMyMessage}
-            isGroup={selectedRoom.isGroup}
-            isStillSame={isStillSameSender}
-            inputRef={textareaRef}
-            selectedMsg={selectedMsg}
-            isMessageSending={isMessageSending === msg._id}
-            openMenu={openMenuForMessage}
-            goToMsg={goToMsg}
-          />
-        ): (
-          <SystemMessage
-            key={msg._id}
-            msg={msg}
-          />
-        )
+
+      return msg.type === "user" ? (
+        <Message
+          key={msg._id}
+          msg={msg}
+          isMyMessage={isMyMessage}
+          isGroup={selectedRoom.isGroup}
+          isStillSame={isStillSameSender}
+          inputRef={textareaRef}
+          selectedMsg={selectedMsg}
+          isMessageSending={isMessageSending === msg._id}
+          openMenu={openMenuForMessage}
+          goToMsg={goToMsg}
+        />
+      ) : (
+        <SystemMessage
+          key={msg._id}
+          msg={msg}
+        />
+      )
     });
   }, [messages, isMessageSending, targetMsg]);
 

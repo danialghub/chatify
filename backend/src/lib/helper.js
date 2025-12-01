@@ -20,7 +20,7 @@ dayjs.extend(jalaliday);
 dayjs.calendar("jalali");
 
 export const newDay = async (roomId, isGroup) => {
-  const lastMsg = await Message.findOne({ roomId })
+  const lastMsg = await Message.findOne({ roomId, type: "dailyDate" })
     .sort({ createdAt: -1 })
     .lean();
 
@@ -33,7 +33,7 @@ export const newDay = async (roomId, isGroup) => {
   if (today !== lastMsgDay && isGroup) {
     systemMsg = await Message.create({
       roomId,
-      system: true,
+      type: "dailyDate",
       text: dayjs().locale("fa").format("D MMMM")
     });
   }
