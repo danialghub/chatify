@@ -150,7 +150,7 @@ const MessageList = ({
 
 
   return (
-    <div className="relative py-6 px-3 pr-5 space-y-3">
+    <div className="relative py-6 px-3 pr-5 space-y-3 will-change-transform">
       {renderedMessages}
       <ContextMenu
         targetId={targetMsg}

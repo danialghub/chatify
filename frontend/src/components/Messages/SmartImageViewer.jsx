@@ -36,17 +36,16 @@ export default function SmartImageViewer({
 
             {/* IMAGE WRAPPER */}
             <div
-                className="
+                className={`
                     relative 
-                    sm:max-w-[20vw]
-                    sm:w-[20vw]
-                    w-[70vw]
+                    md:max-w-[20vw]
                     max-w-[70vw]
                     rounded-xl 
                     overflow-hidden 
                     bg-black/20 
                     shadow-lg 
-                "
+                    ${!downloaded ? "min-w-[60vw] md:min-w-[20vw]" : ""}
+    `}
             >
 
                 {/* Main Image */}
