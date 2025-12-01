@@ -90,17 +90,20 @@ const MessageInput = memo(({ textareaRef }) => {
                 <div dir="rtl" className="mt-2 py-2  text-right text-sm">
                   <span className="!text-md font-bold pr-3">پاسخ به {replyToMsg.senderId.name} :</span>
                   <p dir="rtl" className="text-xs truncate opacity-70 pr-6 mt-1.5" >
-                    {replyToMsg.text
+                    {replyToMsg?.text
                       ? replyToMsg.text.length > 50
                         ? replyToMsg.text.slice(0, 50) + "..."
                         : replyToMsg.text
-                      : replyToMsg.file.type == "image"
-                        ? "📷 Photo"
-                        : replyToMsg.file.type == "pdf"
-                          ? <span>📄 {replyToMsg.file.name}</span>
-                          : replyToMsg.sticker
-                            ? `${replyToMsg.sticker.emoji} Sticker`
-                            : "محتوایی ندارد"}
+                      : replyToMsg?.file
+                        ? replyToMsg.file.type === "image"
+                          ? "📷 Photo"
+                          : replyToMsg.file.type === "pdf"
+                            ? `📄 ${replyToMsg.file.name}`
+                            : "محتوایی ندارد"
+                        : replyToMsg?.sticker
+                          ? `${replyToMsg.sticker.emoji} Sticker`
+                          : "محتوایی ندارد"
+                    }
                   </p>
                 </div>
               </div>

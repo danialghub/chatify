@@ -10,7 +10,12 @@ export default function StickerPanel({ stickers = [], setOpen }) {
     const formData = new FormData()
     formData.append('sticker', JSON.stringify(sticker));
     sendMessage(formData);
-    setOpen(false);
+    
+    setTimeout(() => {
+      document.getElementById('messageEndRef')?.scrollIntoView({ behavior: "smooth" });
+      setOpen(false);
+    }, 100);
+
   };
 
   return (
