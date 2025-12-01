@@ -117,41 +117,41 @@ const MessageList = ({
 
   };
 
-  const renderedMessages = useMemo(() => {
-    return messages.map((msg, idx) => {
-      const next = messages[idx + 1];
 
-      const isStillSameSender = next?.senderId?._id === msg.senderId?._id;
-      const isMyMessage = msg?.senderId?._id === authUser._id;
-      const selectedMsg = targetMsg === msg._id;
-
-
-      return msg.type === "user" ? (
-        <Message
-          key={msg._id}
-          msg={msg}
-          isMyMessage={isMyMessage}
-          isGroup={selectedRoom.isGroup}
-          isStillSame={isStillSameSender}
-          inputRef={textareaRef}
-          selectedMsg={selectedMsg}
-          isMessageSending={isMessageSending === msg._id}
-          openMenu={openMenuForMessage}
-          goToMsg={goToMsg}
-        />
-      ) : (
-        <SystemMessage
-          key={msg._id}
-          msg={msg}
-        />
-      )
-    });
-  }, [messages, isMessageSending, targetMsg]);
 
 
   return (
     <div className="relative py-6 px-3 pr-5 space-y-3 will-change-transform">
-      {renderedMessages}
+      {
+        messages.map((msg, idx) => {
+          const next = messages[idx + 1];
+
+          const isStillSameSender = next?.senderId?._id === msg.senderId?._id;
+          const isMyMessage = msg?.senderId?._id === authUser._id;
+          const selectedMsg = targetMsg === msg._id;
+
+
+          return msg.type === "user" ? (
+            <Message
+              key={msg._id}
+              msg={msg}
+              isMyMessage={isMyMessage}
+              isGroup={selectedRoom.isGroup}
+              isStillSame={isStillSameSender}
+              inputRef={textareaRef}
+              selectedMsg={selectedMsg}
+              isMessageSending={isMessageSending === msg._id}
+              openMenu={openMenuForMessage}
+              goToMsg={goToMsg}
+            />
+          ) : (
+            <SystemMessage
+              key={msg._id}
+              msg={msg}
+            />
+          )
+        })
+      }
       <ContextMenu
         targetId={targetMsg}
         chatContainerRef={chatContainerRef}

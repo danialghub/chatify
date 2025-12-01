@@ -1,10 +1,16 @@
 import { AlertTriangle, LoaderIcon } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useChatStore } from '@/store/useChatStore'
-const Alert = ({ onComplete, title, message, isProccessing }) => {
-    const { openModal } = useChatStore()
-    console.log(isProccessing);
-    
+import { useRoomStore } from '@/store/useRoomStore'
+import { useAuthStore } from '@/store/useAuthStore'
+
+const Alert = ({ onComplete, title, message }) => {
+    const { openModal, isMessageRemoving } = useChatStore()
+    const { isRemovingLoading, isLeaving } = useRoomStore()
+    const { isLoggingOut } = useAuthStore()
+
+    const isProccessing = isMessageRemoving || isMessageRemoving || isLeaving || isRemovingLoading || isLoggingOut
+
     return (
         <>
             <motion.div
@@ -31,7 +37,7 @@ const Alert = ({ onComplete, title, message, isProccessing }) => {
                             <LoaderIcon className="animate-spin" />
                         </div>
                         : "بله"
-                        }
+                    }
                 </button>
                 <button
                     onClick={() => openModal(null)}

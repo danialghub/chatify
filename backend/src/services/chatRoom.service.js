@@ -15,8 +15,20 @@ export const chatRoomService = {
             members: { $in: userId }
         })
             .sort({ updatedAt: -1 })
-            .populate("members", "name profilePic bio")
-            .populate("lastMessage", "text sticker file createdAt")
+            .populate({
+                path: "members",
+                select: "name profilePic bio"
+            })
+            .populate({
+                path: "lastMessage",
+                select: "text sticker file createdAt",
+                populate: {
+                    path: "senderId",
+                    select: "name"
+                }
+            })
+
+
             .lean();
     },
     async findById(roomId) {

@@ -1,11 +1,12 @@
 import { FileText, Download, X } from "lucide-react";
 import { useChatStore } from "@/store/useChatStore";
-export default function SmartPdfViewer({
+import { memo } from "react";
+const SmartPdfViewer = ({
     isMyMsg,
     isUploading,
     downloader,
     file
-}) {
+}) => {
 
     const {
         url,
@@ -130,3 +131,4 @@ export default function SmartPdfViewer({
         </div>
     );
 }
+export default memo(SmartPdfViewer)

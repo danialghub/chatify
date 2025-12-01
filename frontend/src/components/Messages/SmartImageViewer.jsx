@@ -1,11 +1,12 @@
 import { Download, X } from "lucide-react";
 import { useChatStore } from "@/store/useChatStore";
-export default function SmartImageViewer({
+import { memo } from "react";
+const SmartImageViewer = ({
     downloader,
     title,
     isUploading
 
-}) {
+}) => {
 
     const {
         url,
@@ -163,3 +164,4 @@ export default function SmartImageViewer({
 
 
 
+export default memo(SmartImageViewer)

@@ -14,6 +14,8 @@ const Room = memo(({ room, userId, name, logo }) => {
   useSocket('room:remove', removeFromRooms)
 
   const last = room?.lastMessage;
+  const isPersian = (text) => /[\u0600-\u06FF]/.test(text);
+  console.log(last);
 
   return (
     <motion.div
@@ -56,38 +58,37 @@ const Room = memo(({ room, userId, name, logo }) => {
         </div>
 
         <span
-          dir="auto"
           className="truncate [unicode-bidi:plaintext] text-xs text-slate-400 opacity-70 w-60"
         >
+          <p
+            dir={isPersian(last?.text || "س") ? "rtl" : "ltr"}
+            className="text-xs truncate opacity-70"
+          >
+            {room.isGroup && last?.senderId?.name && (
+              <span className="text-sky-200 font-bold">
+                {last.senderId.name}:{" "}
+              </span>
+            )}
 
-
-          {
-            last && (
-              <p dir="rtl" className="text-xs truncate opacity-70">
-                {last?.text
-                  ? last.text.length > 50
-                    ? last.text.slice(0, 50) + "..."
-                    : last.text
-                  : last?.file
-                    ? last.file.type === "image"
-                      ? "📷 Photo"
-                      : last.file.type === "pdf"
-                        ? `📄 ${last.file.name}`
-                        : "محتوایی ندارد"
-                    : last?.sticker
-                      ? `${last.sticker.emoji} Sticker`
+            {last
+              ? last.text
+                ? last.text.length > 50
+                  ? last.text.slice(0, 50) + "..."
+                  : last.text
+                : last.file
+                  ? last.file.type === "image"
+                    ? "📷 Photo"
+                    : last.file.type === "pdf"
+                      ? `📄 ${last.file.name}`
                       : "محتوایی ندارد"
-                }
-              </p>
-
-            )
-
-          }
-
-
-
+                  : last.sticker
+                    ? `${last.sticker.emoji} Sticker`
+                    : "محتوایی ندارد"
+              : "پیامی وجود ندارد"}
+          </p>
 
         </span>
+
       </div>
 
       {/* نشانگر پیام خوانده‌نشده */}

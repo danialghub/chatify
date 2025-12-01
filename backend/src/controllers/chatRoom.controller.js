@@ -53,9 +53,9 @@ export const createRoom = async (req, res) => {
       // بررسی نیاز به ارسال پیام newDay
       const newDayMsg = await newDay(newRoom._id, isGroup);
       const msg = await Message.create(systemNotif);
+      newRoom = await chatRoomService.updateLastMessage(newRoom._id, msg._id)
 
       const messages = newDayMsg ? [newDayMsg, msg] : [msg];
-
       // ارسال پیام به کاربران آنلاین داخل اتاق
       io.to(msg.roomId).emit("message:send", { roomId: newRoom._id, messages });
 

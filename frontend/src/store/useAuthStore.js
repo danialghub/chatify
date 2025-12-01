@@ -23,6 +23,7 @@ export const useAuthStore = create((set, get) => ({
   isCheckingAuth: true,
   isSigningUp: false,
   isLoggingIn: false,
+  isLoggingOut: false,
   isUpdating: false,
   socket: null,
   onlineUsers: [],
@@ -84,6 +85,7 @@ export const useAuthStore = create((set, get) => ({
   // --------------------------
   logout: async () => {
     try {
+      set({ isLoggingOut: true })
       await authService.logout();
 
       // پاکسازی state
@@ -96,6 +98,8 @@ export const useAuthStore = create((set, get) => ({
     } catch (error) {
       toast.error("خطایی پیش آمد");
       console.log("Logout error:", error);
+    } finally {
+      set({ isLoggingOut: false })
     }
   },
 

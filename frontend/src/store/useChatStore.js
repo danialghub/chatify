@@ -21,6 +21,7 @@ export const useChatStore = create((set, get) => ({
   isUsersLoading: false,
   isMessagesLoading: false,
   isMessageSending: false,
+  isMessageRemoving: false,
   uploadProgress: 0,
   uploadedSize: 0,
   uploadTotal: 0,
@@ -206,12 +207,15 @@ export const useChatStore = create((set, get) => ({
     const msgsBackup = [...messages];
 
     try {
+      set({ isMessageRemoving: true })
       await axiosInstance.delete(`/messages/remove/${msgId}`);
       set((prev) => ({ messages: prev.messages.filter((m) => m._id !== msgId) }));
       openModal(null);
     } catch (error) {
       set({ messages: msgsBackup });
       toast.error(error.response?.data?.message || "خطا در برقراری");
+    } finally {
+      set({ isMessageRemoving: false })
     }
   },
 

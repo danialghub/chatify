@@ -161,19 +161,19 @@ export const parseDynamicContent = (msgText) => {
 
         switch (emojis.length) {
             case 1:
-                fontSizeClass = "text-6xl max-sm:text-5xl";
+                fontSizeClass = "text-7xl max-sm:text-6xl ";
                 break;
             case 2:
-                fontSizeClass = "text-5xl max-sm:text-4xl";
+                fontSizeClass = "text-6xl max-sm:text-5xl";
                 break;
             case 3:
-                fontSizeClass = "text-4xl max-sm:text-3xl";
+                fontSizeClass = "text-5xl max-sm:text-4xl";
                 break;
             default:
-                fontSizeClass = "text-3xl max-sm:text-2xl";
+                fontSizeClass = "text-4xl max-sm:text-3xl";
         }
 
-        html = `<span class="${fontSizeClass}">${msgText}</span>`
+        html = `<span class="${fontSizeClass} leading-[90px]">${msgText}</span>`
         return [html, true];
     } else {
         html = msgText.replace(emojiRegex, (emoji) => {

@@ -95,13 +95,13 @@ const Message = ({
           )}
 
           {/* استیکر */}
-          {msg?.sticker && <StickerPreview url={msg.sticker.url} size={160} />}
+          {msg?.sticker && <StickerPreview url={msg.sticker.url} size={180} />}
 
           {/* زمان پیام */}
           {isMessageSending ? (
-            <span className="text-xs font-bold animate-pulse">درحال ارسال...</span>
+            <p className="text-xs font-bold animate-pulse">درحال ارسال...</p>
           ) : (
-            <p className={`w-[45px] text-xs mt-1.5 opacity-75 flex items-center gap-1 justify-center ${isOnlySticker || msg.sticker ? "bg-black/5 backdrop-blur-2xl text-white/80 px-2 py-1  rounded-xl text-center" : ''}`}>
+            <p className={`w-[45px] text-xs  opacity-75 flex items-center gap-1 justify-center ${isOnlySticker || msg.sticker ? "bg-black/5 backdrop-blur-2xl text-white/80 px-2 py-1   rounded-xl text-center" : 'mt-1.5'}`}>
               {new Date(msg.createdAt).toLocaleTimeString('en-GB', {
                 hour: "2-digit",
                 minute: "2-digit",

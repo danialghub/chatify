@@ -71,7 +71,7 @@ const ProfileHeader = ({ showSidebar }) => {
         <div className="flex gap-4 items-center">
           {/* LOGOUT BTN */}
           <button
-            className="text-slate-400 hover:text-slate-200 transition-colors"
+            className="text-slate-400  hover:text-slate-200 transition-colors"
             onClick={()=>
               openModal('Alert' , {title:"خروج", onComplete:logout,size:"sm"})
             }

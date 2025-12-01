@@ -1,18 +1,19 @@
 import { useSmartFileHandler } from "@/hooks/useSmartFileHandler";
 import SmartPdfViewer from "./SmartPdfViewer";
 import SmartImageViewer from "./SmartImageViewer";
+import { memo } from "react";
 
 
-export default function SmartFileDownloader({ file, isMyMsg, isUploading }) {
+const SmartFileDownloader = ({ file, isMyMsg, isUploading }) => {
 
-    
+
 
     const downloader = useSmartFileHandler(
         file,
         isMyMsg,
         isUploading,
     );
-    
+
 
 
     if (downloader.isImage) {
@@ -34,3 +35,4 @@ export default function SmartFileDownloader({ file, isMyMsg, isUploading }) {
         />
     );
 }
+export default memo(SmartFileDownloader)
