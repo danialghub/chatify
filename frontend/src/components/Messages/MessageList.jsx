@@ -72,8 +72,8 @@ const MessageList = ({
 
     const crect = container.getBoundingClientRect();
 
-    const menuW = 180;
-    const menuH = 250;
+    const menuW = 150;
+    const menuH = 240;
 
     // موقعیت اولیه نسبت به container
     let x = 0;

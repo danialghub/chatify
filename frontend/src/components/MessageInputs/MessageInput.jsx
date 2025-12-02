@@ -1,10 +1,11 @@
 import { memo, useRef, useState } from "react";
 import useKeyboardSound from "@/hooks/useKeyboardSound";
 import { useChatStore } from "@/store/useChatStore";
-import { FileText, Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
+import { Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
 import { ImageUploader } from '@/components/index'
 import StickerPanel from "./Sticker/Sticker";
 import TextArea from "./TextArea";
+import FilePreview from "./FilePreview";
 
 const MessageInput = memo(({ textareaRef }) => {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
@@ -60,7 +61,7 @@ const MessageInput = memo(({ textareaRef }) => {
   };
 
 
-  const removeImage = () => {
+  const removeFile = () => {
     setFilePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -97,7 +98,7 @@ const MessageInput = memo(({ textareaRef }) => {
                       : replyToMsg?.file
                         ? replyToMsg.file.type === "image"
                           ? "📷 Photo"
-                          : replyToMsg.file.type === "pdf"
+                          : replyToMsg.file.type 
                             ? `📄 ${replyToMsg.file.name}`
                             : "محتوایی ندارد"
                         : replyToMsg?.sticker
@@ -117,34 +118,7 @@ const MessageInput = memo(({ textareaRef }) => {
             </div>
           )}
           {filePreview && (
-            <div className="relative mt-2 w-fit">
-              {filePreview.type === "image" ? (
-                <img
-                  src={filePreview?.data}
-                  alt="Preview"
-                  className="w-20 h-20 object-cover rounded-md border border-slate-700"
-                />
-              ) : filePreview.type === "pdf" ? (
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-600/20 via-blue-500/10 to-blue-700/10 
-                    rounded-md border border-blue-400/30 shadow flex flex-col items-center justify-center p-2 relative">
-                  <FileText className="size-7 text-red-400 mb-2 flex-shrink-0" />
-                  <p
-                    className="text-xs text-white text-center truncate w-full px-1"
-                    title={filePreview.name} // نمایش کامل هنگام hover
-                  >
-                    {filePreview.name}
-                  </p>
-                </div>
-              ) : null}
-
-              <button
-                onClick={removeImage}
-                className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700"
-                type="button"
-              >
-                <XIcon className="size-4" />
-              </button>
-            </div>
+            <FilePreview filePreview={filePreview} removeFile={removeFile} />
           )}
 
 

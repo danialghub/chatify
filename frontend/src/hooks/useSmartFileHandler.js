@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useChatStore } from "@/store/useChatStore";
 
-export function useSmartFileHandler(file, isMyMsg, isUploading) {
+export function useSmartFileHandler(msg, isMyMsg, isUploading) {
     const [progress, setProgress] = useState(0);
     const [downloading, setDownloading] = useState(false);
     const [downloaded, setDownloaded] = useState(false);
@@ -10,6 +11,8 @@ export function useSmartFileHandler(file, isMyMsg, isUploading) {
     const [downloadedBytes, setDownloadedBytes] = useState(0);
     const [thumbUrl, setThumbUrl] = useState("");
 
+    const file = msg.file
+
     const FILE_URL = file?.url;
     const CACHE_NAME = `${file?.name}-cache`;
 
@@ -17,12 +20,14 @@ export function useSmartFileHandler(file, isMyMsg, isUploading) {
     const isPdf = file?.type === "application/pdf";
 
 
+    const addRenderedFiles = useChatStore(state => state.addRenderedFiles)
     /* ---------------------- CHECK CACHE / LOAD ----------------------- */
     useEffect(() => {
         if (!file) return;
 
         if (isMyMsg && file.url) {
             setUrl(file.url);
+            addRenderedFiles(msg._id, file.url)
             setDownloaded(true);
             setTotalBytes(file.size);
         } else {
@@ -45,6 +50,7 @@ export function useSmartFileHandler(file, isMyMsg, isUploading) {
                     const blob = await cached.blob();
                     const blobUrl = URL.createObjectURL(blob);
                     setUrl(blobUrl);
+                    addRenderedFiles(msg._id, blobUrl)
                     setDownloaded(true);
                     setTotalBytes(blob.size);
                     return;
@@ -151,3 +157,6 @@ export function useSmartFileHandler(file, isMyMsg, isUploading) {
         formatBytes,
     };
 }
+
+
+

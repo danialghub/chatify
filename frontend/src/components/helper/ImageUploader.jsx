@@ -1,10 +1,11 @@
 import { toast } from "react-hot-toast";
 import { fileSchema } from "@/lib/validation";
-
+import { checkFileType } from '@/lib/helper'
 const FileUploader = ({ inputRef, setFile, ...props }) => {
     const handleChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
+        console.log(file);
 
         const validation = fileSchema.safeParse(file);
         if (!validation.success) {
@@ -12,13 +13,13 @@ const FileUploader = ({ inputRef, setFile, ...props }) => {
             setFile(null);
             return;
         }
-
+        let type = checkFileType(file)
         // اگر عکس بود → Base64
         if (file.type.startsWith("image/")) {
             const reader = new FileReader();
             reader.onloadend = () =>
                 setFile({
-                    type: "image",
+                    type,
                     data: reader.result, // Base64 برای نمایش
                     name: file.name,
                     file,                // File object برای ارسال
@@ -28,9 +29,9 @@ const FileUploader = ({ inputRef, setFile, ...props }) => {
 
 
         // اگر PDF بود → فقط خود فایل را برگردان
-        else if (file.type === "application/pdf") {
+        else {
             setFile({
-                type: "pdf",
+                type,
                 name: file.name,
                 size: file.size,
                 file, // خود File object را نگه دار
@@ -44,7 +45,9 @@ const FileUploader = ({ inputRef, setFile, ...props }) => {
         <input
             type="file"
             ref={inputRef}
-            accept="image/*,application/pdf"
+         
+
+
             hidden
             onChange={handleChange}
             {...props}

@@ -1,10 +1,9 @@
 import cloudinary from "./cloudinary.js";
-import fs from 'fs'
-import path from 'path'
-import os from "os";
 import dayjs from "dayjs";
 import jalaliday from 'jalaliday'
 import Message from "../models/Message.js";
+import path from 'path'
+
 export const uploadImage = async (image) => {
   const { secure_url } = await cloudinary.uploader.upload(image, {
     transformation: [
@@ -14,7 +13,6 @@ export const uploadImage = async (image) => {
   });
   return secure_url
 }
-
 
 dayjs.extend(jalaliday);
 dayjs.calendar("jalali");
@@ -42,37 +40,90 @@ export const newDay = async (roomId, isGroup) => {
 }
 
 
-export const uploadFileToCloudinary = async (file) => {
+export const uploadImageToCloudinary = async (file) => {
   try {
+    if (!file.path) throw Error("Image file has no path");
 
-    if (!file.path) throw Error('there is no path for file')
-
-    let options = {
-      resource_type: "auto",
-      folder: "chat_files",
+    const options = {
+      resource_type: "image",
+      folder: "chat_images",
       use_filename: true,
       unique_filename: false,
       overwrite: true,
+      transformation: [
+        { quality: "auto", fetch_format: "auto" } // فشرده‌سازی خودکار
+      ]
     };
 
-    if (file.mimetype.startsWith("image/")) {
-      // فقط برای عکس فشرده‌سازی انجام بده
-      options.transformation = [
-        { quality: "auto", fetch_format: "auto" }
-      ];
-    }
-
-    // اگر pdf یا فایل غیر عکس باشد، هیچ transformation ست نمی‌کنیم
     const result = await cloudinary.uploader.upload(file.path, options);
-
-
-
     return result;
+
   } catch (err) {
-    console.error(err);
+    console.error("Cloudinary image upload error:", err);
     throw err;
   }
 };
+
+export const uploadDocumentToCloudinary = async (file) => {
+  try {
+    if (!file.path) throw Error("Document file has no path");
+
+    const ext = path.extname(file.originalname);   // مثل .pdf, .docx, .zip
+    const base = path.basename(file.originalname, ext);
+
+    const options = {
+      resource_type: "raw",
+      folder: "chat_files",
+      public_id: base + ext,   // ⚠️ این کل ماجراست: public_id = name.ext
+      overwrite: true,
+    };
+
+    const result = await cloudinary.uploader.upload(file.path, options);
+    return result;
+
+  } catch (err) {
+    console.error("Cloudinary document upload error:", err);
+    throw err;
+  }
+};
+
+export const checkFileType = (file) => {
+  const name = file.originalname.toLowerCase();
+  const mime = file.mimetype;
+
+  // استخراج پسوند
+  const ext = name.split('.').pop();  // مثلا "pptx"
+
+  // Images
+  if (mime?.startsWith("image/")) 
+    return ["image", ext];
+
+  if (ext === "pdf") 
+    return ["pdf", ext];
+
+  if (ext === "doc" || ext === "docx") 
+    return ["word", ext];
+
+  if (ext === "ppt" || ext === "pptx") 
+    return ["powerpoint", ext];
+
+  if (ext === "xls" || ext === "xlsx") 
+    return ["excel", ext];
+
+  if (ext === "zip") 
+    return ["zip", ext];
+
+  if (ext === "rar") 
+    return ["rar", ext];
+
+  // Default
+  return ["file", ext];
+};
+
+
+
+
+
 
 
 

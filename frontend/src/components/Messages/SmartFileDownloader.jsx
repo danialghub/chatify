@@ -4,23 +4,23 @@ import SmartImageViewer from "./SmartImageViewer";
 import { memo } from "react";
 
 
-const SmartFileDownloader = ({ file, isMyMsg, isUploading }) => {
 
+const SmartFileDownloader = ({ msg, isMyMsg, isUploading }) => {
 
+  
 
     const downloader = useSmartFileHandler(
-        file,
+        msg,
         isMyMsg,
         isUploading,
     );
-
 
 
     if (downloader.isImage) {
         return (
             <SmartImageViewer
                 downloader={downloader}
-                title={file.name}
+                title={msg.file.name}
                 isUploading={isUploading}
             />
         );
@@ -28,7 +28,7 @@ const SmartFileDownloader = ({ file, isMyMsg, isUploading }) => {
 
     return (
         <SmartPdfViewer
-            file={file}
+            file={msg.file}
             isMyMsg={isMyMsg}
             isUploading={isUploading}
             downloader={downloader}

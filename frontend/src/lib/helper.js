@@ -56,7 +56,7 @@ export const handleSwipe = (e, msg, setReplyTo, inputRef) => {
     let isDragging = false;
     let isMouseDown = false;
     let swipeLocked = false; // جهت lock
-    
+
     const el = e.currentTarget;
     const width = e.target.offsetWidth + 20; // محدودیت جابجایی
 
@@ -197,6 +197,28 @@ export const parseDynamicContent = (msgText) => {
     });
 
     return [html, false];
+};
+
+export const checkFileType = (file) => {
+    const name = file.name.toLowerCase();
+    const type = file.type
+
+    // Images
+    if (type.startsWith("image/")) return "image";
+
+    if (name.endsWith(".pdf")) return "pdf";
+
+    if (name.endsWith(".doc") || name.endsWith(".docx")) return "word";
+
+    if (name.endsWith(".ppt") || name.endsWith(".pptx")) return "powerpoint";
+
+    if (name.endsWith(".xls") || name.endsWith(".xlsx")) return "excel";
+
+    if (name.endsWith(".zip")) return "zip";
+
+    if (name.endsWith(".rar")) return "rar";
+
+    return "file"; // Default
 };
 
 

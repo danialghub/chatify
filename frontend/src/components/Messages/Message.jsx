@@ -71,7 +71,7 @@ const Message = ({
                     : msg.replyTo?.text
                   : msg.replyTo?.file?.type == "image"
                     ? "📷 Photo"
-                    : msg.replyTo?.file?.type == "pdf"
+                    : msg.replyTo?.file?.type
                       ? <span>📄 {msg.replyTo.file.name}</span>
                       : msg.replyTo?.sticker
                         ? `${msg.replyTo.sticker.emoji} Sticker`
@@ -82,7 +82,11 @@ const Message = ({
 
           {/* فایل PDF یا ضمیمه */}
           {msg?.file && (
-            <SmartFileDownloader file={msg.file} isUploading={isMessageSending} isMyMsg={isMyMessage} />
+            <SmartFileDownloader
+              msg={msg}
+              isUploading={isMessageSending}
+              isMyMsg={isMyMessage}
+            />
           )}
 
           {/* متن */}

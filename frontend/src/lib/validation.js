@@ -15,18 +15,48 @@ export const imgageSchema = z
     .instanceof(File)
     .refine(file => file.size <= 4 * 1024 * 1024, "حجم عکس بیشتر از 4 مگابایت نباید باشد")
     .refine(file => ["image/jpeg", "image/png", "image/webp"].includes(file.type), "فرمت فایل درسیت نیست")
-
+    
 export const fileSchema = z
     .instanceof(File)
     .refine(
         file =>
-            ["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(file.type),
-        "قابل آپلود هست PDF فقط فایل های عکس و "
+            [
+                "image/jpeg",
+                "image/png",
+                "image/webp",
+                "image/jpg",
+
+                // Excel
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-excel",
+
+                // PDF
+                "application/pdf",
+
+                // Word
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+
+                // PowerPoint
+                "application/vnd.ms-powerpoint",
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+
+                // ZIP & RAR
+                "application/zip",
+                "application/x-zip-compressed",
+                "application/octet-stream",
+                "application/vnd.rar",
+                "application/x-rar-compressed",
+                "application/x-compressed",
+            ].includes(file.type),
+        "این فرمت پشتیبانی نمی‌شود"
     )
     .refine(
         file => file.size <= 4 * 1024 * 1024,
         "حجم فایل نباید بیشتر از 4 مگابایت باشد"
     );
+
+
 
 
 export const userSignUpSchema = z.object({

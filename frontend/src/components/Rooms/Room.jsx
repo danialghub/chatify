@@ -78,7 +78,7 @@ const Room = memo(({ room, userId, name, logo }) => {
                 : last.file
                   ? last.file.type === "image"
                     ? "📷 Photo"
-                    : last.file.type === "pdf"
+                    : last.file.type
                       ? `📄 ${last.file.name}`
                       : "محتوایی ندارد"
                   : last.sticker

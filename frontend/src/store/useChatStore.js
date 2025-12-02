@@ -17,6 +17,7 @@ export const useChatStore = create((set, get) => ({
   // 🔹 State اصلی
   // --------------------------
   messages: [],
+  downloadedFiles: {},
   modal: null,
   isUsersLoading: false,
   isMessagesLoading: false,
@@ -33,6 +34,16 @@ export const useChatStore = create((set, get) => ({
   // 🔹 مدیریت Modal
   // --------------------------
   openModal: (type, props = {}) => set({ modal: { type, props } }),
+
+
+  // --------------------------
+  // 🔹 مدیریت reply
+  // --------------------------
+
+  addRenderedFiles: (id, url) => set(({ downloadedFiles }) => (
+    { downloadedFiles: { ...downloadedFiles, [id]: url } }
+  )),
+
 
   // --------------------------
   // 🔹 مدیریت reply
@@ -158,7 +169,7 @@ export const useChatStore = create((set, get) => ({
       }));
     } catch (error) {
       if (error.code === "ERR_CANCELED") {
-        toast("Upload canceled");
+        toast("آپلود لغو شد");
       } else {
         toast.error(error.response?.data?.message || "Something went wrong");
       }
@@ -186,7 +197,6 @@ export const useChatStore = create((set, get) => ({
     const { uploadController, messages } = get();
     if (uploadController) {
       uploadController.abort();
-      toast("Upload canceled");
 
       set({
         uploadController: null,

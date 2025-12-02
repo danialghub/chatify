@@ -1,4 +1,6 @@
-import { uploadFileToCloudinary } from "../lib/helper.js";
+import {
+  uploadImageToCloudinary, uploadDocumentToCloudinary, checkFileType
+} from "../lib/helper.js";
 import { io, emitToOnlineMembers, getReceiverSocketId } from "../lib/socket.js";
 import { newDay } from "../lib/helper.js";
 import { messageService } from '../services/message.service.js'
@@ -91,22 +93,24 @@ export const sendMessage = async (req, res) => {
      * 4️⃣ آپلود فایل (در صورت وجود)
      * --------------------------------------------------------------------------*/
     if (file) {
-      const uploaded = await uploadFileToCloudinary(file);
+      let uploadedFile = null
+      if (file.mimetype.startsWith("image/")) {
+        uploadedFile = await uploadImageToCloudinary(file);
+      } else {
+        uploadedFile = await uploadDocumentToCloudinary(file);
+      }
 
       // تصحیح نام فایل
       const safeName = Buffer.from(file.originalname, "latin1").toString("utf8");
 
       // تعیین نوع واقعی فایل
-      let type;
-      if (file.mimetype === "application/pdf") type = "pdf";
-      else if (file.mimetype.startsWith("image/")) type = "image";
-      else type = "file"; // هر نوع فایل دیگر
+      let [type, suffix] = checkFileType(file)
 
       messageData.file = {
         type,
         name: safeName,
-        size: uploaded.bytes,
-        url: uploaded.secure_url,
+        size: uploadedFile.bytes,
+        url: uploadedFile.secure_url
       };
     }
 
@@ -206,7 +210,7 @@ export const removeMsg = async (req, res) => {
       // یافتن آخرین پیام غیرسیستمی در اتاق
       const prevMsg = await Message.findOne({
         roomId: room._id,
-        type : {$ne : "dailyDate"}
+        type: { $ne: "dailyDate" }
       }).sort({ createdAt: -1 });
 
       // بروزرسانی پیام آخر اتاق
