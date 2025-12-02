@@ -106,36 +106,40 @@ const SmartPdfViewer = ({
             <div className="relative w-12 h-12">
 
                 {isUploading ? (
-                    <div
+                    <button
+                        disabled={uploadProgress >= 90}
                         onClick={cancelUpload}
                         className="relative w-12 h-12 flex items-center justify-center cursor-pointer"
                     >
-                        <svg height={radius * 2} width={radius * 2} >
-                            <circle
-                                stroke={isMyMsg ? "#0284C7" : "#334155"} // دایره پس‌زمینه
-                                fill="transparent"
-                                strokeWidth={stroke}
-                                r={r}
-                                cx={radius}
-                                cy={radius}
-                                className="opacity-20"
-                            />
-                            <circle
-                                stroke="#0EA5E9" // رنگ progress برای دید بهتر
-                                fill="transparent"
-                                strokeWidth={stroke}
-                                r={r}
-                                cx={radius}
-                                cy={radius}
-                                strokeDasharray={circumference}
-                                strokeDashoffset={uploadOffset}
-                                strokeLinecap="round"
-                                transform={`rotate(-90 ${radius} ${radius})`}
-                            />
-                        </svg>
+                       <svg height={radius * 2} width={radius * 2}>
+                        <circle
+                            stroke={isMyMsg ? "#0284C7" : "#334155"}
+                            fill="transparent"
+                            strokeWidth={stroke}
+                            r={r}
+                            cx={radius}
+                            cy={radius}
+                            className="opacity-20"
+                        />
+                        <circle
+                            stroke="#0EA5E9"
+                            fill="transparent"
+                            strokeWidth={stroke}
+                            r={r}
+                            cx={radius}
+                            cy={radius}
+                            strokeDasharray={circumference}
+                            strokeDashoffset={uploadOffset}
+                            strokeLinecap="round"
+                            transform={`rotate(-90 ${radius} ${radius})`}
+                        />
+                    </svg>
+
+
 
                         <X className="w-5 h-5 font-bold text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                    </div>
+
+                    </button>
                 ) : downloaded ? (
                     <button
                         onClick={() => handleFileClick(file)}

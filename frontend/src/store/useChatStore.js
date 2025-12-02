@@ -194,20 +194,28 @@ export const useChatStore = create((set, get) => ({
   // 🔹 لغو آپلود
   // --------------------------
   cancelUpload: () => {
-    const { uploadController, messages } = get();
-    if (uploadController) {
-      uploadController.abort();
+  const { uploadController, messages, uploadProgress } = get();
 
-      set({
-        uploadController: null,
-        isMessageSending: false,
-        uploadProgress: 0,
-        uploadedSize: 0,
-        uploadTotal: 0,
-        messages: messages.filter((msg) => !msg.isOptimistic),
-      });
-    }
-  },
+  if (!uploadController) return;
+
+  // اگر آپلود بیشتر از 95% انجام شده باشد، دیگر لغو امکان‌پذیر نیست
+  if (uploadProgress >= 95) {
+    toast("آپلود تقریبا کامل است، دیگر نمی‌توان لغو کرد");
+    return;
+  }
+
+  uploadController.abort();
+
+  set({
+    uploadController: null,
+    isMessageSending: false,
+    uploadProgress: 0,
+    uploadedSize: 0,
+    uploadTotal: 0,
+    messages: messages.filter((msg) => !msg.isOptimistic),
+  });
+},
+
 
   // --------------------------
   // 🔹 حذف پیام

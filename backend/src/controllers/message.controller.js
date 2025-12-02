@@ -47,6 +47,10 @@ export const getMessagesByRoomId = async (req, res) => {
  * - بررسی newDay و ارسال پیام به اعضای آنلاین
  */
 export const sendMessage = async (req, res) => {
+
+  // 🔹 اگر کاربر قبلاً request را لغو کرده باشد، هیچ کاری نکن
+  if (req.aborted) return;
+  
   try {
     const senderId = req.user._id;
     const { roomId } = req.params;
@@ -90,14 +94,19 @@ export const sendMessage = async (req, res) => {
     }
 
     /* --------------------------------------------------------------------------
-     * 4️⃣ آپلود فایل (در صورت وجود)
+     * 4️⃣ آپلود فایل (در صورت وجود) با امکان لغو
      * --------------------------------------------------------------------------*/
     if (file) {
-      let uploadedFile = null
+      let uploadedFile = null;
       if (file.mimetype.startsWith("image/")) {
-        uploadedFile = await uploadImageToCloudinary(file);
+        uploadedFile = await uploadImageToCloudinary(file, req.signal); // ← اضافه شد
       } else {
-        uploadedFile = await uploadDocumentToCloudinary(file);
+        uploadedFile = await uploadDocumentToCloudinary(file, req.signal); // ← اضافه شد
+      }
+
+      // 🔹 بررسی لغو بعد از آپلود قبل از ذخیره پیام
+      if (req.aborted) {
+        return; // کاربر لغو کرده، هیچ چیزی ثبت نشود
       }
 
       // تصحیح نام فایل
@@ -155,10 +164,15 @@ export const sendMessage = async (req, res) => {
     res.status(201).json(messages);
 
   } catch (error) {
+    // 🔹 اگر خطای لغو آپلود باشد، کاری انجام نده
+    if (error.message === "Upload cancelled") {
+      return;
+    }
     console.error("sendMessage:", error);
     res.status(500).json({ message: "خطای داخلی سرور" });
   }
 };
+
 
 
 

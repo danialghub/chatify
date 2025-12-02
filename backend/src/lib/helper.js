@@ -3,6 +3,8 @@ import dayjs from "dayjs";
 import jalaliday from 'jalaliday'
 import Message from "../models/Message.js";
 import path from 'path'
+import fs from 'fs'
+
 
 export const uploadImage = async (image) => {
   const { secure_url } = await cloudinary.uploader.upload(image, {
@@ -64,28 +66,45 @@ export const uploadImageToCloudinary = async (file) => {
   }
 };
 
-export const uploadDocumentToCloudinary = async (file) => {
-  try {
-    if (!file.path) throw Error("Document file has no path");
 
-    const ext = path.extname(file.originalname);   // مثل .pdf, .docx, .zip
-    const base = path.basename(file.originalname, ext);
 
+
+export const uploadDocumentToCloudinary = async (file, signal) => {
+  if (!file.path) throw new Error("Document file has no path");
+
+  const ext = path.extname(file.originalname); // مثل .pdf, .docx, .zip
+  const base = path.basename(file.originalname, ext);
+
+  return new Promise((resolve, reject) => {
     const options = {
       resource_type: "raw",
       folder: "chat_files",
-      public_id: base + ext,   // ⚠️ این کل ماجراست: public_id = name.ext
+      public_id: base + ext,
       overwrite: true,
     };
 
-    const result = await cloudinary.uploader.upload(file.path, options);
-    return result;
+    // 🔹 ساخت یک stream برای خواندن فایل
+    const readStream = fs.createReadStream(file.path);
 
-  } catch (err) {
-    console.error("Cloudinary document upload error:", err);
-    throw err;
-  }
+    // 🔹 بررسی لغو
+    signal?.addEventListener("abort", () => {
+      readStream.destroy();
+      reject(new Error("Upload cancelled"));
+    });
+
+    const cloudStream = cloudinary.uploader.upload_stream(
+      options,
+      (err, result) => {
+        if (err) return reject(err);
+        resolve(result);
+      }
+    );
+
+    // pipe فایل به cloudinary
+    readStream.pipe(cloudStream);
+  });
 };
+
 
 export const checkFileType = (file) => {
   const name = file.originalname.toLowerCase();
@@ -95,25 +114,25 @@ export const checkFileType = (file) => {
   const ext = name.split('.').pop();  // مثلا "pptx"
 
   // Images
-  if (mime?.startsWith("image/")) 
+  if (mime?.startsWith("image/"))
     return ["image", ext];
 
-  if (ext === "pdf") 
+  if (ext === "pdf")
     return ["pdf", ext];
 
-  if (ext === "doc" || ext === "docx") 
+  if (ext === "doc" || ext === "docx")
     return ["word", ext];
 
-  if (ext === "ppt" || ext === "pptx") 
+  if (ext === "ppt" || ext === "pptx")
     return ["powerpoint", ext];
 
-  if (ext === "xls" || ext === "xlsx") 
+  if (ext === "xls" || ext === "xlsx")
     return ["excel", ext];
 
-  if (ext === "zip") 
+  if (ext === "zip")
     return ["zip", ext];
 
-  if (ext === "rar") 
+  if (ext === "rar")
     return ["rar", ext];
 
   // Default
