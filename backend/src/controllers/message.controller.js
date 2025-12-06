@@ -2,7 +2,7 @@ import {
   uploadImageToCloudinary, uploadDocumentToCloudinary, checkFileType
 } from "../lib/helper.js";
 import { io, emitToOnlineMembers, getReceiverSocketId } from "../lib/socket.js";
-import { newDay } from "../lib/helper.js";
+
 import { messageService } from '../services/message.service.js'
 import { chatRoomService } from '../services/chatRoom.service.js'
 import Message from "../models/Message.js";
@@ -44,13 +44,12 @@ export const getMessagesByRoomId = async (req, res) => {
 /**
  * ارسال پیام به روم
  * - شامل متن، استیکر، فایل یا پاسخ به پیام دیگر
- * - بررسی newDay و ارسال پیام به اعضای آنلاین
  */
 export const sendMessage = async (req, res) => {
 
   // 🔹 اگر کاربر قبلاً request را لغو کرده باشد، هیچ کاری نکن
   if (req.aborted) return;
-  
+
   try {
     const senderId = req.user._id;
     const { roomId } = req.params;
@@ -113,7 +112,7 @@ export const sendMessage = async (req, res) => {
       const safeName = Buffer.from(file.originalname, "latin1").toString("utf8");
 
       // تعیین نوع واقعی فایل
-      let [type, suffix] = checkFileType(file)
+      let [type] = checkFileType(file)
 
       messageData.file = {
         type,
@@ -131,24 +130,20 @@ export const sendMessage = async (req, res) => {
     }
 
     /* --------------------------------------------------------------------------
-     * 6️⃣ بررسی نیاز به پیام newDay
-     * --------------------------------------------------------------------------*/
-    const newDayMsg = await newDay(roomId, room.isGroup);
 
     /* --------------------------------------------------------------------------
      * 7️⃣ ساخت پیام اصلی
      * --------------------------------------------------------------------------*/
     const newMessage = await messageService.create(messageData);
 
-    const messages = newDayMsg ? [newDayMsg, newMessage] : [newMessage];
 
     /* --------------------------------------------------------------------------
      * 8️⃣ ارسال پیام به اعضای آنلاین روم
      * --------------------------------------------------------------------------*/
     const exceptionId = getReceiverSocketId(senderId);
-    if (exceptionId) {
-      io.to(roomId).except(exceptionId).emit("message:send", { roomId, messages });
-    }
+
+    io.to(roomId).except(exceptionId).emit("message:send", { roomId, messages: [newMessage] });
+
 
     /* --------------------------------------------------------------------------
      * 9️⃣ ارسال اعلان پیام به سایر اعضا
@@ -161,7 +156,7 @@ export const sendMessage = async (req, res) => {
     /* --------------------------------------------------------------------------
      * 🔟 پاسخ موفقیت‌آمیز
      * --------------------------------------------------------------------------*/
-    res.status(201).json(messages);
+    res.status(201).json([newMessage]);
 
   } catch (error) {
     // 🔹 اگر خطای لغو آپلود باشد، کاری انجام نده

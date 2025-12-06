@@ -1,13 +1,43 @@
 import { Message, ContextMenu } from "@/components/index";
-import { memo, useCallback, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useChatStore } from '@/store/useChatStore'
 import { useRoomStore } from '@/store/useRoomStore'
 import { useAuthStore } from '@/store/useAuthStore'
+import { injectDateMessages } from '@/lib/helper'
 
-function SystemMessage({ msg }) {
+function SystemMessage({ msg, chatContainerRef }) {
+  const [isSticky, setIsSticky] = useState(false);
+  let timeoutRef = null;
+  const container = chatContainerRef?.current
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsSticky(true);
+
+      // اگر تایمر قبلی بود، کنسل کن
+      if (timeoutRef) clearTimeout(timeoutRef);
+
+      // بعد از توقف اسکرول، ۲ ثانیه صبر کن و sticky رو بردار
+      timeoutRef = setTimeout(() => {
+        setIsSticky(false);
+      }, 1500);
+    };
+
+    container?.addEventListener("scroll", handleScroll);
+    return () => {
+      container?.removeEventListener("scroll", handleScroll);
+      if (timeoutRef) clearTimeout(timeoutRef);
+    };
+  }, []);
+
   return (
-    <div className="text-center text-white/60">
-      <span className="px-4 py-1 text-sm bg-slate-400/5 backdrop-blur-md rounded-lg shadow-lg">
+    <div
+      className={`
+        text-center text-white/60 
+        ${msg.type === "date" && isSticky ? "sticky top-2 z-10" : ""}
+      `}
+    >
+      <span className="px-4 py-1 text-sm bg-slate-900/5 backdrop-blur-md rounded-lg shadow-lg">
         {msg.text}
       </span>
     </div>
@@ -119,11 +149,11 @@ const MessageList = ({
 
 
 
-
+  const msgs = injectDateMessages(messages)
   return (
     <div className="relative py-6 px-3 pr-5 space-y-3 will-change-transform">
       {
-        messages.map((msg, idx) => {
+        msgs.map((msg, idx) => {
           const next = messages[idx + 1];
 
           const isStillSameSender = next?.senderId?._id === msg.senderId?._id;
@@ -148,6 +178,7 @@ const MessageList = ({
             <SystemMessage
               key={msg._id}
               msg={msg}
+              chatContainerRef={chatContainerRef}
             />
           )
         })

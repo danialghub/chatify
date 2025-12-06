@@ -4,6 +4,7 @@ import { X, Edit, LogOut, UserPlus, Trash } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRoomStore } from '@/store/useRoomStore';
 import { useChatStore } from '@/store/useChatStore';
+import { useSmartFileHandler } from '@/hooks/useSmartFileHandler';
 
 const GroupInfo = () => {
     const [activeTab, setActiveTab] = useState("members");
@@ -15,6 +16,10 @@ const GroupInfo = () => {
     const media = messages
         .filter(msg => msg?.file?.type === "image")
         .map((msg, id) => ({ id, src: msg?.file?.url }))
+
+    const files = messages
+        .filter(msg => msg?.file?.type !== "image")
+        .map((msg, id) => ({ id, src: msg?.file }))
 
     const visibleMembers = room?.members?.slice(0, 6);
     const isOwner = room.createdBy === authUser._id

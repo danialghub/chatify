@@ -1,7 +1,7 @@
 import { chatRoomService } from '../services/chatRoom.service.js'
 import Message from "../models/Message.js";
 import { emitToOnlineMembers, io } from "../lib/socket.js";
-import { uploadImage, newDay } from '../lib/helper.js';
+import { uploadImage } from '../lib/helper.js';
 import ChatRoom from '../models/ChatRoom.js';
 import User from '../models/User.js';
 
@@ -50,14 +50,11 @@ export const createRoom = async (req, res) => {
         text: "گروه ایجاد شد"
       };
 
-      // بررسی نیاز به ارسال پیام newDay
-      const newDayMsg = await newDay(newRoom._id, isGroup);
+
       const msg = await Message.create(systemNotif);
       newRoom = await chatRoomService.updateLastMessage(newRoom._id, msg._id)
-
-      const messages = newDayMsg ? [newDayMsg, msg] : [msg];
       // ارسال پیام به کاربران آنلاین داخل اتاق
-      io.to(msg.roomId).emit("message:send", { roomId: newRoom._id, messages });
+      io.to(msg.roomId).emit("message:send", { roomId: newRoom._id, messages: [msg] });
 
 
       /* --------------------------------------------------------------------------
@@ -284,9 +281,6 @@ export const leavingTheGroup = async (req, res) => {
       text: `${userName} از گروه خارج شد`,
     });
 
-    const newDayMsg = await newDay(roomId, room.isGroup);
-    const messages = newDayMsg ? [newDayMsg, leaveMsg] : [leaveMsg];
-
     /* --------------------------------------------------------------------------
      * 6️⃣ بروزرسانی اطلاعات اعضا
      *    (پس از خروج)
@@ -297,7 +291,7 @@ export const leavingTheGroup = async (req, res) => {
      * 7️⃣ اطلاع‌رسانی به اعضای گروه
      * --------------------------------------------------------------------------*/
     io.to(roomId).emit("room:update", updatedRoom);
-    io.to(roomId).emit("message:send", { roomId, messages });
+    io.to(roomId).emit("message:send", { roomId, messages: [leaveMsg] });
 
     /* --------------------------------------------------------------------------
      * پاسخ نهایی
@@ -395,20 +389,11 @@ export const updateGroupRooms = async (req, res) => {
     const insertedMessages = await Message.insertMany(systemMessages);
 
     // -----------------------------
-    // پیام روز جدید
-    // -----------------------------
-    const newDayMsg = await newDay(roomId, true);
-
-    const finalMessages = newDayMsg
-      ? [newDayMsg, ...insertedMessages]
-      : insertedMessages;
-
-    // -----------------------------
     // ارسال به اعضای گروه
     // -----------------------------
     io.to(roomId).emit('message:send', {
       roomId,
-      messages: finalMessages
+      messages: insertedMessages
     });
 
     const updatedRoom = await chatRoomService.update(roomId, updatedGroup);
@@ -499,18 +484,12 @@ export const addMembers = async (req, res) => {
     const createdMessages = await Message.insertMany(systemMessages);
 
     /* --------------------------------------------------------------------------
-     * 9️⃣ ساخت newDay پیام (در صورت نیاز)
-     * --------------------------------------------------------------------------*/
-    const newDayMsg = await newDay(roomId, room.isGroup);
-    const finalMessages = newDayMsg ? [newDayMsg, ...createdMessages] : createdMessages;
-
-    /* --------------------------------------------------------------------------
      * 🔟 اطلاع‌رسانی به اعضای قدیمی و جدید
      * --------------------------------------------------------------------------*/
     const allMemberIds = [...currentMemberIds, ...newMemberIds];
 
     emitToOnlineMembers(allMemberIds, "room:update", updatedRoom);
-    io.to(roomId).emit("message:send", { roomId, messages: finalMessages });
+    io.to(roomId).emit("message:send", { roomId, messages: createdMessages });
 
     /* --------------------------------------------------------------------------
      * پاسخ نهایی

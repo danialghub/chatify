@@ -1,6 +1,6 @@
 const MessagesLoadingSkeleton = () => {
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6 px-6">
       {[...Array(6)].map((_, index) => (
         <div
           key={index}

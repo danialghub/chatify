@@ -43,8 +43,8 @@ const SmartPdfViewer = ({
 
     const Icon = fileTypeIcons[file.type]
 
-    const radius = 20;
-    const stroke = 3;
+    const radius = 40;
+    const stroke = 4;
     const r = radius - stroke * 2;
     const circumference = r * 2 * Math.PI;
 
@@ -53,6 +53,11 @@ const SmartPdfViewer = ({
 
 
     const handleFileClick = useCallback(() => {
+        const blobUrl = url;          // همیشه Blob کش شده اگر دانلود شده باشه
+        const remoteUrl = file.url;   // لینک Cloudinary
+
+        const openURL = blobUrl || remoteUrl;
+
         const officeTypes = [
             "word",
             "excel",
@@ -64,6 +69,7 @@ const SmartPdfViewer = ({
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "application/vnd.ms-excel",
         ];
+
         const zipTypes = [
             "application/zip",
             "application/x-zip-compressed",
@@ -73,29 +79,33 @@ const SmartPdfViewer = ({
             "rar"
         ];
 
-        if (officeTypes.includes(file.type)) {
-            const googleUrl =
-                url || file.url;
-
-            return window.open(googleUrl, "_blank");
+        // اگر هنوز دانلود نشده، دانلود را شروع کن
+        if (!downloaded && !isUploading) {
+            downloadFile();
+            return;
         }
 
-        // ZIP یا RAR → فقط دانلود می‌شوند
+        // Office → باز کردن با URL دانلود شده
+        if (officeTypes.includes(file.type)) {
+            return window.open(openURL, "_blank");
+        }
+
+        // ZIP/RAR → اجباراً دانلود شوند
         if (zipTypes.includes(file.type)) {
             const a = document.createElement("a");
-            a.href = url || file.url;
-            a.download = file.name || "file";
-            a.target = "_blank"
+            a.href = openURL;
+            a.download = file.name;
             document.body.appendChild(a);
             a.click();
             a.remove();
             return;
         }
 
-        // PDF و عکس و غیره → باز شوند در tab جدید
-        window.open(url || file.url, "_blank");
+        // PDF/IMAGE/OTHER → باز در تب جدید
+        window.open(openURL, "_blank");
 
-    }, []);
+    }, [url, downloaded, isUploading, file, downloadFile]);
+
 
 
 
@@ -104,82 +114,57 @@ const SmartPdfViewer = ({
 
             {/* ICON */}
             <div className="relative w-12 h-12">
+                <button
+                    disabled={isUploading && uploadProgress >= 90}
+                    onClick={isUploading ? cancelUpload : downloaded ? handleFileClick : downloadFile}
+                    className={`
+            w-12 h-12 rounded-full flex items-center justify-center 
+            ${isMyMsg ? "bg-sky-600" : "bg-slate-700"} 
+            relative overflow-hidden
+        `}
+                >
 
-                {isUploading ? (
-                    <button
-                        disabled={uploadProgress >= 90}
-                        onClick={cancelUpload}
-                        className="relative w-12 h-12 flex items-center justify-center cursor-pointer"
-                    >
-                       <svg height={radius * 2} width={radius * 2}>
-                        <circle
-                            stroke={isMyMsg ? "#0284C7" : "#334155"}
-                            fill="transparent"
-                            strokeWidth={stroke}
-                            r={r}
-                            cx={radius}
-                            cy={radius}
-                            className="opacity-20"
-                        />
-                        <circle
-                            stroke="#0EA5E9"
-                            fill="transparent"
-                            strokeWidth={stroke}
-                            r={r}
-                            cx={radius}
-                            cy={radius}
-                            strokeDasharray={circumference}
-                            strokeDashoffset={uploadOffset}
-                            strokeLinecap="round"
-                            transform={`rotate(-90 ${radius} ${radius})`}
-                        />
-                    </svg>
+                    {/* ======= CIRCULAR PROGRESS ======= */}
+                    {(isUploading || downloading) && (
+                        <svg className="absolute inset-0" viewBox="0 0 100 100">
+                            {/* back circle */}
+                            <circle
+                                cx="50" cy="50" r="42"
+                                stroke={`${isMyMsg ? "#0284C7" : "#F1F5F9"}60`}
+                                strokeWidth="8"
+                                fill="none"
+                            />
+                            {/* progress circle */}
+                            <circle
+                                cx="50" cy="50" r="42"
+                                stroke={isUploading ? "#E0F2FE" : "#60A5FA"}
+                                strokeWidth="8"
+                                fill="none"
+                                strokeDasharray={264}     // ← 2πr دقیق = 2π*42
+                                strokeDashoffset={isUploading ?
+                                    264 - (uploadProgress / 100) * 264 :
+                                    264 - (progress / 100) * 264}
+                                strokeLinecap="round"
+                                style={{
+                                    transition: "stroke-dashoffset .35s ease",
+                                }}
+                                transform="rotate(-90 50 50)"
+                            />
+                        </svg>
+                    )}
 
+                    {/* ======= CENTER ICON ======= */}
+                    {isUploading ? (
+                        <X className="w-5 h-5 text-white z-10" />
+                    ) : downloaded ? (
+                        <Icon className="w-6 h-6 text-white z-10" />
+                    ) : downloading ? null : (
+                        <Download className="w-6 h-6 text-white z-10" />
+                    )}
 
-
-                        <X className="w-5 h-5 font-bold text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-
-                    </button>
-                ) : downloaded ? (
-                    <button
-                        onClick={() => handleFileClick(file)}
-                        className={`w-12 h-12 rounded-full flex items-center justify-center ${isMyMsg ? "bg-sky-600" : "bg-slate-700"}`}
-                    >
-                        <Icon className="w-6 h-6 text-white" />
-                    </button>
-                ) : downloading ? (
-                    <svg height={radius * 2} width={radius * 2}>
-                        <circle
-                            stroke={isMyMsg ? "#0284C7" : "#334155"}
-                            fill="transparent"
-                            strokeWidth={stroke}
-                            r={r}
-                            cx={radius}
-                            cy={radius}
-                            className="opacity-20"
-                        />
-                        <circle
-                            stroke="#0EA5E9"
-                            fill="transparent"
-                            strokeWidth={stroke}
-                            r={r}
-                            cx={radius}
-                            cy={radius}
-                            strokeDasharray={circumference}
-                            strokeDashoffset={downloadOffset}
-                            strokeLinecap="round"
-                            transform={`rotate(-90 ${radius} ${radius})`}
-                        />
-                    </svg>
-                ) : (
-                    <button
-                        onClick={downloadFile}
-                        className={`w-12 h-12 rounded-full flex items-center justify-center bg-${isMyMsg ? "sky-500" : "slate-700"}`}
-                    >
-                        <Download className="w-6 h-6 text-white" />
-                    </button>
-                )}
+                </button>
             </div>
+
 
             {/* TEXT */}
             <div className="flex flex-col flex-1 min-w-0">

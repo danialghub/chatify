@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
+import axios from "axios";
 import cancellableRequest from "../lib/cancellableRequest";
 import toast from "react-hot-toast";
 import { useRoomStore } from "./useRoomStore";
@@ -194,27 +195,27 @@ export const useChatStore = create((set, get) => ({
   // 🔹 لغو آپلود
   // --------------------------
   cancelUpload: () => {
-  const { uploadController, messages, uploadProgress } = get();
+    const { uploadController, messages, uploadProgress } = get();
 
-  if (!uploadController) return;
+    if (!uploadController) return;
 
-  // اگر آپلود بیشتر از 95% انجام شده باشد، دیگر لغو امکان‌پذیر نیست
-  if (uploadProgress >= 95) {
-    toast("آپلود تقریبا کامل است، دیگر نمی‌توان لغو کرد");
-    return;
-  }
+    // اگر آپلود بیشتر از 95% انجام شده باشد، دیگر لغو امکان‌پذیر نیست
+    if (uploadProgress >= 95) {
+      toast("آپلود تقریبا کامل است، دیگر نمی‌توان لغو کرد");
+      return;
+    }
 
-  uploadController.abort();
+    uploadController.abort();
 
-  set({
-    uploadController: null,
-    isMessageSending: false,
-    uploadProgress: 0,
-    uploadedSize: 0,
-    uploadTotal: 0,
-    messages: messages.filter((msg) => !msg.isOptimistic),
-  });
-},
+    set({
+      uploadController: null,
+      isMessageSending: false,
+      uploadProgress: 0,
+      uploadedSize: 0,
+      uploadTotal: 0,
+      messages: messages.filter((msg) => !msg.isOptimistic),
+    });
+  },
 
 
   // --------------------------

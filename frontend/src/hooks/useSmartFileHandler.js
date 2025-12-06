@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useChatStore } from "@/store/useChatStore";
 
-export function useSmartFileHandler(msg, isMyMsg, isUploading) {
+export function useSmartFileHandler(msg, isMyMsg = false, isUploading = false) {
     const [progress, setProgress] = useState(0);
     const [downloading, setDownloading] = useState(false);
     const [downloaded, setDownloaded] = useState(false);
@@ -17,7 +17,6 @@ export function useSmartFileHandler(msg, isMyMsg, isUploading) {
     const CACHE_NAME = `${file?.name}-cache`;
 
     const isImage = file?.type?.startsWith("image/") || file?.type === "image";
-    const isPdf = file?.type === "application/pdf";
 
 
     const addRenderedFiles = useChatStore(state => state.addRenderedFiles)
@@ -39,6 +38,28 @@ export function useSmartFileHandler(msg, isMyMsg, isUploading) {
         }
 
     }, [file, isMyMsg]);
+
+
+    /* ------------------------------------------------------------- */
+    /* ------- Remove CACHE ------------------ */
+    /* ------------------------------------------------------------- */
+    const clearFileCache = async () => {
+        try {
+            if ("caches" in window) {
+                const cacheNames = await caches.keys();
+
+                // همه cacheها را پیدا کن که اسمش match می‌کند
+                const targetCaches = cacheNames.filter(name => name === CACHE_NAME);
+
+                // پاک کردن هر کدام
+                await Promise.all(targetCaches.map(name => caches.delete(name)));
+
+                console.log(`[Cache] "${CACHE_NAME}" cleared successfully`);
+            }
+        } catch (err) {
+            console.error("[Cache] Failed to clear:", err);
+        }
+    }
 
     /* ---------------------- CHECK CACHE ----------------------- */
     const checkCache = async () => {
@@ -144,7 +165,6 @@ export function useSmartFileHandler(msg, isMyMsg, isUploading) {
 
     return {
         isImage,
-        isPdf,
         url,
         thumbUrl,
         progress,

@@ -1,7 +1,4 @@
 import cloudinary from "./cloudinary.js";
-import dayjs from "dayjs";
-import jalaliday from 'jalaliday'
-import Message from "../models/Message.js";
 import path from 'path'
 import fs from 'fs'
 
@@ -16,30 +13,6 @@ export const uploadImage = async (image) => {
   return secure_url
 }
 
-dayjs.extend(jalaliday);
-dayjs.calendar("jalali");
-
-export const newDay = async (roomId, isGroup) => {
-  const lastMsg = await Message.findOne({ roomId, type: "dailyDate" })
-    .sort({ createdAt: -1 })
-    .lean();
-
-  const today = dayjs().locale("fa").format("YYYY-MM-DD")
-  const lastMsgDay = lastMsg ? dayjs(lastMsg.createdAt).locale("fa").format("YYYY-MM-DD") : null;
-
-  let systemMsg = null;
-
-  // اگر تاریخ عوض شده
-  if (today !== lastMsgDay && isGroup) {
-    systemMsg = await Message.create({
-      roomId,
-      type: "dailyDate",
-      text: dayjs().locale("fa").format("D MMMM")
-    });
-  }
-
-  return systemMsg;
-}
 
 
 export const uploadImageToCloudinary = async (file) => {
@@ -68,7 +41,6 @@ export const uploadImageToCloudinary = async (file) => {
 
 
 
-
 export const uploadDocumentToCloudinary = async (file, signal) => {
   if (!file.path) throw new Error("Document file has no path");
 
@@ -81,6 +53,8 @@ export const uploadDocumentToCloudinary = async (file, signal) => {
       folder: "chat_files",
       public_id: base + ext,
       overwrite: true,
+      // type: "authenticated", // اختیاری
+      format: ext.replace(".", ""), // 👈 تعیین فرمت
     };
 
     // 🔹 ساخت یک stream برای خواندن فایل

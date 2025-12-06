@@ -45,7 +45,7 @@ const Message = ({
         {/* حباب پیام */}
 
         <div
-          className={`chat-bubble  max-w-[70vw] md:max-w-[30vw]  relative    ${!msg.sticker && !isOnlySticker
+          className={`chat-bubble pb-1   max-w-[70vw] md:max-w-[30vw]  relative    ${!msg.sticker && !isOnlySticker
             ? isMyMessage
               ? "bg-sky-600/50 text-white"
               : "bg-slate-800 text-slate-200"
@@ -105,7 +105,7 @@ const Message = ({
           {isMessageSending ? (
             <p className="text-xs font-bold animate-pulse">درحال ارسال...</p>
           ) : (
-            <p className={`w-[45px] text-xs  opacity-75 flex items-center gap-1 justify-center ${isOnlySticker || msg.sticker ? "bg-black/5 backdrop-blur-2xl text-white/80 px-2 py-1   rounded-xl text-center" : 'mt-1.5'}`}>
+            <p className={`w-[45px] text-xs  opacity-75 flex items-center gap-1 justify-center ${isOnlySticker || msg.sticker ? "bg-black/5 backdrop-blur-2xl text-white/80 px-2 py-1   rounded-xl text-center" : 'mt-1'}`}>
               {new Date(msg.createdAt).toLocaleTimeString('en-GB', {
                 hour: "2-digit",
                 minute: "2-digit",

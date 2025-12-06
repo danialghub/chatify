@@ -58,10 +58,10 @@ const Room = memo(({ room, userId, name, logo }) => {
         </div>
 
         <span
-          className="truncate [unicode-bidi:plaintext] text-xs text-slate-400 opacity-70 w-60"
+          className="truncate [unicode-bidi:plaintext] text-xs text-slate-400 opacity-70 w-56"
         >
           <p
-            dir={isPersian(last?.text || "س") ? "rtl" : "ltr"}
+
             className="text-xs truncate opacity-70"
           >
             {room.isGroup && last?.senderId?.name && (
@@ -96,14 +96,19 @@ const Room = memo(({ room, userId, name, logo }) => {
         <div className="absolute right-2 bottom-2">
           <span
             className="
-        bg-cyan-800 text-white text-[10px] font-bold 
-        w-6 h-6 rounded-full flex items-center justify-center
-        shadow-sm select-none
-      "
-            style={{ lineHeight: "1" }}
+    bg-gradient-to-tr from-slate-600 to-slate-700
+    text-white text-[11px] font-bold
+    w-6 h-6 rounded-full flex items-center justify-center
+    shadow-lg drop-shadow-cyan-500/50
+    select-none
+    relative pt-1
+  "
+            style={{ lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center" }}
           >
             {unSeenMessages[room._id] > 99 ? "99+" : unSeenMessages[room._id]}
           </span>
+
+
         </div>
       )}
 

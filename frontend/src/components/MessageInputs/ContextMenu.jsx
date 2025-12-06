@@ -125,6 +125,7 @@ const ContextMenu = forwardRef((props, ref) => {
     },
   ]
     .filter(item => targetMsg?.isMyMessage || item.id !== "delete" && item.id !== "edit")
+    .filter(item => item.id !== "copy" || targetMsg?.msg?.text)
     .filter(item => {
       if (item.id === "save") {
         return targetMsg?.msg?.file && downloadedFiles[targetMsg?.msg?._id];

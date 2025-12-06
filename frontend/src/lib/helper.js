@@ -3,7 +3,7 @@ import jalaliday from "jalaliday";
 
 // افزونه Jalali برای dayjs
 dayjs.extend(jalaliday);
-
+dayjs.calendar("jalali");
 // تبدیل اعداد انگلیسی به فارسی
 const toPersianDigits = (input) => {
     if (input === null || input === undefined) return "";
@@ -220,6 +220,34 @@ export const checkFileType = (file) => {
 
     return "file"; // Default
 };
+
+
+
+
+
+export const injectDateMessages = (messages) => {
+    let newList = [];
+    let lastDate = null;
+
+    messages.forEach(msg => {
+
+        const msgDate = dayjs(msg.createdAt).locale("fa").format("YYYY-MM-DD");
+
+        if (msgDate !== lastDate) {
+
+            newList.push({
+                _id: `date-${msgDate}`,
+                type: "date",
+                text: dayjs(msg.createdAt).locale("fa").format("D MMMM")
+            });
+            lastDate = msgDate;
+        }
+
+        newList.push(msg);
+    });
+
+    return newList;
+}
 
 
 
