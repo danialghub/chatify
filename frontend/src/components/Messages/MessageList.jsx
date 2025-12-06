@@ -6,32 +6,45 @@ import { useAuthStore } from '@/store/useAuthStore'
 import { injectDateMessages } from '@/lib/helper'
 
 function SystemMessage({ msg, chatContainerRef }) {
-  const [isSticky, setIsSticky] = useState(false);
-  let timeoutRef = null;
+  const [stickyId, setStickyId] = useState(null);
+  let timeoutRef = useRef(null);
   const container = chatContainerRef?.current
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsSticky(true);
+      const msgElement = document.getElementById(msg._id);
+      if (!msgElement || !container) return;
 
-      // اگر تایمر قبلی بود، کنسل کن
-      if (timeoutRef) clearTimeout(timeoutRef);
+      const rect = msgElement.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
 
-      // بعد از توقف اسکرول، ۲ ثانیه صبر کن و sticky رو بردار
-      timeoutRef = setTimeout(() => {
-        setIsSticky(false);
-      }, 1500);
+      // اگر بالای پیام به بالای container رسید، sticky کن
+      if (rect.top <= containerRect.top + 10) {
+        setStickyId(msg._id);
+
+        // اگر هنوز تایمر نداریم، ستش کن
+        if (!timeoutRef.current) {
+          timeoutRef.current = setTimeout(() => {
+            setStickyId(null);
+            timeoutRef.current = null;
+          }, 1500);
+        }
+      }
     };
 
     container?.addEventListener("scroll", handleScroll);
     return () => {
       container?.removeEventListener("scroll", handleScroll);
-      if (timeoutRef) clearTimeout(timeoutRef);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, []);
+  }, [container, msg._id]);
+
+
+  const isSticky = stickyId === msg._id;
 
   return (
     <div
+      id={msg._id}
       className={`
         text-center text-white/60 
         ${msg.type === "date" && isSticky ? "sticky top-2 z-10" : ""}
@@ -41,7 +54,6 @@ function SystemMessage({ msg, chatContainerRef }) {
         {msg.text}
       </span>
     </div>
-
   );
 }
 
