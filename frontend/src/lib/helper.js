@@ -222,9 +222,6 @@ export const checkFileType = (file) => {
 };
 
 
-
-
-
 export const injectDateMessages = (messages) => {
     let newList = [];
     let lastDate = null;
