@@ -6,55 +6,52 @@ import { useAuthStore } from '@/store/useAuthStore'
 import { injectDateMessages } from '@/lib/helper'
 
 function SystemMessage({ msg, chatContainerRef }) {
-  const [stickyId, setStickyId] = useState(null);
+  const [isSticky, setIsSticky] = useState(false);
   let timeoutRef = useRef(null);
   const container = chatContainerRef?.current
 
   useEffect(() => {
     const handleScroll = () => {
-      const msgElement = document.getElementById(msg._id);
-      if (!msgElement || !container) return;
-
-      const rect = msgElement.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-
-      // اگر بالای پیام به بالای container رسید، sticky کن
-      if (rect.top <= containerRect.top + 10) {
-        setStickyId(msg._id);
-
-        // اگر هنوز تایمر نداریم، ستش کن
-        if (!timeoutRef.current) {
-          timeoutRef.current = setTimeout(() => {
-            setStickyId(null);
-            timeoutRef.current = null;
-          }, 1500);
-        }
+      // اگر تایمر قبلی هست، لغوش کن
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
+
+      // تا وقتی اسکرول انجام میشه، isSticky=true
+      setIsSticky(true);
+
+      // وقتی اسکرول قطع شد، بعد نیم‌ثانیه false کن
+      timeoutRef.current = setTimeout(() => {
+        setIsSticky(false);
+        timeoutRef.current = null;
+      }, 1500); // نیم‌ثانیه
     };
+
 
     container?.addEventListener("scroll", handleScroll);
     return () => {
       container?.removeEventListener("scroll", handleScroll);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [container, msg._id]);
+  }, []);
 
 
-  const isSticky = stickyId === msg._id;
 
   return (
     <div
       id={msg._id}
       className={`
-        text-center text-white/60 
-        ${msg.type === "date" && isSticky ? "sticky top-2 z-10" : ""}
-      `}
+      text-center text-white/60
+      ${msg.type === "date" && isSticky ? "sticky top-2 z-10" : ""}
+    `}
+      style={{ height: msg.type === "date" ? 28 : "auto" }} // <-- ارتفاع ثابت
     >
-      <span className="px-4 py-1 text-sm bg-slate-900/5 backdrop-blur-md rounded-lg shadow-lg">
+      <span className="px-4 py-1 text-sm bg-slate-900/5 backdrop-blur-md rounded-lg shadow-lg inline-block">
         {msg.text}
       </span>
     </div>
   );
+
 }
 
 const MessageList = ({
