@@ -96,7 +96,11 @@ export function useSmartFileHandler(msg, isMyMsg = false, isUploading = false) {
 
             img.onload = () => {
                 const canvas = document.createElement("canvas");
-                const scale = 0.1;
+
+                // ⬇️ فقط این بخش تغییر کرد
+                const fixedWidth = 300; // هماهنگ با UI
+                const scale = fixedWidth / img.width;
+
                 canvas.width = img.width * scale;
                 canvas.height = img.height * scale;
 
@@ -114,6 +118,7 @@ export function useSmartFileHandler(msg, isMyMsg = false, isUploading = false) {
             console.error("Thumbnail error:", err);
         }
     };
+
 
     /* ---------------------- DOWNLOAD ----------------------- */
     const downloadFile = async () => {

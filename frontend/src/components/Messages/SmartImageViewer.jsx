@@ -38,42 +38,38 @@ const SmartImageViewer = ({
             {/* IMAGE WRAPPER */}
             <div
                 className={`
-                    relative 
-                    md:max-w-[20vw]
-                    max-w-[70vw]
-                    rounded-xl 
-                    overflow-hidden 
-                    bg-black/20 
-                    shadow-lg 
-                    ${!downloaded ? "min-w-[60vw] md:min-w-[20vw]" : ""}
-    `}
+        relative 
+        md:max-w-[20vw]
+        max-w-[70vw]
+        rounded-xl 
+        overflow-hidden 
+        bg-black/20 
+        shadow-lg 
+        ${(!downloaded && !thumbUrl) ? "min-w-[60vw] md:min-w-[20vw]" : ""}
+      `}
             >
 
                 {/* Main Image */}
                 {(downloaded || thumbUrl) && (
                     <img
                         src={downloaded ? url : thumbUrl}
-                        className="rounded-lg aspect-video object-cover w-full transition-transform duration-300 hover:scale-[1.02] "
+                        className="rounded-lg aspect-video object-cover w-full transition-transform duration-300 hover:scale-[1.02]"
                         loading="lazy"
-                        onClick={() => downloaded && window.open(url, "_blank")}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (downloaded) window.open(url, "_blank");
+                        }}
                     />
                 )}
 
-
-
-                {/* TOP-LEFT FILE SIZE */}
-                {/* TOP-LEFT FILE SIZE / STATUS */}
+                {/* TOP-LEFT SIZE/STATUS */}
                 <div
                     dir="ltr"
                     className="
-    absolute top-2 left-2
-    z-10
-    bg-black/60 backdrop-blur-sm
-    text-white text-xs
-    px-2 py-0.5
-    rounded-md
-    flex items-center justify-center
-  "
+          absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-sm
+          text-white text-xs px-2 py-0.5 rounded-md flex items-center justify-center
+        "
                 >
                     {downloading
                         ? `${formatBytes(downloadedBytes)} / ${formatBytes(totalBytes)}`
@@ -85,48 +81,39 @@ const SmartImageViewer = ({
                     }
                 </div>
 
-
-                {/* DOWNLOAD & upload BUTTON */}
-                {(
-                    <>
-                        {isUploading ? (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation(); // جلوگیری از bubbling روی حباب پیام
-                                    cancelUpload();       // مطمئن می‌شویم آخرین controller استفاده می‌شود
-                                }}
-                                className="
-    absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center
-    bg-black/30
-    hover:bg-black/40
-    backdrop-blur-sm
-    transition
-  "
-                            >
-                                <X className="size-7 text-white" />
-                            </button>
-
-                        ) : !downloaded && !downloading ? (
-                            <button
-                                onClick={downloadFile}
-                                className="
-          absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center
-          bg-black/30
-          hover:bg-black/40
-          backdrop-blur-sm
-          transition
-        "
-                            >
-                                <Download className="size-7 text-white" />
-                            </button>
-                        ) : null}
-                    </>
-                )}
-
-
+                {/* DOWNLOAD / CANCEL BUTTON */}
+                <>
+                    {isUploading ? (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                cancelUpload();
+                            }}
+                            className="
+              absolute inset-0 flex items-center justify-center
+              bg-black/30 hover:bg-black/40 backdrop-blur-sm transition
+            "
+                        >
+                            <X className="size-7 text-white" />
+                        </button>
+                    ) : !downloaded && !downloading ? (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                downloadFile();
+                            }}
+                            className="
+              absolute inset-0 flex items-center justify-center
+              bg-black/30 hover:bg-black/40 backdrop-blur-sm transition
+            "
+                        >
+                            <Download className="size-7 text-white" />
+                        </button>
+                    ) : null}
+                </>
 
                 {/* BLUE PROGRESS RING */}
-                {downloading || isUploading && (
+                {(downloading || isUploading) && (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <svg height={radius * 2} width={radius * 2}>
                             <circle
@@ -154,11 +141,9 @@ const SmartImageViewer = ({
                 )}
             </div>
 
-
-
-
-        </div >
+        </div>
     );
+
 }
 
 

@@ -17,19 +17,12 @@ const Message = ({
   isMessageSending
 }) => {
   const setReplyToMsg = useChatStore(state => state.setReplyToMsg);
-
-
   const authUser = useAuthStore(state => state.authUser);
 
   const isMyMsgRepliedByMe = msg?.replyTo?.senderId?._id === authUser._id && msg?.senderId?._id === authUser._id;
   const RepliedByMe = msg?.replyTo?.senderId?._id === authUser._id ? "شما" : msg?.replyTo?.senderId?.name;
 
-  console.log('salam');
-
-
   const [parsedText, isOnlySticker] = parseDynamicContent(msg.text);
-
-
 
   return (
     <div
@@ -39,40 +32,44 @@ const Message = ({
     >
       <div
         onContextMenu={(e) => openMenu(e, isMyMessage, msg)}
-        onTouchStart={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
-        className={`flex items-end gap-2 transition-transform ${isMyMessage ? "flex-row-reverse" : "flex-row"} justify-center  ${selectedMsg && "scale-105"}`}
+        onTouchStart={(e) => { e.stopPropagation(); handleSwipe(e, msg, setReplyToMsg, inputRef) }}
+        className={`flex items-end gap-2 transition-transform ${isMyMessage ? "flex-row-reverse" : "flex-row"} justify-center ${selectedMsg && "scale-105"}`}
       >
-        {/* حباب پیام */}
 
+        {/* ====== BUBBLE ====== */}
         <div
-          className={`chat-bubble pb-1   max-w-[70vw] md:max-w-[30vw]  relative    ${!msg.sticker && !isOnlySticker
-            ? isMyMessage
-              ? "bg-sky-600/50 text-white"
-              : "bg-slate-800 text-slate-200"
-            : "bg-black/0"
+          className={`chat-bubble pb-1 max-w-[70vw] md:max-w-[30vw] relative
+            ${!msg.sticker && !isOnlySticker
+              ? isMyMessage
+                ? "bg-sky-600/50 text-white"
+                : "bg-slate-800 text-slate-200"
+              : "bg-transparent"
             }`}
         >
 
-
-          {/* Reply */}
+          {/* ====== REPLY ====== */}
           {msg?.replyTo && (
             <div
               onClick={(e) => goToMsg(e, msg.replyTo._id)}
-              className={`mb-2 px-3 py-1 rounded-md text-sm border-r-4 ${isMyMessage ? "border-sky-300" : "border-cyan-500"
-                } ${!isMyMsgRepliedByMe ? "bg-black/10" : "bg-white/10 text-cyan-100"}`}
+              className={`mb-2 px-3 py-1 rounded-md text-sm border-r-4 cursor-pointer
+                ${isMyMessage ? "border-sky-300" : "border-cyan-500"}
+                ${!isMyMsgRepliedByMe ? "bg-black/10" : "bg-white/10 text-cyan-100"} `}
             >
               {isGroup && (
-                <p className="font-semibold text-xs opacity-80">{RepliedByMe || "Unknown"}</p>
+                <p className="font-semibold text-xs opacity-80">
+                  {RepliedByMe || "Unknown"}
+                </p>
               )}
+
               <p dir="rtl" className="text-xs truncate opacity-70">
                 {msg.replyTo?.text
-                  ? msg.replyTo.text.length > 50
+                  ? (msg.replyTo.text.length > 50
                     ? msg.replyTo.text.slice(0, 50) + "..."
-                    : msg.replyTo?.text
-                  : msg.replyTo?.file?.type == "image"
+                    : msg.replyTo?.text)
+                  : msg.replyTo?.file?.type === "image"
                     ? "📷 Photo"
                     : msg.replyTo?.file?.type
-                      ? <span>📄 {msg.replyTo.file.name}</span>
+                      ? `📄 ${msg.replyTo.file.name}`
                       : msg.replyTo?.sticker
                         ? `${msg.replyTo.sticker.emoji} Sticker`
                         : "محتوایی ندارد"}
@@ -80,7 +77,7 @@ const Message = ({
             </div>
           )}
 
-          {/* فایل PDF یا ضمیمه */}
+          {/* ====== FILE ====== */}
           {msg?.file && (
             <SmartFileDownloader
               msg={msg}
@@ -89,7 +86,7 @@ const Message = ({
             />
           )}
 
-          {/* متن */}
+          {/* ====== TEXT ====== */}
           {msg?.text && (
             <p
               dir="auto"
@@ -98,37 +95,42 @@ const Message = ({
             />
           )}
 
-          {/* استیکر */}
+          {/* ====== STICKER ====== */}
           {msg?.sticker && <StickerPreview url={msg.sticker.url} size={180} />}
 
-          {/* زمان پیام */}
+          {/* ====== TIME ====== */}
           {isMessageSending ? (
             <p className="text-xs font-bold animate-pulse">درحال ارسال...</p>
           ) : (
-            <p className={`w-[45px] text-xs  opacity-75 flex items-center gap-1 justify-center ${isOnlySticker || msg.sticker ? "bg-black/5 backdrop-blur-2xl text-white/80 px-2 py-1   rounded-xl text-center" : 'mt-1'}`}>
-              {new Date(msg.createdAt).toLocaleTimeString('en-GB', {
+            <p className={`w-[45px] text-xs opacity-75 flex items-center gap-1 justify-center 
+              ${isOnlySticker || msg.sticker ? "bg-black/5 backdrop-blur-2xl text-white/80 px-2 py-1 rounded-xl text-center" : "mt-1"}`}>
+              {new Date(msg.createdAt).toLocaleTimeString("en-GB", {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
             </p>
           )}
 
-
-
         </div>
 
-        {/* آیکون پروفایل */}
+        {/* ====== ICON ====== */}
         {isGroup && !isStillSame && !isMyMessage ? (
           <ChatIcon classProps="size-10" profile={msg.senderId?.profilePic} name={msg?.senderId?.name} />
         ) : (
           <div className={`shrink-0 ${isGroup && !isMyMessage ? "w-10" : "w-3"}`} />
         )}
 
-
-
       </div>
     </div>
   );
 };
 
-export default memo(Message);
+export default memo(Message, (prev, next) => {
+  return (
+    prev.msg._id === next.msg._id &&
+    prev.msg.updatedAt === next.msg.updatedAt &&
+    prev.isMyMessage === next.isMyMessage &&
+    prev.selectedMsg === next.selectedMsg &&
+    prev.isMessageSending === next.isMessageSending
+  );
+});
