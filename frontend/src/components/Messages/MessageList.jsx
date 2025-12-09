@@ -4,6 +4,7 @@ import { useChatStore } from '@/store/useChatStore'
 import { useRoomStore } from '@/store/useRoomStore'
 import { useAuthStore } from '@/store/useAuthStore'
 import { injectDateMessages } from '@/lib/helper'
+import useSocket from "@/hooks/useSocket";
 
 function SystemMessage({ msg, chatContainerRef }) {
   const [isSticky, setIsSticky] = useState(false);
@@ -63,9 +64,11 @@ const MessageList = ({
   const [targetMsg, setTargetMsg] = useState(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
-  const { isMessageSending } = useChatStore()
+  const { isMessageSending, checkUserMessagesAsSeen } = useChatStore()
   const { selectedRoom } = useRoomStore()
   const { authUser } = useAuthStore()
+
+  useSocket('message:seen', checkUserMessagesAsSeen)
 
   const goToMsg = useCallback((e, id) => {
     e.stopPropagation()

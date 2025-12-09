@@ -78,7 +78,7 @@ export const sendMessage = async (req, res) => {
     /* --------------------------------------------------------------------------
      * 3️⃣ ساخت آبجکت پیام اولیه
      * --------------------------------------------------------------------------*/
-    const messageData = { senderId, roomId };
+    const messageData = { senderId, roomId, seenBy: [senderId] };
 
     // متن
     if (text) messageData.text = text;
@@ -251,17 +251,43 @@ export const markMessageAsSeen = async (req, res) => {
     const userId = req.user._id;
     const { roomId } = req.params;
 
-    /* --------------------------------------------------------------------------
-     * 1️⃣ بررسی اعتبار شناسه اتاق
-     * --------------------------------------------------------------------------*/
     if (!roomId)
       return res.status(400).json({ message: "شناسه اتاق نامعتبر است" });
 
     /* --------------------------------------------------------------------------
-     * 2️⃣ علامت‌گذاری پیام‌ها به عنوان خوانده‌شده
+     * 1️⃣ پیدا کردن پیام‌های دیده نشده
+     * --------------------------------------------------------------------------*/
+    const unseenMessages = await Message.find({
+      roomId,
+      seenBy: { $ne: userId }
+    }).sort({ createdAt: 1 }); // مرتب سازی زمانی، قدیمی به جدید
+
+    if (!unseenMessages.length) {
+      return res.status(200).json({ message: "پیامی برای سین شدن وجود ندارد" });
+    }
+
+    /* --------------------------------------------------------------------------
+     * 2️⃣ Emit به sender ها
      * --------------------------------------------------------------------------
-     *  - فقط پیام‌هایی که کاربر هنوز آن‌ها را ندیده است
-     *  - استفاده از $addToSet برای جلوگیری از duplicate
+     * - فقط آخرین پیام هر فرستنده emit می‌شود تا تعداد event ها کم شود
+     * --------------------------------------------------------------------------*/
+    const latestMessagesBySender = new Map();
+
+    unseenMessages.forEach(msg => {
+      latestMessagesBySender.set(msg.senderId);
+    });
+
+    for (const [senderId] of latestMessagesBySender.entries()) {
+      const senderSocketId = getReceiverSocketId(senderId);
+      if (senderSocketId) {
+        console.log('backend');
+        
+        io.to(senderSocketId).emit("message:seen", { roomId, seenBy: userId });
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+     * 3️⃣ آپدیت دیتابیس
      * --------------------------------------------------------------------------*/
     await Message.updateMany(
       { roomId, seenBy: { $ne: userId } },
@@ -269,16 +295,17 @@ export const markMessageAsSeen = async (req, res) => {
     );
 
     /* --------------------------------------------------------------------------
-     * 3️⃣ پاسخ موفقیت‌آمیز
+     * 4️⃣ پاسخ موفق
      * --------------------------------------------------------------------------*/
     res.status(200).json({
       message: "پیام‌ها به عنوان خوانده‌شده علامت‌گذاری شدند",
     });
 
   } catch (error) {
-    console.error("checkMessageAsSeen:", error);
+    console.error("markMessageAsSeen:", error);
     res.status(500).json({ message: "خطای داخلی سرور" });
   }
 };
+
 
 

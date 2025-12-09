@@ -55,7 +55,6 @@ const MessageInput = memo(({ textareaRef }) => {
     // ریست کردن فرم
     setText("");
     setFilePreview(null);
-    setReplyToMsg(null);
 
     if (fileInputRef.current) fileInputRef.current.value = "";
   };

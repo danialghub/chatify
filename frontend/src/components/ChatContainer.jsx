@@ -24,6 +24,7 @@ const ChatContainer = () => {
     isMessagesLoading,
     addToMessages,
     removeFromMessages,
+    
 
   } = useChatStore();
 
@@ -33,6 +34,7 @@ const ChatContainer = () => {
   //گوش دادن به پیام جدید
   useSocket('message:send', addToMessages)
   useSocket('message:remove', removeFromMessages)
+  
 
   const messageEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -67,8 +69,8 @@ const ChatContainer = () => {
         container.scrollHeight - container.scrollTop - container.clientHeight;
 
       // اگر 200px یا بیشتر از پایین فاصله گرفت → دکمه ظاهر شود
-    
-        setShowScrollBtn(distanceFromBottom > 400);
+
+      setShowScrollBtn(distanceFromBottom > 400);
     };
 
     container.addEventListener("scroll", handleScroll);

@@ -247,30 +247,41 @@ export const useRoomStore = create((set, get) => ({
 
     set((prev) => {
       const roomType = newMessage.roomId.isGroup ? "groupRooms" : "privateRooms";
-      const chats = prev[roomType];
-      const unSeenMessages = prev.unSeenMessages;
+      const chats = prev[roomType] || [];
+      const unSeenMessages = { ...prev.unSeenMessages };
+      const seenMessageIds = new Set(prev.seenMessageIds || []);
       const newDate = newMessage.createddAt;
       const isFromSys = newMessage.system;
-      const targetChat = chats.find((chat) => chat._id === newMessage.roomId._id);
 
-      if (!targetChat) return prev;
+      // اگر این پیام قبلاً شمرده شده، دیگر اضافه نشود
+      if (!seenMessageIds.has(newMessage._id)) {
+        unSeenMessages[newMessage.roomId._id] = (prev.selectedRoom?._id === newMessage.roomId._id || isFromSys)
+          ? 0
+          : (unSeenMessages[newMessage.roomId._id] || 0) + 1;
 
-      const isCurrentRoomOpen = prev.selectedRoom?._id === newMessage.roomId._id;
+        seenMessageIds.add(newMessage._id);
+      }
 
-      // چت به‌روز‌شده را در ابتدای آرایه قرار می‌دهیم
+      // پیدا کردن چت مورد نظر
+      const targetChatIndex = chats.findIndex((chat) => chat._id === newMessage.roomId._id);
+      if (targetChatIndex === -1) return prev;
+
+      const updatedChat = {
+        ...chats[targetChatIndex],
+        updatedAt: newDate,
+        lastMessage: newMessage,
+      };
+
       const updatedChats = [
-        { ...targetChat, updatedAt: newDate, lastMessage: newMessage },
-        ...chats.filter((chat) => chat._id !== newMessage.roomId._id),
+        updatedChat,
+        ...chats.filter((chat, idx) => idx !== targetChatIndex),
       ];
 
       return {
+        ...prev,
         [roomType]: updatedChats,
-        unSeenMessages: {
-          ...unSeenMessages,
-          [newMessage.roomId._id]: isCurrentRoomOpen || isFromSys
-            ? 0
-            : (unSeenMessages[newMessage.roomId._id] || 0) + 1,
-        },
+        unSeenMessages,
+        seenMessageIds,
       };
     });
 
@@ -281,6 +292,8 @@ export const useRoomStore = create((set, get) => ({
       notificationSound.play().catch((e) => console.log("Audio play failed:", e));
     }
   },
+
+
 
   // --------------------------
   // 🔹 بروزرسانی state گروه

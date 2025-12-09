@@ -128,7 +128,7 @@ export const useChatStore = create((set, get) => ({
     // --------------------------
     // 🔹 اضافه به UI
     // --------------------------
-    set((state) => ({ messages: [...state.messages, optimisticMessage] }));
+    set((state) => ({ messages: [...state.messages, optimisticMessage], replyToMsg: null }));
     updateRoomStates(optimisticMessage);
 
     // --------------------------
@@ -167,6 +167,7 @@ export const useChatStore = create((set, get) => ({
           ...state.messages.filter((msg) => msg._id !== optimisticMessage._id),
           ...data
         ],
+
       }));
     } catch (error) {
       if (error.code === "ERR_CANCELED") {
@@ -290,4 +291,16 @@ export const useChatStore = create((set, get) => ({
       console.log(error.response?.data?.message);
     }
   },
+  checkUserMessagesAsSeen: async ({ roomId, seenBy }) => {
+    const { selectedRoom } = useRoomStore.getState()
+
+    if (selectedRoom?._id !== roomId) return
+
+    set((state) => (
+      {
+        messages: state.messages.map(msg => msg.seenBy.length > 1 || msg.seenBy.includes(seenBy) ? msg : { ...msg, seenBy: [...msg.seenBy, seenBy] })
+      }
+    ))
+
+  }
 }));

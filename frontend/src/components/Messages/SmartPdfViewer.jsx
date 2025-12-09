@@ -110,7 +110,7 @@ const SmartPdfViewer = ({
 
 
     return (
-        <div dir="ltr" className="w-full flex gap-3 items-start text-white">
+        <div dir="ltr" className="w-full flex gap-3 pr-3 items-start text-white">
 
             {/* ICON */}
             <div className="relative w-12 h-12">
@@ -176,16 +176,16 @@ const SmartPdfViewer = ({
                     {isUploading && `${formatBytes(uploadedSize)} / ${formatBytes(uploadTotal)}`}
                     {!isUploading && downloading && `${formatBytes(downloadedBytes)} / ${formatBytes(totalBytes)} • DL ${progress}%`}
                     {!isUploading && !downloading &&
-                        <span>
+                        < span >
                             {formatBytes(totalBytes)}
-                            <span className="ml-1.5 mr-0.5 text-blue-300 tracking-wider">{file?.type?.toUpperCase()}
-                            </span> {downloaded && "✔"}</span>
+                            < span className="ml-1.5 mr-0.5 text-blue-300 tracking-wider">{file.type.toUpperCase()}</span> {downloaded && "✔"}
+                        </span>
                     }
 
                 </span>
-            </div>
+            </div >
 
-        </div>
+        </div >
     );
 }
 export default memo(SmartPdfViewer)

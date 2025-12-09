@@ -23,11 +23,11 @@
 
   .chat-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: #888 transparent;
+    scrollbar-color: #555 transparent;
   }
   .input-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: #888 transparent;
+    scrollbar-color: #777 transparent;
   }
 
 

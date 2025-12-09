@@ -3,14 +3,15 @@ import StickerPreview from "../../Messages/StickerPreview";
 import { useChatStore } from "@/store/useChatStore";
 
 export default function StickerPanel({ stickers = [], setOpen }) {
-  const { sendMessage, isSoundEnabled } = useChatStore();
+  const { sendMessage, isSoundEnabled, replyToMsg } = useChatStore();
 
   const handleSendSticker = (sticker) => {
     if (isSoundEnabled) playRandomKeyStrokeSound();
     const formData = new FormData()
+    if (replyToMsg) formData.append('replyTo', JSON.stringify(replyToMsg))
     formData.append('sticker', JSON.stringify(sticker));
     sendMessage(formData);
-    
+
     setTimeout(() => {
       document.getElementById('messageEndRef')?.scrollIntoView({ behavior: "smooth" });
       setOpen(false);
