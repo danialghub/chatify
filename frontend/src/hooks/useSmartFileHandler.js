@@ -14,7 +14,7 @@ export function useSmartFileHandler(msg, isMyMsg = false, isUploading = false) {
     const file = msg.file
 
     const FILE_URL = file?.url;
-    const CACHE_NAME = `${file?.name}-cache`;
+    const CACHE_NAME = `files-cache`;
 
     const isImage = file?.type?.startsWith("image/") || file?.type === "image";
 
