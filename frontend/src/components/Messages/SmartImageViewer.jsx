@@ -48,6 +48,7 @@ const SmartImageViewer = ({
     const downloadOffset = circumference - (progress / 100) * circumference;
     const offset = isUploading ? uploadOffset : downloadOffset
 
+
     return (
         <div className="w-full flex flex-col items-start gap-2" title={title}>
             <div
@@ -60,8 +61,8 @@ const SmartImageViewer = ({
           rounded-xl 
           overflow-hidden 
           w-[300px]
-          border-2
-          ${hasBg ? isMyMsg ? "border-sky-700" : "border-slate-800" : ""}
+          
+          ${hasBg ? isMyMsg ? "border-2 border-sky-700 " : "border-2 border-slate-800" : ""}
     `}
                 width={size.w}
                 height={size.h}
@@ -77,6 +78,7 @@ const SmartImageViewer = ({
               h-full
               object-contain
               transition-transform duration-300 hover:scale-[1.02]
+              bg-black/50
             "
                         loading="lazy"
                         decoding="async"

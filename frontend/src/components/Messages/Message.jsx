@@ -75,7 +75,7 @@ const Message = ({
 
   const isSeen = msg?.seenBy?.length > 1;
   console.log(isMultiLine);
-  
+
   return (
     <div
       id={`msg_${msg._id}`}
@@ -108,14 +108,15 @@ const Message = ({
               isMyMsg={isMyMessage}
               hasBg={!msg?.text && msg.file.type === "image"}
             >
-
-              <MessageFooter
-                hasBg={!msg?.text && msg.file.type === "image"}
-                hasSeen={isSeen}
-                placedTime={msg?.createdAt}
-                isMyMessage={isMyMessage}
-                isMessageSending={isMessageSending}
-              />
+              {!msg?.text &&
+                <MessageFooter
+                  hasBg={!msg?.text && msg.file.type === "image"}
+                  hasSeen={isSeen}
+                  placedTime={msg?.createdAt}
+                  isMyMessage={isMyMessage}
+                  isMessageSending={isMessageSending}
+                />
+              }
 
             </SmartFileDownloader>
           )}

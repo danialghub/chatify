@@ -112,7 +112,7 @@ const SmartPdfViewer = ({
 
     return (
         <>
-        <div dir="ltr" className="md:max-w-[30vw] md:min-w-[17vw] min-w-[50vw] flex gap-1.5 px-3 py-1.5 items-start text-white relative">
+        <div dir="ltr" className="md:max-w-[30vw] md:min-w-[17vw] min-w-[55vw] flex gap-1.5 px-3 py-1.5 items-start text-white relative">
 
             {/* ICON */}
             <div className="relative w-12 h-12">
