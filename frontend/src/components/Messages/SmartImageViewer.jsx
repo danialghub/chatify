@@ -28,14 +28,16 @@ const SmartImageViewer = ({
     const { uploadProgress, uploadedSize, cancelUpload, uploadTotal } = useChatStore();
     const [size, setSize] = useState({ w: null, h: null });
     useEffect(() => {
-        if (!downloaded) return; // ❗ تا دانلود نشه، ابعاد نگیریم
+        if (!(url || image)) return;
 
         const img = new Image();
-        img.src = url || image;
+        img.crossOrigin = "Anonymous";
         img.onload = () => {
             setSize({ w: img.naturalWidth, h: img.naturalHeight });
         };
-    }, [url, downloaded,image]);
+        img.src = url || image;
+
+    }, [url, downloaded, image]);
 
 
     const radius = 30;

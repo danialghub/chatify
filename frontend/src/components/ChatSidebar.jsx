@@ -19,7 +19,7 @@ const ChatSidebar = ({ isOpen, onClose, user }) => {
                         animate={{ x: 0 }}
                         exit={{ x: "-100%" }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="absolute top-0 left-0 h-full w-full  md:w-1/3 bg-zinc-900 text-white shadow-2xl z-30 flex flex-col  "
+                        className="absolute top-0 left-0 h-full w-[90%]  md:w-1/3 bg-zinc-900 text-white shadow-2xl z-30 flex flex-col  "
                     >
 
                         {/* Header */}

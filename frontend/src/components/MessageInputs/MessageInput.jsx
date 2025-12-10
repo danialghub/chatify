@@ -79,13 +79,13 @@ const MessageInput = memo(({ textareaRef }) => {
 
 
   return (
-    <div className="relative" ref={inputContainerRef}>
-      <div className="p-4 pt-1 border-t border-slate-700/50">
-
-        <div className="max-w-3xl mx-auto mb-3 ">
+    <div className="fixed bottom-0 right-0 left-0 max-w-3xl mx-auto" ref={inputContainerRef}>
+      <div className="p-4 pt-0  ">
+       
+        <div className="max-w-3xl mx-auto  border-2 border-white/10">
           {replyToMsg && (
             <div className="relative w-full text-white/80">
-              < div className=" bg-white/5 border-r-8 border-r-cyan-600 rounded-r-lg">
+              < div className=" bg-slate-900/80 border-r-8 border-r-cyan-600 rounded-r-lg">
                 {/* msg content */}
                 <div dir="rtl" className="mt-2 py-2  text-right text-sm">
                   <span className="!text-md font-bold pr-3">پاسخ به {replyToMsg.senderId.name} :</span>
@@ -97,7 +97,7 @@ const MessageInput = memo(({ textareaRef }) => {
                       : replyToMsg?.file
                         ? replyToMsg.file.type === "image"
                           ? "📷 Photo"
-                          : replyToMsg.file.type 
+                          : replyToMsg.file.type
                             ? `📄 ${replyToMsg.file.name}`
                             : "محتوایی ندارد"
                         : replyToMsg?.sticker
@@ -109,7 +109,7 @@ const MessageInput = memo(({ textareaRef }) => {
               </div>
               <button
                 onClick={() => setReplyToMsg(null)}
-                className="absolute -top-2 -left-1 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700"
+                className="absolute top-0 left-0 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700 z-10"
                 type="button"
               >
                 <XIcon className="w-4 h-4" />
@@ -120,11 +120,9 @@ const MessageInput = memo(({ textareaRef }) => {
             <FilePreview filePreview={filePreview} removeFile={removeFile} />
           )}
 
-
-
         </div>
 
-        <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto relative flex items-center py-3 px-16 bg-slate-800/50 border border-slate-700/50 " >
+        <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto relative flex items-center py-3 px-16 bg-slate-800 border border-slate-700/50 " >
 
           {/* دکمه اموجی یا استیکر */}
           <div className="flex absolute left-1 bottom-1.5 text-white items-center ">
@@ -191,7 +189,7 @@ const MessageInput = memo(({ textareaRef }) => {
         tab={emojiTab}
         setTab={setEmojiTab}
       />
-    </div>
+    </div >
   );
 })
 export default MessageInput;

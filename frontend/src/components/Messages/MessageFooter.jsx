@@ -4,7 +4,7 @@ const MessageFooter = memo(({ hasBg, isMyMessage, hasSeen, placedTime, isMessage
     return (
         <div
             className={`flex items-center gap-1.5 rounded-xl text-[11px] leading-[11px] opacity-75 justify-start mt-3 w-max relative 
-      ${hasBg ? "bg-black/50 backdrop-blur-sm px-2" : "pr-2"}`} >
+      ${hasBg ? "bg-black/40 backdrop-blur-sm px-2" : "pr-2"}`} >
             {/* آیکون وضعیت پیام */}
             {isMessageSending ?
                 (<div className="size-4 h-5">

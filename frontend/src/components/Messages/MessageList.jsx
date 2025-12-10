@@ -47,7 +47,7 @@ function SystemMessage({ msg, chatContainerRef }) {
     `}
       style={{ height: msg.type === "date" ? 28 : "auto" }} // <-- ارتفاع ثابت
     >
-      <span className="px-4 py-1 text-sm bg-slate-900/5 backdrop-blur-md rounded-lg shadow-lg inline-block">
+      <span className="px-4 py-1 text-sm bg-white/5 backdrop-blur-md rounded-lg shadow-lg inline-block">
         {msg.text}
       </span>
     </div>
@@ -163,7 +163,7 @@ const MessageList = ({
 
   const msgs = injectDateMessages(messages)
   return (
-    <div className="relative py-6 px-3 pr-5 space-y-6 will-change-transform">
+    <div className="relative py-6  px-3 pr-5 space-y-6 will-change-transform">
       {
         msgs.map((msg, idx) => {
           const next = messages[idx + 1];
@@ -203,7 +203,7 @@ const MessageList = ({
         isOpen={isMenuOpen}
         textareaRef={textareaRef}
       />
-      <div ref={messageEndRef} id="messageEndRef" />
+      <div ref={messageEndRef} id="messageEndRef" className=""/>
     </div >
   );
 }

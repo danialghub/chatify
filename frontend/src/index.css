@@ -18,9 +18,12 @@
   * {
     font-family: "Vazirmatn", "Outfit";
     outline: none !important;
+    overflow: hidden;
   }
 
-
+.chat-bg{
+  @apply bg-[url('./bg.jpg')] bg-center bg-contain bg-blend-multiply bg-slate-900/80 backdrop-blur-md
+}
   .chat-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: #555 transparent;

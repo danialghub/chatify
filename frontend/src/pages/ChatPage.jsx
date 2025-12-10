@@ -17,7 +17,7 @@ const ChatPage = () => {
   return (
     <div
       id="appContainer"
-      className="relative w-full sm:max-w-6xl h-[100dvh] sm:h-[95dvh] overflow-hidden">
+      className="relative w-full h-screen overflow-hidden">
 
       <BorderAnimatedContainer>
 
@@ -30,7 +30,7 @@ const ChatPage = () => {
 
         {/* LEFT SIDE */}
         <div
-          className={`h-full bg-slate-800/50 backdrop-blur-sm flex flex-col w-full md:w-1/3 ${selectedRoom && "max-md:hidden w-full"}`}
+          className={`h-full bg-slate-800/50 backdrop-blur-sm flex flex-col w-full md:w-[30%] ${selectedRoom && "max-md:hidden w-full"}`}
         >
           <ProfileHeader showSidebar={setIsSidebarOpen} />
           <ActiveTabSwitch />
@@ -43,7 +43,7 @@ const ChatPage = () => {
         {/* RIGHT SIDE */
           (
             <div
-              className={`flex flex-col bg-slate-900/50 backdrop-blur-sm w-full md:w-2/3 ${!selectedRoom && "max-md:hidden"}`}
+              className={`relative flex flex-col bg-slate-900/50 backdrop-blur-sm w-full  h-full md:w-[70%] ${!selectedRoom && "max-md:hidden"}`}
             >
               {selectedRoom ? <ChatContainer /> : <NoConversationPlaceholder />}
             </div>

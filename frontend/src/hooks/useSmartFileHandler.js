@@ -32,9 +32,9 @@ export function useSmartFileHandler(msg, isMyMsg = false, isUploading = false) {
         } else {
             checkCache();
         }
-
         if (isImage) {
-            createThumbnail(FILE_URL.replace("/upload/", "/upload/w_50,h_50,c_fill/"));
+            // ساخت thumbnail
+            setThumbUrl(FILE_URL.replace("/upload/", "/upload/w_50,c_fill/"))
         }
 
     }, [file, isMyMsg]);
@@ -88,37 +88,9 @@ export function useSmartFileHandler(msg, isMyMsg = false, isUploading = false) {
         }
     };
 
-    /* ---------------------- CREATE THUMBNAIL FOR IMAGES ----------------------- */
-    // ساخت thumbnail
-    const createThumbnail = async (imageUrl) => {
-        try {
-            const img = new Image();
-            img.crossOrigin = "Anonymous";
 
-            img.onload = () => {
-                const size = 50; // 50px ثابت
-                const canvas = document.createElement("canvas");
-                canvas.width = size;
-                canvas.height = size;
 
-                const ctx = canvas.getContext("2d");
-                const scale = Math.min(size / img.width, size / img.height);
-                const w = img.width * scale;
-                const h = img.height * scale;
-                const x = (size - w) / 2;
-                const y = (size - h) / 2;
 
-                ctx.drawImage(img, x, y, w, h);
-                const thumbnail = canvas.toDataURL("image/jpeg", 0.7);
-
-                setThumbUrl(thumbnail);
-            };
-
-            img.src = imageUrl;
-        } catch (err) {
-            console.error("Thumbnail error:", err);
-        }
-    };
 
 
 
