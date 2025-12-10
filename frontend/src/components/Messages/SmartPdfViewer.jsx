@@ -25,7 +25,8 @@ const SmartPdfViewer = ({
     isMyMsg,
     isUploading,
     downloader,
-    file
+    file,
+    children
 }) => {
 
     const {
@@ -110,7 +111,8 @@ const SmartPdfViewer = ({
 
 
     return (
-        <div dir="ltr" className="w-full flex gap-3 pr-3 items-start text-white">
+        <>
+        <div dir="ltr" className="md:max-w-[30vw] md:min-w-[17vw] min-w-[50vw] flex gap-1.5 px-3 py-1.5 items-start text-white relative">
 
             {/* ICON */}
             <div className="relative w-12 h-12">
@@ -118,7 +120,7 @@ const SmartPdfViewer = ({
                     disabled={isUploading && uploadProgress >= 90}
                     onClick={isUploading ? cancelUpload : downloaded ? handleFileClick : downloadFile}
                     className={`
-            w-12 h-12 rounded-full flex items-center justify-center 
+            w-11 h-11 rounded-full flex items-center justify-center 
             ${isMyMsg ? "bg-sky-600" : "bg-slate-700"} 
             relative overflow-hidden
         `}
@@ -167,7 +169,7 @@ const SmartPdfViewer = ({
 
 
             {/* TEXT */}
-            <div className="flex flex-col flex-1 min-w-0">
+            <div className="flex flex-col flex-1 min-w-0 gap-1">
                 <span className="text-sm font-semibold break-words line-clamp-2">
                     {file?.name}
                 </span>
@@ -178,14 +180,20 @@ const SmartPdfViewer = ({
                     {!isUploading && !downloading &&
                         < span >
                             {formatBytes(totalBytes)}
-                            < span className="ml-1.5 mr-0.5 text-blue-300 tracking-wider">{file.type.toUpperCase()}</span> {downloaded && "✔"}
+                            < span className="ml-1.5 mr-0.5  text-blue-200 tracking-wider">{file.type.toUpperCase()}</span> 
                         </span>
                     }
 
                 </span>
-            </div >
 
+ 
+            </div >
+      
         </div >
+             <div className="absolute bottom-1 right-1 ">
+                {children}
+            </div>
+        </>
     );
 }
 export default memo(SmartPdfViewer)

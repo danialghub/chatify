@@ -1,10 +1,14 @@
 import { Download, X } from "lucide-react";
 import { useChatStore } from "@/store/useChatStore";
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 const SmartImageViewer = ({
     downloader,
     title,
-    isUploading
+    isUploading,
+    image,
+    isMyMsg,
+    hasBg,
+    children
 
 }) => {
 
@@ -22,6 +26,16 @@ const SmartImageViewer = ({
     } = downloader;
 
     const { uploadProgress, uploadedSize, cancelUpload, uploadTotal } = useChatStore();
+    const [size, setSize] = useState({ w: null, h: null });
+    useEffect(() => {
+        if (!downloaded) return; // ❗ تا دانلود نشه، ابعاد نگیریم
+
+        const img = new Image();
+        img.src = url || image;
+        img.onload = () => {
+            setSize({ w: img.naturalWidth, h: img.naturalHeight });
+        };
+    }, [url, downloaded,image]);
 
 
     const radius = 30;
@@ -33,47 +47,53 @@ const SmartImageViewer = ({
     const offset = isUploading ? uploadOffset : downloadOffset
 
     return (
-        <div className="w-full flex flex-col items-start gap-2 pr-3" title={title}>
-
-            {/* IMAGE WRAPPER */}
+        <div className="w-full flex flex-col items-start gap-2" title={title}>
             <div
                 className={`
-                    relative 
-                    md:max-w-[20vw]
-                    max-w-[70vw]
-                    rounded-xl 
-                    overflow-hidden 
-                    bg-black/20 
-                    shadow-lg 
-                    ${!downloaded ? "min-w-[60vw] md:min-w-[20vw]" : ""}
+          relative 
+          md:max-w-[30vw]
+          max-w-[60vw]
+          md:max-h-[55vh]
+          max-h-[40vh]
+          rounded-xl 
+          overflow-hidden 
+          w-[300px]
+          border-2
+          ${hasBg ? isMyMsg ? "border-sky-700" : "border-slate-800" : ""}
     `}
+                width={size.w}
+                height={size.h}
             >
-
-                {/* Main Image */}
-                {(downloaded || thumbUrl) && (
+                {/* فقط وقتی ابعاد مشخص شد نمایش بده */}
+                {size.w && (
                     <img
                         src={downloaded ? url : thumbUrl}
-                        className="rounded-lg aspect-video object-cover w-full transition-transform duration-300 hover:scale-[1.02] "
+
+                        className="
+
+              w-full 
+              h-full
+              object-contain
+              transition-transform duration-300 hover:scale-[1.02]
+            "
                         loading="lazy"
+                        decoding="async"
                         onClick={() => downloaded && window.open(url, "_blank")}
                     />
                 )}
 
-
-
-                {/* TOP-LEFT FILE SIZE */}
-                {/* TOP-LEFT FILE SIZE / STATUS */}
+                {/* حجم فایل (بالا-چپ) */}
                 <div
                     dir="ltr"
                     className="
-    absolute top-2 left-2
-    z-10
-    bg-black/60 backdrop-blur-sm
-    text-white text-xs
-    px-2 py-0.5
-    rounded-md
-    flex items-center justify-center
-  "
+            absolute top-2 left-2
+            z-10
+            bg-black/60 backdrop-blur-sm
+            text-white text-xs
+            px-2 py-0.5
+            rounded-md
+            flex items-center justify-center
+          "
                 >
                     {downloading
                         ? `${formatBytes(downloadedBytes)} / ${formatBytes(totalBytes)}`
@@ -85,37 +105,33 @@ const SmartImageViewer = ({
                     }
                 </div>
 
-
-                {/* DOWNLOAD & upload BUTTON */}
+                {/* دکمه دانلود / کنسل آپلود */}
                 {(
                     <>
                         {isUploading ? (
                             <button
                                 onClick={(e) => {
-                                    e.stopPropagation(); // جلوگیری از bubbling روی حباب پیام
-                                    cancelUpload();       // مطمئن می‌شویم آخرین controller استفاده می‌شود
+                                    e.stopPropagation();
+                                    cancelUpload();
                                 }}
                                 className="
-    absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center
-    bg-black/30
-    hover:bg-black/40
-    backdrop-blur-sm
-    transition
-  "
+                  absolute inset-0
+                  flex items-center justify-center
+                  bg-black/30 hover:bg-black/40
+                  backdrop-blur-sm transition
+                "
                             >
                                 <X className="size-7 text-white" />
                             </button>
-
                         ) : !downloaded && !downloading ? (
                             <button
                                 onClick={downloadFile}
                                 className="
-          absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center
-          bg-black/30
-          hover:bg-black/40
-          backdrop-blur-sm
-          transition
-        "
+                  absolute inset-0
+                  flex items-center justify-center
+                  bg-black/30 hover:bg-black/40
+                  backdrop-blur-sm transition
+                "
                             >
                                 <Download className="size-7 text-white" />
                             </button>
@@ -123,10 +139,8 @@ const SmartImageViewer = ({
                     </>
                 )}
 
-
-
-                {/* BLUE PROGRESS RING */}
-                {downloading || isUploading && (
+                {/* حلقه Progress */}
+                {(downloading || isUploading) && (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <svg height={radius * 2} width={radius * 2}>
                             <circle
@@ -152,12 +166,13 @@ const SmartImageViewer = ({
                         </svg>
                     </div>
                 )}
+
+                <div className="absolute bottom-1 right-1 ">
+                    {children}
+                </div>
             </div>
 
-
-
-
-        </div >
+        </div>
     );
 }
 

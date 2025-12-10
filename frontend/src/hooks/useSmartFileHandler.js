@@ -34,7 +34,7 @@ export function useSmartFileHandler(msg, isMyMsg = false, isUploading = false) {
         }
 
         if (isImage) {
-            createThumbnail(FILE_URL);
+            createThumbnail(FILE_URL.replace("/upload/", "/upload/w_50,h_50,c_fill/"));
         }
 
     }, [file, isMyMsg]);
@@ -89,35 +89,39 @@ export function useSmartFileHandler(msg, isMyMsg = false, isUploading = false) {
     };
 
     /* ---------------------- CREATE THUMBNAIL FOR IMAGES ----------------------- */
+    // ساخت thumbnail
     const createThumbnail = async (imageUrl) => {
         try {
             const img = new Image();
             img.crossOrigin = "Anonymous";
 
             img.onload = () => {
+                const size = 50; // 50px ثابت
                 const canvas = document.createElement("canvas");
-
-                // ⬇️ فقط این بخش تغییر کرد
-                const fixedWidth = 300; // هماهنگ با UI
-                const scale = fixedWidth / img.width;
-
-                canvas.width = img.width * scale;
-                canvas.height = img.height * scale;
+                canvas.width = size;
+                canvas.height = size;
 
                 const ctx = canvas.getContext("2d");
-                ctx.filter = "blur(5px)";
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const scale = Math.min(size / img.width, size / img.height);
+                const w = img.width * scale;
+                const h = img.height * scale;
+                const x = (size - w) / 2;
+                const y = (size - h) / 2;
 
-                const lowQuality = canvas.toDataURL("image/jpeg", 0.3);
-                setThumbUrl(lowQuality);
+                ctx.drawImage(img, x, y, w, h);
+                const thumbnail = canvas.toDataURL("image/jpeg", 0.7);
+
+                setThumbUrl(thumbnail);
             };
 
             img.src = imageUrl;
-
         } catch (err) {
             console.error("Thumbnail error:", err);
         }
     };
+
+
+
 
 
     /* ---------------------- DOWNLOAD ----------------------- */

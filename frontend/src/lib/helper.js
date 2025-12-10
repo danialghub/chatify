@@ -148,7 +148,7 @@ export const handleSwipe = (e, msg, setReplyTo, inputRef) => {
 
 export const parseDynamicContent = (msgText) => {
     let html = null;
-    if (!msgText) return [null, false]
+    if (!msgText) return [null, false, 0]
     const emojiRegex = /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)/gu;
     const emojis = msgText.match(emojiRegex) || [];
 
@@ -158,6 +158,7 @@ export const parseDynamicContent = (msgText) => {
 
     let fontSizeClass = "text-xl ";
     if (isOnlyEmoji) {
+
 
         switch (emojis.length) {
             case 1:
@@ -174,7 +175,7 @@ export const parseDynamicContent = (msgText) => {
         }
 
         html = `<span class="${fontSizeClass} leading-[90px]">${msgText}</span>`
-        return [html, true];
+        return [html, true, emojis.length];
     } else {
         html = msgText.replace(emojiRegex, (emoji) => {
             return `<span class="${fontSizeClass} max-sm:text-sm">${emoji}</span>`
@@ -196,7 +197,7 @@ export const parseDynamicContent = (msgText) => {
         >${displayText}</a>`;
     });
 
-    return [html, false];
+    return [html, false, msgText.length];
 };
 
 export const checkFileType = (file) => {

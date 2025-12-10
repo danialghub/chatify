@@ -31,7 +31,7 @@ function StickerPreview({ url, size }) {
     }, []);
 
     return (
-        <div ref={containerRef} className="inline-block">
+        <div ref={containerRef} className="">
             <TgsPlayer
                 ref={playerRef}
                 url={url}
