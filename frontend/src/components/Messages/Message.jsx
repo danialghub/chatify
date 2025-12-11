@@ -63,8 +63,10 @@ const Message = ({
   const [parsedText, isOnlySticker, characterLength] = parseDynamicContent(msg.text);
   const isEmojiOnly = isOnlySticker && characterLength === 1;
 
+  const isMultiLine = msg?.text && msg.text.split('\n').length > 1
+
   const hasFooter = msg?.text
-    ? isOnlySticker || characterLength >50
+    ? isOnlySticker || characterLength > 50 || isMultiLine
     : (!msg?.file) || msg?.sticker
 
   const isImageOnly = msg?.file && !msg?.text && msg?.file?.type === "image";
@@ -118,14 +120,14 @@ const Message = ({
 
           {/* Text */}
           {msg?.text && !isEmojiOnly && !msg?.sticker && (
-            characterLength > 50 || isOnlySticker ? (
+            characterLength > 50 || isOnlySticker || isMultiLine ? (
               <p
                 dir="auto"
                 className={`mt-2 px-3 max-sm:text-sm break-words whitespace-pre-line [unicode-bidi:plaintext]`}
                 dangerouslySetInnerHTML={{ __html: parsedText }}
               />
             ) : (
-              <div className="flex items-end">
+              <div className="flex ">
                 <div className="mt-2">
                   <MessageFooter
                     hasBg={isOnlySticker}
