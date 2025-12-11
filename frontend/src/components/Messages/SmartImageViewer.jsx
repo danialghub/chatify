@@ -28,14 +28,16 @@ const SmartImageViewer = ({
     const { uploadProgress, uploadedSize, cancelUpload, uploadTotal } = useChatStore();
     const [size, setSize] = useState({ w: null, h: null });
     useEffect(() => {
-        if (!downloaded) return; // ❗ تا دانلود نشه، ابعاد نگیریم
+        if (!(url || image)) return;
 
         const img = new Image();
-        img.src = url || image;
+        img.crossOrigin = "Anonymous";
         img.onload = () => {
             setSize({ w: img.naturalWidth, h: img.naturalHeight });
         };
-    }, [url, downloaded,image]);
+        img.src = url || image;
+
+    }, [url, downloaded, image]);
 
 
     const radius = 30;
@@ -45,6 +47,7 @@ const SmartImageViewer = ({
     const uploadOffset = circumference - (uploadProgress / 100) * circumference;
     const downloadOffset = circumference - (progress / 100) * circumference;
     const offset = isUploading ? uploadOffset : downloadOffset
+
 
     return (
         <div className="w-full flex flex-col items-start gap-2" title={title}>
@@ -58,8 +61,8 @@ const SmartImageViewer = ({
           rounded-xl 
           overflow-hidden 
           w-[300px]
-          border-2
-          ${hasBg ? isMyMsg ? "border-sky-700" : "border-slate-800" : ""}
+          
+          ${hasBg ? isMyMsg ? "border-2 border-sky-700 " : "border-2 border-slate-800" : ""}
     `}
                 width={size.w}
                 height={size.h}
@@ -75,6 +78,7 @@ const SmartImageViewer = ({
               h-full
               object-contain
               transition-transform duration-300 hover:scale-[1.02]
+              bg-black/50
             "
                         loading="lazy"
                         decoding="async"
