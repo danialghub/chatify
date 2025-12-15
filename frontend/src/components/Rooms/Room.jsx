@@ -36,12 +36,18 @@ const Room = memo(({ room, userId, name, logo }) => {
           <ChatIcon
             profile={logo}
             name={name}
-            classProps="!size-12 w-auto"
+            classProps="size-12"
           />
+
         </div>
       ) : (
         <div className="relative shrink-0">
-          <ChatIcon profile={logo} name={name} classProps="size-12" />
+          <ChatIcon
+            profile={logo}
+            name={name}
+            classProps="size-12"
+          />
+
         </div>
       )}
 

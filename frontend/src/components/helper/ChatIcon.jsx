@@ -1,31 +1,42 @@
-import { memo } from 'react';
+import { memo } from "react";
 
-const ChatIcon = memo(({ profile, name, classProps, ...props }) => {
+const ChatIcon = memo(({ profile, name, classProps = "", ...props }) => {
+  if (!name && !profile) return null;
 
-    if (!name && !profile) return;
-    
-    const isEnglish = /^[A-Za-z]/.test(name?.[0] || "");
-    const translateY = isEnglish ? "pt-1.5" : ""; // فقط برای انگلیسی
+  const isEnglish = /^[A-Za-z]/.test(name?.[0] || "");
+  const translateY = isEnglish ? "pt-1.5" : "";
 
-    return (
+  return (
+    <div
+      {...props}
+      className={`
+        ${classProps}
+        
+        rounded-full
+        shrink-0
+        flex
+        items-center
+        justify-center
+      
+        bg-indigo-100
+        text-indigo-600
+      `}
+    >
+      {profile ? (
+        <img
+          src={profile}
+          alt={name}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <span
+          className={`text-2xl font-medium leading-none ${translateY}`}
+        >
+          {name[0].toUpperCase()}
+        </span>
+      )}
+    </div>
+  );
+});
 
-        profile ?
-            <div className="rounded-full" {...props}>
-                <img
-                    src={profile}
-                    alt={name}
-                    className={`${classProps} size-12 rounded-full object-cover  `}
-                />
-            </div>
-            :
-            <span
-                {...props}
-                className={`${classProps} size-12 rounded-full text-2xl flex items-center justify-center bg-indigo-100 text-indigo-600 leading-none ${translateY}`}
-            >
-                {name[0].toUpperCase()}
-            </span>
-
-    )
-}
-)
-export default ChatIcon
+export default ChatIcon;

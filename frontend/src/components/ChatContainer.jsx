@@ -24,7 +24,7 @@ const ChatContainer = () => {
     isMessagesLoading,
     addToMessages,
     removeFromMessages,
-
+    
 
   } = useChatStore();
 
@@ -34,7 +34,7 @@ const ChatContainer = () => {
   //گوش دادن به پیام جدید
   useSocket('message:send', addToMessages)
   useSocket('message:remove', removeFromMessages)
-
+  
 
   const messageEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -89,7 +89,7 @@ const ChatContainer = () => {
         ref={chatContainerRef}
         className="
         flex-1  overflow-y-auto overflow-x-hidden 
-         chat-scrollbar relative will-change-transform  chat-bg
+         chat-scrollbar relative will-change-transform  
       "
         dir="rtl"
       >
