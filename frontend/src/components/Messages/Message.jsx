@@ -60,18 +60,11 @@ const Message = ({
 
   const setReplyToMsg = useChatStore(state => state.setReplyToMsg);
 
-  const {
-    parsedText,
-    isOnlyEmoji,
-    link,
-    characterLength,
-  } = parseDynamicContent(msg.text);
-
-  const isEmojiOnly = isOnlyEmoji && characterLength === 1;
-  const isMultiLine = msg?.text && msg.text.split('\n').length > 1
+  const [parsedText, isOnlySticker, characterLength] = parseDynamicContent(msg.text);
+  const isEmojiOnly = isOnlySticker && characterLength === 1;
 
   const hasFooter = msg?.text
-    ? isOnlyEmoji || characterLength > 50 || link || isMultiLine
+    ? isOnlySticker || characterLength >50
     : (!msg?.file) || msg?.sticker
 
   const isImageOnly = msg?.file && !msg?.text && msg?.file?.type === "image";
@@ -129,7 +122,7 @@ const Message = ({
 
           {/* Text */}
           {msg?.text && !isEmojiOnly && !msg?.sticker && (
-            characterLength > 50 || isOnlyEmoji || link || isMultiLine ? (
+            characterLength > 50 || isOnlySticker ? (
               <p
                 dir="auto"
                 className={`mt-2 px-3 max-sm:text-sm break-words whitespace-pre-line [unicode-bidi:plaintext]`}

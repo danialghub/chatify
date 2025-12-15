@@ -60,7 +60,11 @@ const SmartImageViewer = ({
           max-h-[40vh]
           rounded-xl 
           overflow-hidden 
+<<<<<<< HEAD
          
+=======
+          w-[300px]
+>>>>>>> a8c9a7318cdd6eaa948f0bed78f00d4b6961a122
           
           ${hasBg ? isMyMsg ? "border-2 border-sky-700 " : "border-2 border-slate-800" : ""}
     `}
@@ -72,6 +76,7 @@ const SmartImageViewer = ({
                     <img
                         src={downloaded ? url : thumbUrl}
                         className="
+<<<<<<< HEAD
       w-full 
       h-full
       object-contain
@@ -80,6 +85,15 @@ const SmartImageViewer = ({
       select-none
       pointer-events-auto
     "
+=======
+
+              w-full 
+              h-full
+              object-contain
+              transition-transform duration-300 hover:scale-[1.02]
+              bg-black/50
+            "
+>>>>>>> a8c9a7318cdd6eaa948f0bed78f00d4b6961a122
                         loading="lazy"
                         decoding="async"
                         draggable={false} // این مهمه
