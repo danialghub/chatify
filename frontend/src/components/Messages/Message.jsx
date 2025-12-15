@@ -4,7 +4,7 @@ import { useChatStore } from "@/store/useChatStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { handleSwipe, parseDynamicContent } from "@/lib/helper";
 import StickerPreview from "./StickerPreview";
-
+import MetaUrl from "./MetaUrl";
 import MessageFooter from './MessageFooter'
 
 
@@ -60,15 +60,22 @@ const Message = ({
 
   const setReplyToMsg = useChatStore(state => state.setReplyToMsg);
 
-  const [parsedText, isOnlySticker, characterLength] = parseDynamicContent(msg.text);
-  const isEmojiOnly = isOnlySticker && characterLength === 1;
+  const {
+    parsedText,
+    isOnlyEmoji,
+    link,
+    characterLength,
+  } = parseDynamicContent(msg.text);
+
+  const isEmojiOnly = isOnlyEmoji && characterLength === 1;
+  const isMultiLine = msg?.text && msg.text.split('\n').length > 1
 
   const hasFooter = msg?.text
-    ? isOnlySticker || characterLength >50
+    ? isOnlyEmoji || characterLength > 50 || link || isMultiLine
     : (!msg?.file) || msg?.sticker
 
   const isImageOnly = msg?.file && !msg?.text && msg?.file?.type === "image";
-  const hasBg = !msg?.sticker && !isOnlySticker && !isImageOnly;
+  const hasBg = !msg?.sticker && !isOnlyEmoji && !isImageOnly;
 
   const isSeen = msg?.seenBy?.length > 1;
 
@@ -85,7 +92,7 @@ const Message = ({
       >
 
         {/* Bubble */}
-        <div className={`chat-bubble p-1 max-w-[70vw] md:max-w-[40vw] relative 
+        <div className={`chat-bubble p-1 max-w-[80vw] md:max-w-[40vw] relative 
           ${hasBg ?
             (isMyMessage ? "bg-sky-700/50 text-white" : "bg-slate-800 text-slate-200")
             : "bg-black/0"
@@ -104,7 +111,8 @@ const Message = ({
               isMyMsg={isMyMessage}
               hasBg={!msg?.text && msg.file.type === "image"}
             >
-              
+
+              {!msg?.text && msg.file.type === "image" && (
                 <MessageFooter
                   hasBg={!msg?.text && msg.file.type === "image"}
                   hasSeen={isSeen}
@@ -112,23 +120,26 @@ const Message = ({
                   isMyMessage={isMyMessage}
                   isMessageSending={isMessageSending}
                 />
-              
+              )
+
+              }
+
             </SmartFileDownloader>
           )}
 
           {/* Text */}
           {msg?.text && !isEmojiOnly && !msg?.sticker && (
-            characterLength > 50 || isOnlySticker ? (
+            characterLength > 50 || isOnlyEmoji || link || isMultiLine ? (
               <p
                 dir="auto"
                 className={`mt-2 px-3 max-sm:text-sm break-words whitespace-pre-line [unicode-bidi:plaintext]`}
                 dangerouslySetInnerHTML={{ __html: parsedText }}
               />
             ) : (
-              <div className="flex items-end">
+              <div className="flex ">
                 <div className="mt-2">
                   <MessageFooter
-                    hasBg={isOnlySticker}
+                    hasBg={isOnlyEmoji}
                     hasSeen={isSeen}
                     placedTime={msg?.createdAt}
                     isMyMessage={isMyMessage}
@@ -159,10 +170,15 @@ const Message = ({
             </div>
           )}
 
+          {/* Meta Content */}
+          {link && !msg?.file && (
+            <MetaUrl url={link} />
+          )}
+
           {/* Footer */}
           {hasFooter && (
             <MessageFooter
-              hasBg={isOnlySticker || msg?.sticker}
+              hasBg={isOnlyEmoji || msg?.sticker}
               hasSeen={isSeen}
               placedTime={msg?.createdAt}
               isMyMessage={isMyMessage}

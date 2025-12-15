@@ -28,14 +28,16 @@ const SmartImageViewer = ({
     const { uploadProgress, uploadedSize, cancelUpload, uploadTotal } = useChatStore();
     const [size, setSize] = useState({ w: null, h: null });
     useEffect(() => {
-        if (!downloaded) return; // ❗ تا دانلود نشه، ابعاد نگیریم
+        if (!(url || image)) return;
 
         const img = new Image();
-        img.src = url || image;
+        img.crossOrigin = "Anonymous";
         img.onload = () => {
             setSize({ w: img.naturalWidth, h: img.naturalHeight });
         };
-    }, [url, downloaded,image]);
+        img.src = url || image;
+
+    }, [url, downloaded, image]);
 
 
     const radius = 30;
@@ -46,20 +48,21 @@ const SmartImageViewer = ({
     const downloadOffset = circumference - (progress / 100) * circumference;
     const offset = isUploading ? uploadOffset : downloadOffset
 
+
     return (
         <div className="w-full flex flex-col items-start gap-2" title={title}>
             <div
                 className={`
           relative 
           md:max-w-[30vw]
-          max-w-[60vw]
+          max-w-[80vw]
           md:max-h-[55vh]
           max-h-[40vh]
           rounded-xl 
           overflow-hidden 
-          w-[300px]
-          border-2
-          ${hasBg ? isMyMsg ? "border-sky-700" : "border-slate-800" : ""}
+         
+          
+          ${hasBg ? isMyMsg ? "border-2 border-sky-700 " : "border-2 border-slate-800" : ""}
     `}
                 width={size.w}
                 height={size.h}
@@ -68,19 +71,22 @@ const SmartImageViewer = ({
                 {size.w && (
                     <img
                         src={downloaded ? url : thumbUrl}
-
                         className="
-
-              w-full 
-              h-full
-              object-contain
-              transition-transform duration-300 hover:scale-[1.02]
-            "
+      w-full 
+      h-full
+      object-contain
+      transition-transform duration-300 hover:scale-[1.02]
+      bg-black/50
+      select-none
+      pointer-events-auto
+    "
                         loading="lazy"
                         decoding="async"
+                        draggable={false} // این مهمه
                         onClick={() => downloaded && window.open(url, "_blank")}
                     />
                 )}
+
 
                 {/* حجم فایل (بالا-چپ) */}
                 <div

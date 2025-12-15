@@ -10,11 +10,11 @@ const ChatIcon = memo(({ profile, name, classProps, ...props }) => {
     return (
 
         profile ?
-            <div className="rounded-full" {...props}>
+            <div className="rounded-full size-12" {...props}>
                 <img
                     src={profile}
                     alt={name}
-                    className={`${classProps} size-12 rounded-full object-cover  `}
+                    className={`${classProps} rounded-full object-cover  `}
                 />
             </div>
             :

@@ -148,7 +148,13 @@ export const handleSwipe = (e, msg, setReplyTo, inputRef) => {
 
 export const parseDynamicContent = (msgText) => {
     let html = null;
-    if (!msgText) return [null, false, 0]
+    const data = {
+        parsedText: null,
+        isOnlyEmoji: false,
+        link: null,
+        characterLength: 0
+    }
+    if (!msgText) return data
     const emojiRegex = /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)/gu;
     const emojis = msgText.match(emojiRegex) || [];
 
@@ -175,7 +181,11 @@ export const parseDynamicContent = (msgText) => {
         }
 
         html = `<span class="${fontSizeClass} leading-[90px]">${msgText}</span>`
-        return [html, true, emojis.length];
+        data['parsedText'] = html;
+        data['isOnlyEmoji'] = isOnlyEmoji;
+        data['characterLength'] = emojis.length;
+
+        return data
     } else {
         html = msgText.replace(emojiRegex, (emoji) => {
             return `<span class="${fontSizeClass} max-sm:text-sm">${emoji}</span>`
@@ -187,18 +197,32 @@ export const parseDynamicContent = (msgText) => {
     // --------------------------
     const urlRegex = /(https?:\/\/[^\s]+)/g;
 
-    html = html.replace(urlRegex, (url) => {
-        const displayText = url.replace(/^https?:\/\//, '');
-        return `<a 
-            class="text-blue-300"
+    // پیدا کردن اولین لینک
+    const match = html.match(urlRegex);
+    const link = match ? match[0] : null;
+
+    // اگر لینک داشت، جایگزینی انجام شود
+    if (link) {
+        html = html.replace(urlRegex, (url) => {
+            const displayText = url.replace(/^https?:\/\//, '');
+            return `<a 
+            class="text-blue-300 underline"
             href="${url}" 
             target="_blank"
             rel="noopener noreferrer"
         >${displayText}</a>`;
-    });
+        });
+    }
 
-    return [html, false, msgText.length];
+    data.parsedText = html;
+    data.link = link;              // اولین لینک یا null
+    data.characterLength = msgText.length;
+
+
+    return data;
+
 };
+
 
 export const checkFileType = (file) => {
     const name = file.name.toLowerCase();

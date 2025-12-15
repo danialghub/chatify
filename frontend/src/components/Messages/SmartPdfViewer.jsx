@@ -112,7 +112,7 @@ const SmartPdfViewer = ({
 
     return (
         <>
-        <div dir="ltr" className="md:max-w-[30vw] md:min-w-[17vw] min-w-[50vw] flex gap-1.5 px-3 py-1.5 items-start text-white relative">
+        <div dir="ltr" className="md:max-w-[30vw] md:min-w-[17vw] min-w-[65vw] flex gap-1.5 px-3 py-1.5 items-start text-white relative ">
 
             {/* ICON */}
             <div className="relative w-12 h-12">
@@ -174,7 +174,7 @@ const SmartPdfViewer = ({
                     {file?.name}
                 </span>
 
-                <span className="text-xs mt-1">
+                <span className="text-[11px] sm:text-xs mt-1">
                     {isUploading && `${formatBytes(uploadedSize)} / ${formatBytes(uploadTotal)}`}
                     {!isUploading && downloading && `${formatBytes(downloadedBytes)} / ${formatBytes(totalBytes)} • DL ${progress}%`}
                     {!isUploading && !downloading &&
