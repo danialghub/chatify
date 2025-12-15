@@ -70,8 +70,9 @@ const Message = ({
   const isEmojiOnly = isOnlyEmoji && characterLength === 1;
   const isMultiLine = msg?.text && msg.text.split('\n').length > 1
 
+  const maxCharacterLength = window.innerWidth < 500 ? characterLength > 30 : characterLength > 50
   const hasFooter = msg?.text
-    ? isOnlyEmoji || characterLength > 50 || link || isMultiLine
+    ? isOnlyEmoji || maxCharacterLength || link || isMultiLine
     : (!msg?.file) || msg?.sticker
 
   const isImageOnly = msg?.file && !msg?.text && msg?.file?.type === "image";
@@ -129,7 +130,7 @@ const Message = ({
 
           {/* Text */}
           {msg?.text && !isEmojiOnly && !msg?.sticker && (
-            characterLength > 50 || isOnlyEmoji || link || isMultiLine ? (
+            maxCharacterLength || isOnlyEmoji || link || isMultiLine ? (
               <p
                 dir="auto"
                 className={`mt-2 px-3 max-sm:text-sm break-words whitespace-pre-line [unicode-bidi:plaintext]`}
