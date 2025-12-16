@@ -12,7 +12,7 @@ export const messageService = {
             {
                 path: "forwardedFrom",
                 populate: [
-                    { path: "roomId" },
+                    { path: "roomId", populate: { path: 'members' } },
                     { path: "senderId" }
                 ]
             }
@@ -27,7 +27,7 @@ export const messageService = {
                 {
                     path: "forwardedFrom",
                     populate: [
-                        { path: "roomId" },
+                        { path: "roomId", populate: { path: 'members' } },
                         { path: "senderId" }
                     ]
                 }

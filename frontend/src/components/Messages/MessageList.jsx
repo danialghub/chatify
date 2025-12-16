@@ -163,7 +163,7 @@ const MessageList = ({
 
   const msgs = injectDateMessages(messages)
   return (
-    <div className="relative py-6 px-3 pr-5 space-y-6 will-change-transform">
+    <div className="relative py-6 px-3 pr-5 space-y-6 will-change-transform ">
       {
         msgs.map((msg, idx) => {
           const next = msgs[idx + 1];

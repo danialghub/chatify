@@ -21,7 +21,7 @@
   }
 
   .chat-bg {
-    @apply bg-[url('./bg.webp')] bg-center bg-contain bg-blend-multiply bg-slate-900/80 backdrop-blur-md
+    @apply bg-[url('/bg.webp')] bg-center bg-contain bg-blend-multiply bg-slate-900/80 backdrop-blur-md
   }
 
   .chat-scrollbar {

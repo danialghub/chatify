@@ -88,7 +88,7 @@ const ChatContainer = () => {
         ref={chatContainerRef}
         className="
         flex-1  overflow-y-auto overflow-x-hidden 
-         chat-scrollbar relative will-change-transform  chat-bg
+         chat-scrollbar relative will-change-transform h-full
       "
         dir="rtl"
       >

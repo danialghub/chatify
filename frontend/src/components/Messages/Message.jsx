@@ -46,6 +46,8 @@ const ForwardedMessage = ({ forwardedMessage, isMyMessage }) => {
   const logo = forwardedMessage.roomId?.logo || forwardedMessage.senderId?.profilePic
   const name = forwardedMessage.roomId?.name || forwardedMessage.senderId?.name
   const roomId = forwardedMessage.roomId
+  console.log(roomId);
+  
   const setSelectedRoom = useRoomStore(s => s.setSelectedRoom)
   const authUser = useAuthStore(state => state.authUser);
   const forwardedFromMe = authUser._id === forwardedMessage.senderId._id && !forwardedMessage.roomId.isGroup 
@@ -89,6 +91,7 @@ const Message = ({
   const msg = message?.forwardedFrom || message
 
 
+
   const {
     parsedText,
     isOnlyEmoji,
@@ -115,7 +118,7 @@ const Message = ({
     <div
       id={`msg_${msg._id}`}
       onMouseDown={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
-      className={`chat relative ${selectedMsg && "z-[100]"} ${!isMyMessage ? "chat-end" : "chat-start group duration-200"}`}
+      className={`chat relative  ${selectedMsg && "z-[100]"} ${!isMyMessage ? "chat-end" : "chat-start group duration-200"}`}
     >
       <div
         onContextMenu={(e) => openMenu(e, isMyMessage, message)}
@@ -124,7 +127,7 @@ const Message = ({
       >
 
         {/* Bubble */}
-        <div className={`chat-bubble p-1 max-w-[80vw] md:max-w-[40vw] relative 
+        <div className={`chat-bubble p-1 max-w-[75vw] md:max-w-[40vw] relative 
           ${hasBg ?
             (isMyMessage
               ? "bg-cyan-950/80 text-slate-100 border border-cyan-800/40"

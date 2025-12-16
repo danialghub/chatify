@@ -53,6 +53,8 @@ const MessageInput = memo(({ textareaRef }) => {
       const formData = new FormData()
       formData.append('forwardedFrom', forwardedMessage._id)
       sendMessage(formData, { forwardedMessage })
+      setTargetForwardRoom(null)
+
     }
 
     // Scroll به انتهای پیام‌ها
@@ -155,11 +157,9 @@ const MessageInput = memo(({ textareaRef }) => {
           )}
 
 
-
-
         </div>
 
-        <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto relative flex items-center py-3 px-16 bg-slate-800/50 border border-slate-700/50 " >
+        <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto relative flex items-center py-3 px-16 bg-slate-800/80 border border-slate-700/50 " >
 
           {/* دکمه اموجی یا استیکر */}
           <div className="flex absolute left-1 bottom-1.5 text-white items-center ">

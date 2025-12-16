@@ -157,7 +157,7 @@ const ContextMenu = forwardRef((props, ref) => {
         {isOpen && (
           <motion.div
             ref={overlayRef}
-            className="absolute top-0 left-0   w-full h-full bg-black/30 backdrop-blur-sm z-[60]"
+            className="absolute top-0 left-0   w-full h-full bg-black/70 z-[60] "
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

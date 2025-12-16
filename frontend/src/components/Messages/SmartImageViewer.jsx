@@ -26,20 +26,28 @@ const SmartImageViewer = ({
     } = downloader;
 
     const { uploadProgress, uploadedSize, cancelUpload, uploadTotal } = useChatStore();
-    const [size, setSize] = useState({ w: null, h: null });
+    const [aspectRatio, setAspectRatio] = useState(null);
     useEffect(() => {
-        if (!(url || thumb.url)) return;
-
         if (url) {
             const img = new Image();
-            img.onload = () => setSize({ w: img.naturalWidth, h: img.naturalHeight });
+            img.onload = () => {
+                if (img.naturalWidth && img.naturalHeight) {
+                    setAspectRatio(img.naturalWidth / img.naturalHeight);
+                    console.log(img.naturalWidth / img.naturalHeight);
+                }
+            };
             img.src = url;
-
-        } else {
-            setSize({ w: thumb.width, h: thumb.height });
+            return;
         }
 
-    }, [url, thumb]);
+        if (thumb?.width && thumb?.height) {
+            setAspectRatio(thumb.width / thumb.height);
+
+
+        }
+    }, [url, thumb?.width, thumb?.height]);
+
+
 
 
     const radius = 30;
@@ -50,44 +58,36 @@ const SmartImageViewer = ({
     const downloadOffset = circumference - (progress / 100) * circumference;
     const offset = isUploading ? uploadOffset : downloadOffset
 
-
+    // const aspectRatio = size.w && size.h ? size.w / size.h : 1;
     return (
         <div className="w-full flex flex-col items-start gap-2" title={title}>
             <div
                 className={`
-          relative 
-          md:max-w-[35vw]
-          max-w-[60vw]
-          md:max-h-[55vh]
-          max-h-[40vh]
-          min-h-[20vh]
-          
-          rounded-xl 
-          overflow-hidden 
-        
-          ${hasBg ? isMyMsg ? "border-2 border-sky-700 " : "border-2 border-slate-800" : ""}
-    `}
-                width={size.w }
-                height={size.h }
+    relative
+    inline-block
+    rounded-xl
+    overflow-hidden
+    bg-black/40
+    max-w-[65vw] md:max-w-[30vw]
+    max-h-[45vh] md:max-h-[55vh]
+    ${hasBg ? (isMyMsg ? "border-2 border-sky-700" : "border-2 border-slate-800") : ""}
+  `}
             >
-                {/* فقط وقتی ابعاد مشخص شد نمایش بده */}
-                {size.w && (
-                    <img
-                        src={downloaded ? url : thumb.url}
+                <img
+                    src={downloaded ? url : thumb.url}
+                    className="
+      block
+      max-w-full
+      max-h-[55vh]
+      object-contain
+      select-none
+    "
+                    loading="lazy"
+                    decoding="async"
+                    onClick={() => downloaded && window.open(url, '_blank')}
+                />
 
-                        className="
 
-              w-full 
-              h-full
-              object-contain
-              transition-transform duration-300 hover:scale-[1.02]
-              bg-black/50
-            "
-                        loading="lazy"
-                        decoding="async"
-                        onClick={() => downloaded && window.open(url, "_blank")}
-                    />
-                )}
 
                 {/* حجم فایل (بالا-چپ) */}
                 <div

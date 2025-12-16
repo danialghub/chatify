@@ -37,16 +37,22 @@ export function useSmartFileHandler(msg, isMyMsg = false, isUploading = false) {
         } else {
             checkCache();
         }
-        if (isImage) {
-            // ساخت thumbnail
+        if (isImage && !isMyMsg) {
             const img = new Image();
-            img.onload = () => setThumb({
-                url: FILE_URL.replace("/upload/", "/upload/w_50,c_fill/"),
-                width: img.naturalWidth,
-                height: img.naturalHeight
-            });
+            img.onload = () => {
+                setThumb({
+                    url: FILE_URL.replace("/upload/", "/upload/w_200/"),
+                    width: img.naturalWidth,
+                    height: img.naturalHeight,
+                });
+                console.log(img.naturalWidth, img.naturalHeight, 's');
+
+            }
             img.src = FILE_URL;
+
         }
+
+
 
     }, [file, isMyMsg]);
 

@@ -83,8 +83,8 @@ const ChatPage = () => {
           (
             <div
               className={`
-    relative flex flex-col bg-slate-900/50 backdrop-blur-sm
-    w-full md:w-2/3
+    relative flex flex-col  backdrop-blur-sm
+    w-full md:w-2/3  chat-bg 
     ${!showChatOnMobile ? "max-md:hidden" : ""}
   `}
             >
