@@ -5,21 +5,66 @@ import { ChatIcon } from '@/components/index'
 import useSocket from '@/hooks/useSocket';
 import { formatChatTime } from '@/lib/helper'
 import { memo } from 'react';
+import { useChatStore } from '@/store/useChatStore';
+
 
 const Room = memo(({ room, userId, name, logo }) => {
-  const { selectedRoom, setSelectedRoom, unSeenMessages, updateRoomStates, removeFromRooms } = useRoomStore()
+  const { selectedRoom, setSelectedRoom, unSeenMessages, updateRoomStates, removeFromRooms, setTargetForwardRoom } = useRoomStore()
+  const forwardedMessage = useChatStore(s => s.forwardedMessage)
+
   const { onlineUsers } = useAuthStore();
 
   useSocket('message:notif', updateRoomStates)
   useSocket('room:remove', removeFromRooms)
 
   const last = room?.lastMessage;
-  const isPersian = (text) => /[\u0600-\u06FF]/.test(text);
-  console.log(last);
+
+  const selectaRoomHandler = () => {
+    if (forwardedMessage) {
+      setTargetForwardRoom(room)
+    }
+    setSelectedRoom(room)
+  }
+
+  const getLastMessageText = (last) => {
+    if (!last) return "پیامی وجود ندارد";
+
+    if (last.text) {
+      return last.text.length > 50
+        ? last.text.slice(0, 50) + "..."
+        : last.text;
+    }
+
+    if (last.file) {
+      if (last.file.type === "image") return <div className='flex items-center gap-1'>
+        <img src={last.file.url} className='size-5 rounded' alt="" />
+        <span>Photo</span>
+      </div>;
+      if (last.file.type) return `📄 ${last.file.name}`;
+      return "محتوایی ندارد";
+    }
+
+    if (last.sticker) {
+      return `${last.sticker.emoji} Sticker`;
+    }
+
+    if (last.forwardedFrom) {
+      return <span className='text-sky-300'>
+        Forwarded from {last.forwardedFrom.roomId?.name ||
+          last.forwardedFrom.senderId?.name ||
+          "Unknown"
+        }
+      </span>;
+    }
+
+    return "محتوایی ندارد";
+  };
+
+
 
   return (
     <motion.div
-      onClick={() => setSelectedRoom(room)}
+      onClick={selectaRoomHandler}
       className={`relative flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer 
     ${selectedRoom?._id === room._id
           ? "bg-cyan-500/20 shadow-inner"
@@ -62,29 +107,17 @@ const Room = memo(({ room, userId, name, logo }) => {
         >
           <p
 
-            className="text-xs truncate opacity-70"
+            className="text-xs truncate opacity-70 flex items-center gap-1"
           >
             {room.isGroup && last?.senderId?.name && (
-              <span className="text-sky-200 font-bold">
+              <span className="text-sky-200 font-bold text-sm">
                 {last.senderId.name}:{" "}
               </span>
             )}
 
-            {last
-              ? last.text
-                ? last.text.length > 50
-                  ? last.text.slice(0, 50) + "..."
-                  : last.text
-                : last.file
-                  ? last.file.type === "image"
-                    ? "📷 Photo"
-                    : last.file.type
-                      ? `📄 ${last.file.name}`
-                      : "محتوایی ندارد"
-                  : last.sticker
-                    ? `${last.sticker.emoji} Sticker`
-                    : "محتوایی ندارد"
-              : "پیامی وجود ندارد"}
+            {last && (
+              getLastMessageText(last)
+            )}
           </p>
 
         </span>

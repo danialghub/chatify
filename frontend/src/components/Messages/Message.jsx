@@ -1,6 +1,7 @@
 import { memo, useMemo } from "react";
 import { ChatIcon, SmartFileDownloader } from "@/components/index";
 import { useChatStore } from "@/store/useChatStore";
+import { useRoomStore } from "@/store/useRoomStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { handleSwipe, parseDynamicContent } from "@/lib/helper";
 import StickerPreview from "./StickerPreview";
@@ -23,11 +24,11 @@ const MessageReplied = memo(({ msg, isMyMessage, goToMsg }) => {
   return (
     <div
       onClick={(e) => goToMsg(e, reply._id)}
-      className={`mb-2 mx-2 px-3 py-1 mt-0.5 rounded text-sm border-r-4 text-ellipsis overflow-hidden max-md:max-w-[60vw]  cursor-pointer
+      className={`mb-2 mx-2 px-3 py-1 mt-0.5 rounded text-sm border-l-4 text-ellipsis overflow-hidden max-md:max-w-[60vw]  cursor-pointer
         ${isMyMessage ? "border-sky-300" : "border-cyan-500"} 
         ${!isMyMsgRepliedByMe ? "bg-black/10" : "bg-white/10 text-cyan-100"}`}
     >
-      <p className="font-extrabold text-xs">{repliedName || "Unknown"}</p>
+      <p className="font-extrabold text-xs text-left">{repliedName || "Unknown"}</p>
       <p dir="rtl" className="text-xs truncate opacity-70">
         {reply?.text
           ? (reply.text.length > 50 ? reply.text.slice(0, 50) + "..." : reply.text)
@@ -40,6 +41,32 @@ const MessageReplied = memo(({ msg, isMyMessage, goToMsg }) => {
   );
 });
 
+/* ===================== Forward ===================== */
+const ForwardedMessage = ({ forwardedMessage, isMyMessage }) => {
+  const logo = forwardedMessage.roomId?.logo || forwardedMessage.senderId?.profilePic
+  const name = forwardedMessage.roomId?.name || forwardedMessage.senderId?.name
+  const roomId = forwardedMessage.roomId
+  const setSelectedRoom = useRoomStore(s => s.setSelectedRoom)
+  const authUser = useAuthStore(state => state.authUser);
+  const forwardedFromMe = authUser._id === forwardedMessage.senderId._id && !forwardedMessage.roomId.isGroup 
+
+  return (
+    <div
+      onClick={() => setSelectedRoom(roomId)}
+      className={`${isMyMessage ? "text-sky-500" : "text-sky-300"} text-left p-2 flex flex-col gap-1 pt-1 cursor-pointer font-bold`}>
+      <h3 className="text-sm ">Forwarded from</h3>
+      <div className="flex items-center justify-end gap-2">
+
+        <h4 className="text-sm ">{forwardedFromMe ? "You" : name}</h4>
+        <ChatIcon
+          profile={logo}
+          name={name}
+          classProps="!size-6 text-sm"
+        />
+      </div>
+    </div>
+  )
+}
 
 /* ===================== STICKER ===================== */
 const MessageSticker = ({ url }) => <StickerPreview url={url} size={180} />;
@@ -47,7 +74,7 @@ const MessageSticker = ({ url }) => <StickerPreview url={url} size={180} />;
 
 /* ===================== MESSAGE ROOT ===================== */
 const Message = ({
-  msg,
+  message,
   isMyMessage,
   isGroup,
   isStillSame,
@@ -59,13 +86,17 @@ const Message = ({
 }) => {
 
   const setReplyToMsg = useChatStore(state => state.setReplyToMsg);
+  const msg = message?.forwardedFrom || message
+
 
   const {
     parsedText,
     isOnlyEmoji,
     link,
     characterLength,
-  } = parseDynamicContent(msg.text);
+  } = parseDynamicContent(msg?.text);
+
+
 
   const isEmojiOnly = isOnlyEmoji && characterLength === 1;
   const isMultiLine = msg?.text && msg.text.split('\n').length > 1
@@ -78,7 +109,7 @@ const Message = ({
   const isImageOnly = msg?.file && !msg?.text && msg?.file?.type === "image";
   const hasBg = !msg?.sticker && !isOnlyEmoji && !isImageOnly;
 
-  const isSeen = msg?.seenBy?.length > 1;
+  const isSeen = message?.seenBy?.length > 1;
 
   return (
     <div
@@ -87,7 +118,7 @@ const Message = ({
       className={`chat relative ${selectedMsg && "z-[100]"} ${!isMyMessage ? "chat-end" : "chat-start group duration-200"}`}
     >
       <div
-        onContextMenu={(e) => openMenu(e, isMyMessage, msg)}
+        onContextMenu={(e) => openMenu(e, isMyMessage, message)}
         onTouchStart={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
         className={`flex items-end gap-2 transition-transform ${isMyMessage ? "flex-row-reverse" : "flex-row"} ${selectedMsg && "scale-105"}`}
       >
@@ -95,10 +126,19 @@ const Message = ({
         {/* Bubble */}
         <div className={`chat-bubble p-1 max-w-[80vw] md:max-w-[40vw] relative 
           ${hasBg ?
-            (isMyMessage ? "bg-sky-700/50 text-white" : "bg-slate-800 text-slate-200")
+            (isMyMessage
+              ? "bg-cyan-950/80 text-slate-100 border border-cyan-800/40"
+              : "bg-slate-800/80 text-slate-200")
             : "bg-black/0"
           }`}
         >
+          {/* Forward */}
+          {message?.forwardedFrom && (
+            <ForwardedMessage
+              forwardedMessage={message?.forwardedFrom}
+              isMyMessage={isMyMessage}
+            />
+          )}
           {/* Reply */}
           {msg?.replyTo && !msg.sticker && !isEmojiOnly && (
             <MessageReplied msg={msg} isMyMessage={isMyMessage} goToMsg={goToMsg} />
@@ -189,8 +229,10 @@ const Message = ({
         </div>
 
         {/* Avatar */}
-        {isGroup && !isStillSame && !isMyMessage ? (
-          <ChatIcon classProps="size-10" profile={msg.senderId?.profilePic} name={msg?.senderId?.name} />
+        {(isGroup && !isMyMessage && !isStillSame) ? (
+          <ChatIcon
+            classProps="size-11"
+            profile={msg.senderId?.profilePic} name={msg?.senderId?.name} />
         ) : (
           <div className={`shrink-0 ${isGroup && !isMyMessage ? "w-10" : "w-3"}`} />
         )}

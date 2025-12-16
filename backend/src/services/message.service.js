@@ -9,6 +9,13 @@ export const messageService = {
             { path: "roomId", select: "updatedAt isGroup members" },
             { path: "senderId", select: "name profilePic" },
             { path: "replyTo", populate: { path: "senderId", select: "name" } },
+            {
+                path: "forwardedFrom",
+                populate: [
+                    { path: "roomId" },
+                    { path: "senderId" }
+                ]
+            }
         ]);
     },
     findByRoomId: (roomId) => {
@@ -17,6 +24,13 @@ export const messageService = {
                 { path: "roomId", select: "updatedAt isGroup members" },
                 { path: "senderId", select: "name profilePic" },
                 { path: "replyTo", populate: { path: "senderId", select: "name" } },
+                {
+                    path: "forwardedFrom",
+                    populate: [
+                        { path: "roomId" },
+                        { path: "senderId" }
+                    ]
+                }
             ])
         return messages
     },

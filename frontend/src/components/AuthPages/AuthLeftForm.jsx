@@ -6,7 +6,7 @@ const AuthLeftForm = ({ state, ...props }) => {
     let isLogin = state === "login"
 
     return (
-        <div className="md:w-1/2 p-8 flex items-center justify-center md:border-r border-slate-600/30">
+        <div className="md:w-1/2 p-8 flex items-center justify-center md:border-r border-slate-600/30 bg-slate-800/30">
             <div className="w-full max-w-md">
                 {/* HEADING TEXT */}
                 <AuthFormHeader

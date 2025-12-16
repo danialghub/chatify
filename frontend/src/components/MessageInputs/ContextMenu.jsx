@@ -2,7 +2,7 @@ import { useEffect, useRef, memo, forwardRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChatStore } from '@/store/useChatStore'
 import { useAuthStore } from '@/store/useAuthStore'
-import { Reply, ClipboardCopy, Edit, Delete, SaveIcon } from 'lucide-react';
+import { Reply, ClipboardCopy, Edit, Delete, SaveIcon, Forward } from 'lucide-react';
 import { toast } from 'react-hot-toast'
 
 const ContextMenu = forwardRef((props, ref) => {
@@ -14,7 +14,14 @@ const ContextMenu = forwardRef((props, ref) => {
 
 
 
-  const { removeMessage, openModal, setReplyToMsg, messages, downloadedFiles } = useChatStore()
+  const {
+    removeMessage,
+    openModal,
+    setReplyToMsg,
+    messages,
+    downloadedFiles,
+    setForwardMessage
+  } = useChatStore()
 
   const { authUser } = useAuthStore()
 
@@ -55,7 +62,7 @@ const ContextMenu = forwardRef((props, ref) => {
     const fileName = targetMsg.msg.file.name
 
     // ساخت لینک موقت
-    
+
     const link = document.createElement("a");
     link.href = url;
     link.download = fileName; // نام فایل هنگام ذخیره
@@ -108,6 +115,13 @@ const ContextMenu = forwardRef((props, ref) => {
       label: "ویرایش",
       color: "text-blue-600", // ویرایش: آبی کلاسیک برای تغییر و اصلاح
       icon: Edit
+    },
+    {
+      id: "forward",
+      label: "فوروارد",
+      color: "text-blue-600",
+      icon: Forward,
+      onClick: () => setForwardMessage(targetMsg?.msg?.forwardedFrom ? targetMsg?.msg?.forwardedFrom : targetMsg?.msg)
     },
     {
       id: "save",

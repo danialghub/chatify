@@ -14,7 +14,7 @@ const SmartImageViewer = ({
 
     const {
         url,
-        thumbUrl,
+        thumb,
         progress,
         downloading,
         downloaded,
@@ -28,16 +28,18 @@ const SmartImageViewer = ({
     const { uploadProgress, uploadedSize, cancelUpload, uploadTotal } = useChatStore();
     const [size, setSize] = useState({ w: null, h: null });
     useEffect(() => {
-        if (!(url || image)) return;
+        if (!(url || thumb.url)) return;
 
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
-        img.onload = () => {
-            setSize({ w: img.naturalWidth, h: img.naturalHeight });
-        };
-        img.src = url || image;
+        if (url) {
+            const img = new Image();
+            img.onload = () => setSize({ w: img.naturalWidth, h: img.naturalHeight });
+            img.src = url;
 
-    }, [url, downloaded, image]);
+        } else {
+            setSize({ w: thumb.width, h: thumb.height });
+        }
+
+    }, [url, thumb]);
 
 
     const radius = 30;
@@ -54,39 +56,38 @@ const SmartImageViewer = ({
             <div
                 className={`
           relative 
-          md:max-w-[30vw]
-          max-w-[80vw]
+          md:max-w-[35vw]
+          max-w-[60vw]
           md:max-h-[55vh]
           max-h-[40vh]
+          min-h-[20vh]
+          
           rounded-xl 
           overflow-hidden 
-         
-          
+        
           ${hasBg ? isMyMsg ? "border-2 border-sky-700 " : "border-2 border-slate-800" : ""}
     `}
-                width={size.w}
-                height={size.h}
+                width={size.w }
+                height={size.h }
             >
                 {/* فقط وقتی ابعاد مشخص شد نمایش بده */}
                 {size.w && (
                     <img
-                        src={downloaded ? url : thumbUrl}
+                        src={downloaded ? url : thumb.url}
+
                         className="
-      w-full 
-      h-full
-      object-contain
-      transition-transform duration-300 hover:scale-[1.02]
-      bg-black/50
-      select-none
-      pointer-events-auto
-    "
+
+              w-full 
+              h-full
+              object-contain
+              transition-transform duration-300 hover:scale-[1.02]
+              bg-black/50
+            "
                         loading="lazy"
                         decoding="async"
-                        draggable={false} // این مهمه
                         onClick={() => downloaded && window.open(url, "_blank")}
                     />
                 )}
-
 
                 {/* حجم فایل (بالا-چپ) */}
                 <div

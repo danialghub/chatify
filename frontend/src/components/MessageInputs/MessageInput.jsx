@@ -1,7 +1,8 @@
 import { memo, useRef, useState } from "react";
 import useKeyboardSound from "@/hooks/useKeyboardSound";
 import { useChatStore } from "@/store/useChatStore";
-import { Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
+import { useRoomStore } from "@/store/useRoomStore";
+import { Forward, Paperclip, SendIcon, Sticker, X } from "lucide-react";
 import { ImageUploader } from '@/components/index'
 import StickerPanel from "./Sticker/Sticker";
 import TextArea from "./TextArea";
@@ -22,14 +23,15 @@ const MessageInput = memo(({ textareaRef }) => {
 
 
 
-  const { sendMessage, isSoundEnabled, replyToMsg, setReplyToMsg } = useChatStore();
+  const { sendMessage, isSoundEnabled, replyToMsg, setReplyToMsg, forwardedMessage, setForwardMessage } = useChatStore();
+  const { setTargetForwardRoom } = useRoomStore()
 
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
 
     // اگر متن، تصویر یا فایل هیچ‌کدام موجود نیست → بازگشت
-    if (!text.trim() && !filePreview) return;
+    if (!text.trim() && !filePreview && !forwardedMessage) return;
 
     if (isSoundEnabled) playRandomKeyStrokeSound();
 
@@ -45,7 +47,13 @@ const MessageInput = memo(({ textareaRef }) => {
 
     // console.log(formData.file);
 
-    sendMessage(formData, filePreview);
+    if (text.trim() || filePreview) sendMessage(formData, { filePreview });
+
+    if (forwardedMessage) {
+      const formData = new FormData()
+      formData.append('forwardedFrom', forwardedMessage._id)
+      sendMessage(formData, { forwardedMessage })
+    }
 
     // Scroll به انتهای پیام‌ها
     setTimeout(() => {
@@ -55,6 +63,7 @@ const MessageInput = memo(({ textareaRef }) => {
     // ریست کردن فرم
     setText("");
     setFilePreview(null);
+    setForwardMessage(null);
 
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -83,7 +92,7 @@ const MessageInput = memo(({ textareaRef }) => {
       <div className="p-4 pt-1 border-t border-slate-700/50">
 
         <div className="max-w-3xl mx-auto mb-3 ">
-          {replyToMsg && (
+          {replyToMsg ? (
             <div className="relative w-full text-white/80">
               < div className=" bg-white/5 border-r-8 border-r-cyan-600 rounded-r-lg">
                 {/* msg content */}
@@ -97,7 +106,7 @@ const MessageInput = memo(({ textareaRef }) => {
                       : replyToMsg?.file
                         ? replyToMsg.file.type === "image"
                           ? "📷 Photo"
-                          : replyToMsg.file.type 
+                          : replyToMsg.file.type
                             ? `📄 ${replyToMsg.file.name}`
                             : "محتوایی ندارد"
                         : replyToMsg?.sticker
@@ -112,13 +121,39 @@ const MessageInput = memo(({ textareaRef }) => {
                 className="absolute -top-2 -left-1 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700"
                 type="button"
               >
-                <XIcon className="w-4 h-4" />
+                <X className="w-4 h-4" />
               </button>
             </div>
+          ) : forwardedMessage && (
+            <div className="flex justify-between w-full min-w-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <Forward className="size-5 text-blue-500 shrink-0" />
+
+                <div className="flex flex-col gap-1 min-w-0">
+                  <h3 className="text-sm text-blue-500">Forward message</h3>
+
+                  <p className="text-xs truncate w-full">
+                    {forwardedMessage?.text
+                      ? forwardedMessage.text
+                      : `From ${forwardedMessage.senderId.name}`}
+                  </p>
+                </div>
+              </div>
+
+              <X
+                onClick={() => {
+                  setForwardMessage(null);
+                  setTargetForwardRoom(null);
+                }}
+                className="size-5 text-gray-500 shrink-0"
+              />
+            </div>
+
           )}
           {filePreview && (
             <FilePreview filePreview={filePreview} removeFile={removeFile} />
           )}
+
 
 
 
@@ -175,7 +210,7 @@ const MessageInput = memo(({ textareaRef }) => {
 
           <button
             type="submit"
-            disabled={!text.trim() && !filePreview}
+            disabled={!text.trim() && !filePreview && (!forwardedMessage || replyToMsg)}
             className="absolute bottom-1.5 right-1.5 bg-gradient-to-r from-cyan-500  to-cyan-600 text-white rounded-md  font-medium hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 "
           >
             <SendIcon className="w-5 h-5 " />

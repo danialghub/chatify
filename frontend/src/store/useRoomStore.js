@@ -19,6 +19,7 @@ export const useRoomStore = create((set, get) => ({
   privateRooms: [],
   unSeenMessages: {},
   selectedRoom: null,
+  targetForwardRoom: null,
   isRoomsLoading: false,
   isCreatingLoading: null,
   isRemovingLoading: false,
@@ -30,6 +31,10 @@ export const useRoomStore = create((set, get) => ({
   // 🔹 Active tab
   // --------------------------
   setActiveTab: (tab) => set({ activeTab: tab }),
+  // --------------------------
+  // 🔹 انتخاب یک اتاق برای فوروارد پیام
+  // --------------------------
+  setTargetForwardRoom: (room) => set({ targetForwardRoom: room }),
 
   // --------------------------
   // 🔹 انتخاب روم

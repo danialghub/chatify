@@ -22,11 +22,27 @@ export const chatRoomService = {
             .populate({
                 path: "lastMessage",
                 select: "text sticker file createdAt",
-                populate: {
-                    path: "senderId",
-                    select: "name"
-                }
+                populate: [
+                    {
+                        path: "senderId",
+                        select: "name",
+                    },
+                    {
+                        path: "forwardedFrom",
+                        populate: [
+                            {
+                                path: "roomId",
+                            },
+                            {
+                                path: "senderId",
+                            },
+                        ],
+                    },
+                ]
+
+
             })
+
 
 
             .lean();

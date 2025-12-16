@@ -3,18 +3,18 @@ import { memo } from 'react';
 const ChatIcon = memo(({ profile, name, classProps, ...props }) => {
 
     if (!name && !profile) return;
-    
+
     const isEnglish = /^[A-Za-z]/.test(name?.[0] || "");
     const translateY = isEnglish ? "pt-1.5" : ""; // فقط برای انگلیسی
 
     return (
 
         profile ?
-            <div className="rounded-full size-12" {...props}>
+            <div className={`rounded-full size-12 ${classProps}`} {...props}>
                 <img
                     src={profile}
                     alt={name}
-                    className={`${classProps} rounded-full object-cover  `}
+                    className={`w-full h-full rounded-full object-cover  `}
                 />
             </div>
             :

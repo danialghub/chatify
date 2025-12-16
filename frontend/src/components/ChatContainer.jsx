@@ -24,7 +24,6 @@ const ChatContainer = () => {
     isMessagesLoading,
     addToMessages,
     removeFromMessages,
-    
 
   } = useChatStore();
 
@@ -34,7 +33,7 @@ const ChatContainer = () => {
   //گوش دادن به پیام جدید
   useSocket('message:send', addToMessages)
   useSocket('message:remove', removeFromMessages)
-  
+
 
   const messageEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -89,7 +88,7 @@ const ChatContainer = () => {
         ref={chatContainerRef}
         className="
         flex-1  overflow-y-auto overflow-x-hidden 
-         chat-scrollbar relative will-change-transform  
+         chat-scrollbar relative will-change-transform  chat-bg
       "
         dir="rtl"
       >
@@ -108,7 +107,7 @@ const ChatContainer = () => {
             name={selectedRoom?.members.filter(m => m._id !== authUser._id)[0]?.name || selectedRoom.name}
           />
         )}
-
+     
       </div>
 
       {showScrollBtn && (
@@ -141,6 +140,8 @@ const ChatContainer = () => {
       )}
 
       <MessageInput textareaRef={textareaRef} />
+
+
     </>
   );
 

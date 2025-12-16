@@ -20,6 +20,7 @@ export const useChatStore = create((set, get) => ({
   messages: [],
   downloadedFiles: {},
   modal: null,
+  forwardedMessage: null,
   isUsersLoading: false,
   isMessagesLoading: false,
   isMessageSending: false,
@@ -44,6 +45,11 @@ export const useChatStore = create((set, get) => ({
   addRenderedFiles: (id, url) => set(({ downloadedFiles }) => (
     { downloadedFiles: { ...downloadedFiles, [id]: url } }
   )),
+  // --------------------------
+  // 🔹 مدیریت forward
+  // --------------------------
+
+  setForwardMessage: (msg) => set({ forwardedMessage: msg }),
 
 
   // --------------------------
@@ -82,7 +88,7 @@ export const useChatStore = create((set, get) => ({
   // --------------------------
   // 🔹 ارسال پیام
   // --------------------------
-  sendMessage: async (formData, previewData) => {
+  sendMessage: async (formData, { previewData, forwardedMessage = null }) => {
     const { messages } = get();
     const { authUser } = useAuthStore.getState();
     const { selectedRoom, updateRoomStates } = useRoomStore.getState();
@@ -97,6 +103,7 @@ export const useChatStore = create((set, get) => ({
     // --------------------------
     // 🔹 ساخت پیام موقت (Optimistic)
     // --------------------------
+
     const fileUrl = previewData ? URL.createObjectURL(previewData.file) : null;
     const optimisticMessage = {
       _id: `temp-${Date.now()}`,
@@ -123,6 +130,7 @@ export const useChatStore = create((set, get) => ({
         }
         : null,
       replyTo: JSON.parse(formData.get("replyTo")) || null,
+      forwardedFrom: forwardedMessage
     };
 
     // --------------------------

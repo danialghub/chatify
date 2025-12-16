@@ -20,11 +20,15 @@
     outline: none !important;
   }
 
+  .chat-bg {
+    @apply bg-[url('./bg.webp')] bg-center bg-contain bg-blend-multiply bg-slate-900/80 backdrop-blur-md
+  }
 
   .chat-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: #555 transparent;
   }
+
   .input-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: #777 transparent;
@@ -61,7 +65,8 @@
   .auth-link {
     @apply px-4 py-2 inline-block bg-cyan-500/10 rounded-lg text-cyan-400 hover:text-cyan-500 text-sm transition-colors;
   }
-  .flash{
+
+  .flash {
     @apply bg-cyan-400/10 transition-colors duration-300
   }
 }

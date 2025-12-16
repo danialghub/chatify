@@ -53,13 +53,13 @@ export const sendMessage = async (req, res) => {
   try {
     const senderId = req.user._id;
     const { roomId } = req.params;
-    const { text, replyTo: replyId, sticker = null } = req.body;
+    const { text, replyTo: replyId, sticker = null, forwardedFrom } = req.body;
     const file = req.file;
 
     /* --------------------------------------------------------------------------
      * 1️⃣ بررسی وجود محتوا
      * --------------------------------------------------------------------------*/
-    if (!text && !sticker && !file) {
+    if (!text && !sticker && !file && !forwardedFrom) {
       return res.status(400).json({
         message: "متن، تصویر، فایل یا استیکر الزامی است"
       });
@@ -92,6 +92,7 @@ export const sendMessage = async (req, res) => {
       if (exists) messageData.replyTo = replyId;
     }
 
+    if (forwardedFrom) messageData.forwardedFrom = forwardedFrom
     /* --------------------------------------------------------------------------
      * 4️⃣ آپلود فایل (در صورت وجود) با امکان لغو
      * --------------------------------------------------------------------------*/
@@ -102,6 +103,9 @@ export const sendMessage = async (req, res) => {
       } else {
         uploadedFile = await uploadDocumentToCloudinary(file, req.signal); // ← اضافه شد
       }
+
+
+
 
       // 🔹 بررسی لغو بعد از آپلود قبل از ذخیره پیام
       if (req.aborted) {
@@ -121,11 +125,12 @@ export const sendMessage = async (req, res) => {
         url: uploadedFile.secure_url
       };
     }
+  
 
     /* --------------------------------------------------------------------------
      * 5️⃣ بررسی اینکه حداقل یک فیلد معتبر وجود داشته باشد
      * --------------------------------------------------------------------------*/
-    if (!messageData.text && !messageData.image && !messageData.file && !messageData.sticker) {
+    if (!messageData.text && !messageData.image && !messageData.file && !messageData.sticker && !messageData.forwardedFrom) {
       return res.status(400).json({ message: "پیام معتبر نیست" });
     }
 
@@ -281,7 +286,7 @@ export const markMessageAsSeen = async (req, res) => {
       const senderSocketId = getReceiverSocketId(senderId);
       if (senderSocketId) {
         console.log('backend');
-        
+
         io.to(senderSocketId).emit("message:seen", { roomId, seenBy: userId });
       }
     }

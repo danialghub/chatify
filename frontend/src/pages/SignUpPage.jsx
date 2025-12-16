@@ -10,7 +10,7 @@ const SignUpPage = () => {
   const { signup, isSigningUp } = useAuthStore();
 
   return (
-    <div className="w-full flex items-center justify-center h-[85dvh] sm:h-[100dvh] bg-slate-900 max-sm:mx-2 text-white">
+    <div className="w-full flex items-center justify-center h-[85dvh] sm:h-[90vh] bg-slate-900 max-sm:mx-2 text-white">
       <div className="relative w-full max-w-6xl ">
         <BorderAnimatedContainer>
           <div className="w-full flex flex-col md:flex-row">

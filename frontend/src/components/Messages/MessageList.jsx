@@ -166,17 +166,17 @@ const MessageList = ({
     <div className="relative py-6 px-3 pr-5 space-y-6 will-change-transform">
       {
         msgs.map((msg, idx) => {
-          const next = messages[idx + 1];
+          const next = msgs[idx + 1];
 
-          const isStillSameSender = next?.senderId?._id === msg.senderId?._id;
+          const isStillSameSender = next?.senderId?._id == msg.senderId?._id ;
           const isMyMessage = msg?.senderId?._id === authUser._id;
           const selectedMsg = targetMsg === msg._id;
-
+          
 
           return msg.type === "user" ? (
             <Message
               key={msg._id}
-              msg={msg}
+              message={msg}
               isMyMessage={isMyMessage}
               isGroup={selectedRoom.isGroup}
               isStillSame={isStillSameSender}

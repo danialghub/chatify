@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useChatStore } from "@/store/useChatStore";
@@ -9,7 +10,11 @@ export function useSmartFileHandler(msg, isMyMsg = false, isUploading = false) {
     const [url, setUrl] = useState("");
     const [totalBytes, setTotalBytes] = useState(0);
     const [downloadedBytes, setDownloadedBytes] = useState(0);
-    const [thumbUrl, setThumbUrl] = useState("");
+    const [thumb, setThumb] = useState({
+        url: null,
+        width: null,
+        height: null
+    });
 
     const file = msg.file
 
@@ -34,7 +39,13 @@ export function useSmartFileHandler(msg, isMyMsg = false, isUploading = false) {
         }
         if (isImage) {
             // ساخت thumbnail
-            setThumbUrl(FILE_URL.replace("/upload/", "/upload/w_50,c_fill/"))
+            const img = new Image();
+            img.onload = () => setThumb({
+                url: FILE_URL.replace("/upload/", "/upload/w_50,c_fill/"),
+                width: img.naturalWidth,
+                height: img.naturalHeight
+            });
+            img.src = FILE_URL;
         }
 
     }, [file, isMyMsg]);
@@ -88,14 +99,6 @@ export function useSmartFileHandler(msg, isMyMsg = false, isUploading = false) {
         }
     };
 
-
-
-
-
-
-
-
-
     /* ---------------------- DOWNLOAD ----------------------- */
     const downloadFile = async () => {
         if (isUploading) return;
@@ -147,7 +150,7 @@ export function useSmartFileHandler(msg, isMyMsg = false, isUploading = false) {
     return {
         isImage,
         url,
-        thumbUrl,
+        thumb,
         progress,
         downloading,
         downloaded,
