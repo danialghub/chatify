@@ -108,8 +108,6 @@ const SmartPdfViewer = ({
     }, [url, downloaded, isUploading, file, downloadFile]);
 
 
-
-
     return (
         <>
         <div dir="ltr" className="md:max-w-[30vw] md:min-w-[17vw] min-w-[65vw] flex gap-1.5 px-3 py-1.5 items-start text-white relative ">

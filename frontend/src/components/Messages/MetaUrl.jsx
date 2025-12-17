@@ -28,7 +28,7 @@ const MetaUrl = ({ url }) => {
     if (!content) return null;
 
     return (
-    <div className="max-w-[70vw] md:max-w-[40vw] rounded-md border-l-4 border-l-sky-600 bg-slate-900 p-3 space-y-2 mt-2 mx-3">
+    <div className="max-w-[75vw] md:max-w-[40vw] rounded-md border-l-4 border-l-sky-600 bg-slate-900 p-3 space-y-2 mt-2 mx-3">
         <h3 className="text-sky-400 text-sm font-semibold">YouTube</h3>
 
         <p className="text-white text-sm font-medium line-clamp-2">

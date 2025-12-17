@@ -134,7 +134,7 @@ const MessageInput = memo(({ textareaRef }) => {
                 <div className="flex flex-col gap-1 min-w-0">
                   <h3 className="text-sm text-blue-500">Forward message</h3>
 
-                  <p className="text-xs truncate w-full">
+                  <p className="text-xs truncate w-full text-white/80">
                     {forwardedMessage?.text
                       ? forwardedMessage.text
                       : `From ${forwardedMessage.senderId.name}`}

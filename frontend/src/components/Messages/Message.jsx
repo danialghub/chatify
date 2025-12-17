@@ -156,7 +156,7 @@ const Message = ({
               hasBg={!msg?.text && msg.file.type === "image"}
             >
 
-              {!msg?.text && msg.file.type === "image" && (
+              {!msg?.text && msg.file && (
                 <MessageFooter
                   hasBg={!msg?.text && msg.file.type === "image"}
                   hasSeen={isSeen}
@@ -185,7 +185,7 @@ const Message = ({
                   <MessageFooter
                     hasBg={isOnlyEmoji}
                     hasSeen={isSeen}
-                    placedTime={msg?.createdAt}
+                    placedTime={message?.updatedAt}
                     isMyMessage={isMyMessage}
                     isMessageSending={isMessageSending}
                   />
@@ -224,7 +224,7 @@ const Message = ({
             <MessageFooter
               hasBg={isOnlyEmoji || msg?.sticker}
               hasSeen={isSeen}
-              placedTime={msg?.createdAt}
+              placedTime={message?.updatedAt}
               isMyMessage={isMyMessage}
               isMessageSending={isMessageSending}
             />
