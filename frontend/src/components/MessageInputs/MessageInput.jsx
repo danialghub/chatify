@@ -45,7 +45,7 @@ const MessageInput = memo(({ textareaRef }) => {
       formData.append("file", filePreview.file);
     }
 
-    // console.log(formData.file);
+    
 
     if (text.trim() || filePreview) sendMessage(formData, { filePreview });
 
