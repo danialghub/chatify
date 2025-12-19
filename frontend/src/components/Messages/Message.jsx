@@ -117,7 +117,7 @@ const Message = ({
   return (
     <div
       id={`msg_${msg._id}`}
-      onMouseDown={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
+      onPointerDown={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
       className={`chat relative  ${selectedMsg && "z-[100]"} ${!isMyMessage ? "chat-end" : "chat-start group duration-200"}`}
     >
       <div
