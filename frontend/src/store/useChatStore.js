@@ -108,6 +108,7 @@ export const useChatStore = create((set, get) => ({
     const optimisticMessage = {
       _id: `temp-${Date.now()}`,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       isOptimistic: true,
       type: "user",
       senderId: {
