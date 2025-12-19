@@ -117,12 +117,12 @@ const Message = ({
   return (
     <div
       id={`msg_${msg._id}`}
-      onPointerDown={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
+      
       className={`chat relative  ${selectedMsg && "z-[100]"} ${!isMyMessage ? "chat-end" : "chat-start group duration-200"}`}
     >
       <div
         onContextMenu={(e) => openMenu(e, isMyMessage, message)}
-        onTouchStart={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
+        onPointerDown={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
         className={`flex items-end gap-2 transition-transform ${isMyMessage ? "flex-row-reverse" : "flex-row"} ${selectedMsg && "scale-105"}`}
       >
 
