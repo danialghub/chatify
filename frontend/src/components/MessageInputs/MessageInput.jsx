@@ -47,7 +47,7 @@ const MessageInput = memo(({ textareaRef }) => {
 
     
 
-    if (text.trim() || filePreview) sendMessage(formData, { filePreview });
+    if (text.trim() || filePreview) sendMessage(formData, {previewData: filePreview });
 
     if (forwardedMessage) {
       const formData = new FormData()
