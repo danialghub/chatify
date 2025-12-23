@@ -143,7 +143,7 @@ const Message = ({
             />
           )}
           {/* Reply */}
-          {msg?.replyTo && !msg.sticker && !isEmojiOnly && (
+          {msg?.replyTo?._id && !msg.sticker && !isEmojiOnly && (
             <MessageReplied msg={msg} isMyMessage={isMyMessage} goToMsg={goToMsg} />
           )}
 
@@ -203,8 +203,7 @@ const Message = ({
           {(msg?.sticker || isEmojiOnly) && (
             <div
               className={`flex justify-between items-start ${isMyMessage ? "flex-row-reverse" : "flex-row"}`}>
-              {msg?.replyTo && (
-                <MessageReplied msg={msg} isMyMessage={isMyMessage} goToMsg={goToMsg} />
+              {msg?.g?.replyToid?._ (              <MessageReplied msg={msg} isMyMessage={isMyMessage} goToMsg={goToMsg} />
               )}
               {!msg?.sticker ? (
                 <p dir="auto" className="text-5xl leading-none select-none" dangerouslySetInnerHTML={{ __html: parsedText }} />
