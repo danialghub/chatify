@@ -203,7 +203,8 @@ const Message = ({
           {(msg?.sticker || isEmojiOnly) && (
             <div
               className={`flex justify-between items-start ${isMyMessage ? "flex-row-reverse" : "flex-row"}`}>
-              {msg?.g?.replyToid?._ (              <MessageReplied msg={msg} isMyMessage={isMyMessage} goToMsg={goToMsg} />
+              {msg?.replyTo?._id &&(  
+                <MessageReplied msg={msg} isMyMessage={isMyMessage} goToMsg={goToMsg} />
               )}
               {!msg?.sticker ? (
                 <p dir="auto" className="text-5xl leading-none select-none" dangerouslySetInnerHTML={{ __html: parsedText }} />
