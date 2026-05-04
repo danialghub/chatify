@@ -30,12 +30,17 @@ export const useChatStore = create((set, get) => ({
   uploadTotal: 0,
   replyToMsg: null,
   uploadController: null,
+  targetForwardedMessage: null,
+  overlayImg: false,
   isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
 
   // --------------------------
   // 🔹 مدیریت Modal
   // --------------------------
   openModal: (type, props = {}) => set({ modal: { type, props } }),
+  setOverlayImg: (isOpen, url) => set({ overlayImg: { isOpen, url } }),
+
+  setTargetForwardedMessage: (msg) => set({ targetForwardedMessage: msg }),
 
 
   // --------------------------
@@ -71,25 +76,18 @@ export const useChatStore = create((set, get) => ({
   // --------------------------
   // 🔹 دریافت پیام‌ها بر اساس روم
   // --------------------------
-  getMessagesByRoomId: async (roomId) => {
-    set({ isMessagesLoading: true });
-    try {
-      const { data } = await cancellableRequest(`/messages/${roomId}`);
-      set({ messages: data });
-    } catch (error) {
-      // ❗ درخواست لغو شده → نباید Toast نمایش داده شود
-      if (error.name === "CanceledError" || error.code === "ERR_CANCELED") return;
-      toast.error(error.response?.data?.message || "Something went wrong");
-    } finally {
-      set({ isMessagesLoading: false });
-    }
-  },
+  getMessagesByRoomId: (data) => set({ messages: data }),
 
+  setIsSendingMessage: val => set({ isMessageSending: val }),
+
+  setUploadController: controller => set({ uploadController: controller }),
+
+  setMessages: msg => set(prev => ({ messages: [...prev.messages, msg] })),
   // --------------------------
   // 🔹 ارسال پیام
   // --------------------------
   sendMessage: async (formData, { previewData, forwardedMessage = null }) => {
-    const { messages } = get();
+
     const { authUser } = useAuthStore.getState();
     const { selectedRoom, updateRoomStates } = useRoomStore.getState();
 
@@ -108,6 +106,7 @@ export const useChatStore = create((set, get) => ({
     const optimisticMessage = {
       _id: `temp-${Date.now()}`,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       isOptimistic: true,
       type: "user",
       senderId: {
@@ -137,7 +136,10 @@ export const useChatStore = create((set, get) => ({
     // 🔹 اضافه به UI
     // --------------------------
     set((state) => ({ messages: [...state.messages, optimisticMessage], replyToMsg: null }));
+
     updateRoomStates(optimisticMessage);
+
+
 
     // --------------------------
     // 🔹 ساخت Controller برای لغو آپلود
@@ -173,16 +175,20 @@ export const useChatStore = create((set, get) => ({
       set((state) => ({
         messages: [
           ...state.messages.filter((msg) => msg._id !== optimisticMessage._id),
-          ...data
+          data
         ],
-
       }));
+
+
+
+
     } catch (error) {
       if (error.code === "ERR_CANCELED") {
         toast("آپلود لغو شد");
       } else {
         toast.error(error.response?.data?.message || "Something went wrong");
       }
+
 
       // حذف پیام موقت در صورت خطا
       set((state) => ({
@@ -200,6 +206,22 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  setSendingStates: (upload) => {
+    set({
+      uploadProgress: upload.uploadProgress,
+      uploadedSize: upload.uploadedSize,
+      uploadTotal: upload.uploadTotal,
+    });
+  },
+  resetSendingStates: () => {
+    set({
+      isMessageSending: false,
+      uploadProgress: 0,
+      uploadedSize: 0,
+      uploadTotal: 0,
+      uploadController: null,
+    });
+  },
   // --------------------------
   // 🔹 لغو آپلود
   // --------------------------
@@ -226,7 +248,7 @@ export const useChatStore = create((set, get) => ({
     });
   },
 
-
+  setIsMessageProccessing: (type, val) => set({ [type]: val }),
   // --------------------------
   // 🔹 حذف پیام
   // --------------------------
@@ -239,6 +261,7 @@ export const useChatStore = create((set, get) => ({
       await axiosInstance.delete(`/messages/remove/${msgId}`);
       set((prev) => ({ messages: prev.messages.filter((m) => m._id !== msgId) }));
       openModal(null);
+      toast('پیام با موفقیت حذف شد')
     } catch (error) {
       set({ messages: msgsBackup });
       toast.error(error.response?.data?.message || "خطا در برقراری");
@@ -269,25 +292,6 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  // --------------------------
-  // 🔹 حذف پیام از UI
-  // --------------------------
-  removeFromMessages: ({ msgId, room }) => {
-    const { selectedRoom } = useRoomStore.getState();
-    if (!selectedRoom) return;
-
-    const chatType = room.isGroup ? "groupRooms" : "privateRooms";
-
-    set(({ messages }) => ({
-      messages: messages.filter((msg) => msg._id !== msgId),
-    }));
-
-    useRoomStore.setState((prev) => ({
-      [chatType]: prev[chatType].map((chat) =>
-        chat._id === room._id ? { ...chat, lastMessage: room.lastMessage } : chat
-      ),
-    }));
-  },
 
   // --------------------------
   // 🔹 علامت‌گذاری پیام‌ها به عنوان خوانده‌شده
@@ -299,16 +303,5 @@ export const useChatStore = create((set, get) => ({
       console.log(error.response?.data?.message);
     }
   },
-  checkUserMessagesAsSeen: async ({ roomId, seenBy }) => {
-    const { selectedRoom } = useRoomStore.getState()
 
-    if (selectedRoom?._id !== roomId) return
-
-    set((state) => (
-      {
-        messages: state.messages.map(msg => msg.seenBy.length > 1 || msg.seenBy.includes(seenBy) ? msg : { ...msg, seenBy: [...msg.seenBy, seenBy] })
-      }
-    ))
-
-  }
 }));

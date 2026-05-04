@@ -32,7 +32,7 @@ const Modal = ({ isOpen, onClose, title, children, size = "md", className = "" }
 
           {/* مدال */}
           <motion.div
-            className={`relative w-full mx-4 ${SIZES[size]} transform text-white`}
+            className={`relative w-full  ${SIZES[size]} transform text-white`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
@@ -56,7 +56,7 @@ const Modal = ({ isOpen, onClose, title, children, size = "md", className = "" }
               )}
 
               {/* Body */}
-              <div className="p-6 text-slate-700 dark:text-slate-300">{children}</div>
+              <div className="py-6 text-slate-700 dark:text-slate-300">{children}</div>
 
              
             </div>

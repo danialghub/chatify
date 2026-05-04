@@ -1,16 +1,24 @@
 import { memo } from "react";
 import StickerPreview from "../../Messages/StickerPreview";
 import { useChatStore } from "@/store/useChatStore";
+import { useSendMessage } from "@/hooks/useMessage";
 
 export default function StickerPanel({ stickers = [], setOpen }) {
-  const { sendMessage, isSoundEnabled, replyToMsg } = useChatStore();
+  const { isSoundEnabled, replyToMsg } = useChatStore();
+
+  const { mutateAsync: sendMessage } = useSendMessage();
 
   const handleSendSticker = (sticker) => {
+    if (!sendMessage) return;
     if (isSoundEnabled) playRandomKeyStrokeSound();
+
     const formData = new FormData()
     if (replyToMsg) formData.append('replyTo', JSON.stringify(replyToMsg))
     formData.append('sticker', JSON.stringify(sticker));
-    sendMessage(formData);
+    
+     sendMessage({
+        formData
+      });
 
     setTimeout(() => {
       document.getElementById('messageEndRef')?.scrollIntoView({ behavior: "smooth" });
@@ -19,6 +27,7 @@ export default function StickerPanel({ stickers = [], setOpen }) {
 
   };
 
+ 
   return (
     <div className="relative flex flex-wrap gap-5 sm:gap-4">
       {stickers.length ? (

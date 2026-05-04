@@ -7,7 +7,7 @@ export const messageService = {
 
         return newMessage.populate([
             { path: "roomId", select: "updatedAt isGroup members" },
-            { path: "senderId", select: "name profilePic" },
+            { path: "senderId", select: "name profilePic userName bio" },
             { path: "replyTo", populate: { path: "senderId", select: "name" } },
             {
                 path: "forwardedFrom",
@@ -18,11 +18,11 @@ export const messageService = {
             }
         ]);
     },
-    findByRoomId: (roomId) => {
-        const messages = Message.find({ roomId })
+    findByRoomId: (query) => {
+        const messages = Message.find(query)
             .populate([
                 { path: "roomId", select: "updatedAt isGroup members" },
-                { path: "senderId", select: "name profilePic" },
+                { path: "senderId", select: "name profilePic userName bio" },
                 { path: "replyTo", populate: { path: "senderId", select: "name" } },
                 {
                     path: "forwardedFrom",

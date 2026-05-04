@@ -2,10 +2,9 @@ import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
   {
-    type: {
-      type: String,
-      enum: ["user", "system", "dailyDate"],
-      default: "user",
+    system: {
+      type: Boolean,
+      default: false,
     },
 
     senderId: {
@@ -29,6 +28,9 @@ const messageSchema = new mongoose.Schema(
       url: { type: String },
       name: { type: String },
       size: { type: Number },
+      width: { type: Number },
+      height: { type: Number },
+
     },
 
     sticker: {

@@ -1,143 +1,187 @@
-import { memo, useRef, useState } from "react";
+import { memo, useRef, useState, useCallback } from "react";
 import useKeyboardSound from "@/hooks/useKeyboardSound";
-import { useChatStore } from "@/store/useChatStore";
 import { useRoomStore } from "@/store/useRoomStore";
+import { useChatStore } from "@/store/useChatStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { Forward, Paperclip, SendIcon, Sticker, X } from "lucide-react";
-import { ImageUploader } from '@/components/index'
+import { ImageUploader } from "@/components";
 import StickerPanel from "./Sticker/Sticker";
 import TextArea from "./TextArea";
 import FilePreview from "./FilePreview";
+import { useSendMessage } from "@/hooks/useMessage";
+import toast from "react-hot-toast";
 
-const MessageInput = memo(({ textareaRef }) => {
+const MessageInput = memo(({ textareaRef, isSoundEnabled }) => {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
 
   const [text, setText] = useState("");
-  const [cursorPos, setCursorPos] = useState(0)
+  const [cursorPos, setCursorPos] = useState(0);
   const [filePreview, setFilePreview] = useState(null);
-  const [emojiTab, setEmojiTab] = useState('emoji');
+  const [emojiTab, setEmojiTab] = useState("emoji");
+  const [open, setOpen] = useState(false);
+
+
 
   const fileInputRef = useRef(null);
   const inputContainerRef = useRef(null);
-
-  const [open, setOpen] = useState(false)
-
-
-
-  const { sendMessage, isSoundEnabled, replyToMsg, setReplyToMsg, forwardedMessage, setForwardMessage } = useChatStore();
-  const { setTargetForwardRoom } = useRoomStore()
+  const { authUser } = useAuthStore()
+  const { setTargetForwardRoom, selectedRoom } = useRoomStore();
+  const { replyToMsg, setReplyToMsg, forwardedMessage, setForwardMessage } = useChatStore()
 
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
+  const { mutateAsync: sendMessage } = useSendMessage();
 
-    // اگر متن، تصویر یا فایل هیچ‌کدام موجود نیست → بازگشت
-    if (!text.trim() && !filePreview && !forwardedMessage) return;
 
-    if (isSoundEnabled) playRandomKeyStrokeSound();
 
-    const formData = new FormData()
 
-    // اگر فایل وجود دارد و از نوع PDF یا تصویر است
-    if (text.trim()) formData.append('text', text)
-    if (replyToMsg) formData.append('replyTo', JSON.stringify(replyToMsg))
-
-    if (filePreview) {
-      formData.append("file", filePreview.file);
-    }
-
-    // console.log(formData.file);
-
-    if (text.trim() || filePreview) sendMessage(formData, { filePreview });
-
-    if (forwardedMessage) {
-      const formData = new FormData()
-      formData.append('forwardedFrom', forwardedMessage._id)
-      sendMessage(formData, { forwardedMessage })
-      setTargetForwardRoom(null)
-
-    }
-
-    // Scroll به انتهای پیام‌ها
-    setTimeout(() => {
-      document.getElementById('messageEndRef')?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-
-    // ریست کردن فرم
+  const resetInput = useCallback(() => {
     setText("");
     setFilePreview(null);
     setForwardMessage(null);
-
+    setReplyToMsg(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+  }, []);
+
+  const handleSendMessage = useCallback(
+    async (e) => {
+      e?.preventDefault();
+      if (!sendMessage) return;
+
+      // فقط Forward
+      if (forwardedMessage && !text.trim() && !filePreview) {
+        const fd = new FormData();
+        fd.append("forwardedFrom", forwardedMessage._id);
+
+        sendMessage({
+          formData: fd,
+          previewData: null,
+          forwardedMessage,
+        });
+        console.log(authUser);
+
+        const userName = selectedRoom.members
+        const targetRoomName = selectedRoom.isGroup
+          ? selectedRoom.name
+          : userName.name
+        toast(`هدایت شد ${targetRoomName} پیام برای`)
 
 
-  const removeFile = () => {
+        setTargetForwardRoom(null);
+        resetInput();
+        return;
+      }
+
+      // متن یا فایل
+      if (!text.trim() && !filePreview && !forwardedMessage) return;
+
+      if (isSoundEnabled) playRandomKeyStrokeSound();
+
+      const fd = new FormData();
+      if (text.trim()) fd.append("text", text.trim());
+      if (replyToMsg) fd.append("replyTo", JSON.stringify(replyToMsg));
+      if (filePreview) fd.append("file", filePreview.file);
+      if (forwardedMessage) fd.append("forwardedFrom", forwardedMessage._id);
+
+      sendMessage({
+        formData: fd,
+        previewData: filePreview,
+        forwardedMessage,
+      });
+
+      requestAnimationFrame(() => {
+        document
+          .getElementById("messageEndRef")
+          ?.scrollIntoView({ behavior: "smooth" });
+      });
+
+      resetInput();
+      setEmojiTab("emoji");
+    },
+    [
+      text,
+      filePreview,
+      forwardedMessage,
+      replyToMsg,
+      isSoundEnabled,
+      playRandomKeyStrokeSound,
+      resetInput,
+      setTargetForwardRoom,
+    ]
+  );
+
+
+  const removeFile = useCallback(() => {
     setFilePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+  }, []);
 
+  const addEmoji = useCallback(
+    (emoji) => {
+      const before = text.slice(0, cursorPos);
+      const after = text.slice(cursorPos);
+      const newMsg = before + emoji + after;
+      setText(newMsg);
+      setCursorPos(cursorPos + emoji.length);
+    },
+    [text, cursorPos]
+  );
 
-  const addEmoji = emoji => {
-    const before = text.slice(0, cursorPos)
-    const after = text.slice(cursorPos)
-    const newMsg = before + emoji + after
-    setText(newMsg)
-
-    setCursorPos(cursorPos + emoji.length)
-  }
-
-  console.log('input');
-
+  const isSendDisabled =
+    (!text.trim() && !filePreview && !forwardedMessage) ||
+    (!!replyToMsg && !!forwardedMessage);
 
   return (
     <div className="relative" ref={inputContainerRef}>
       <div className="p-4 pt-1 border-t border-slate-700/50">
-
-        <div className="max-w-3xl mx-auto mb-3 ">
-          {replyToMsg ? (
-            <div className="relative w-full text-white/80">
-              < div className=" bg-white/5 border-r-8 border-r-cyan-600 rounded-r-lg">
-                {/* msg content */}
-                <div dir="rtl" className="mt-2 py-2  text-right text-sm">
-                  <span className="!text-md font-bold pr-3">پاسخ به {replyToMsg.senderId.name} :</span>
-                  <p dir="rtl" className="text-xs truncate opacity-70 pr-6 mt-1.5" >
-                    {replyToMsg?.text
+        {/* Header Preview Section */}
+        <div className="max-w-3xl mx-auto mb-3">
+          {/* REPLY MODE */}
+          {replyToMsg && (
+            <div className="relative w-full text-white/70 bg-slate-950/70 rounded-md">
+              <div className="bg-white/5 border-r-8 border-r-cyan-600 rounded-r-lg">
+                <div dir="rtl" className="mt-2 py-2 text-right text-sm">
+                  <span className="font-bold pr-3">
+                    پاسخ به {replyToMsg.senderId.name} :
+                  </span>
+                  <p
+                    dir="rtl"
+                    className="text-xs truncate opacity-80 pr-6 mt-1.5"
+                  >
+                    {replyToMsg.text
                       ? replyToMsg.text.length > 50
                         ? replyToMsg.text.slice(0, 50) + "..."
                         : replyToMsg.text
-                      : replyToMsg?.file
+                      : replyToMsg.file
                         ? replyToMsg.file.type === "image"
                           ? "📷 Photo"
-                          : replyToMsg.file.type
-                            ? `📄 ${replyToMsg.file.name}`
-                            : "محتوایی ندارد"
-                        : replyToMsg?.sticker
+                          : `📄 ${replyToMsg.file.name}`
+                        : replyToMsg.sticker
                           ? `${replyToMsg.sticker.emoji} Sticker`
-                          : "محتوایی ندارد"
-                    }
+                          : "بدون محتوا"}
                   </p>
                 </div>
               </div>
+
               <button
                 onClick={() => setReplyToMsg(null)}
-                className="absolute -top-2 -left-1 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700"
+                className="absolute -top-2 -left-1 w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700"
                 type="button"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-          ) : forwardedMessage && (
-            <div className="flex justify-between w-full min-w-0">
-              <div className="flex items-center gap-3 min-w-0">
-                <Forward className="size-5 text-blue-500 shrink-0" />
+          )}
 
+          {/* FORWARD PREVIEW */}
+          {!replyToMsg && forwardedMessage && forwardedMessage.roomId._id !== selectedRoom._id && (
+            <div className="flex justify-between w-full min-w-0 bg-slate-950/80 px-2 py-1 rounded-md">
+              <div className="flex items-center gap-3 min-w-0">
+                <Forward className="size-5 text-blue-500" />
                 <div className="flex flex-col gap-1 min-w-0">
                   <h3 className="text-sm text-blue-500">Forward message</h3>
-
                   <p className="text-xs truncate w-full text-white/80">
-                    {forwardedMessage?.text
-                      ? forwardedMessage.text
-                      : `From ${forwardedMessage.senderId.name}`}
+                    {forwardedMessage.text ||
+                      `From ${forwardedMessage.senderId.name}`}
                   </p>
                 </div>
               </div>
@@ -147,47 +191,42 @@ const MessageInput = memo(({ textareaRef }) => {
                   setForwardMessage(null);
                   setTargetForwardRoom(null);
                 }}
-                className="size-5 text-gray-500 shrink-0"
+                className="size-5 text-gray-500 cursor-pointer"
               />
             </div>
-
           )}
+
+          {/* FILE PREVIEW */}
           {filePreview && (
             <FilePreview filePreview={filePreview} removeFile={removeFile} />
           )}
-
-
         </div>
 
-        <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto relative flex items-center py-3 px-16 bg-slate-800/80 border border-slate-700/50 " >
-
-          {/* دکمه اموجی یا استیکر */}
-          <div className="flex absolute left-1 bottom-1.5 text-white items-center ">
+        {/* INPUT FORM */}
+        <form
+          onSubmit={handleSendMessage}
+          className="max-w-3xl mx-auto relative flex items-center py-3 px-16 bg-slate-800/80 border border-slate-700/50 rounded-md"
+        >
+          {/* EMOJI / STICKER */}
+          <div className="flex absolute left-1 bottom-1.5 items-center gap-1">
             <button
-              onClick={() => setOpen(prev => !prev)}
+              onClick={() => setOpen((p) => !p)}
               type="button"
-              className="
-    w-8 h-8 ml-0.5 text-2xl  rounded-full hover:bg-gradient-to-br hover:from-cyan-500/80 hover:to-blue-500/80 shadow-lg  hover:scale-110  hover:shadow-xl transition-all duration-300 ease-out
-    ring-2 ring-transparent hover:ring-white/30 backdrop-blur-sm  text-center  flex justify-center items-center
-  "
+              className="w-8 h-8 text-xl rounded-full hover:bg-cyan-600/70 transition flex justify-center items-center"
             >
-              {emojiTab === "emoji"
-                ? <span className="pt-2">🤣</span>
-                : <Sticker className="w-6 h-6" />}
+              {emojiTab === "emoji" ? "🤣" : <Sticker className="w-5 h-5" />}
             </button>
 
-
-            {/* آیکون انتخاب فایل */}
             <button
               type="button"
-              className="p-2 text-gray-500 hover:text-blue-500 hover:bg-gray-700 rounded-full transition"
               onClick={() => fileInputRef.current?.click()}
+              className="p-2 text-gray-500 hover:text-blue-500 hover:bg-gray-700 rounded-full transition"
             >
               <Paperclip className="w-5 h-5" />
             </button>
           </div>
 
-
+          {/* TEXT */}
           <TextArea
             taRef={textareaRef}
             value={text}
@@ -195,28 +234,22 @@ const MessageInput = memo(({ textareaRef }) => {
               setText(e.target.value);
               isSoundEnabled && playRandomKeyStrokeSound();
             }}
-            onSelect={e => setCursorPos(e.target.selectionStart)}
+            onSelect={(e) => setCursorPos(e.target.selectionStart)}
             onFocus={() => setOpen(false)}
             placeholder="متن خود را تایپ کنید..."
           />
 
-          <ImageUploader
-            setFile={setFilePreview}
-            inputRef={fileInputRef}
-          />
-
-
-
+          <ImageUploader setFile={setFilePreview} inputRef={fileInputRef} />
 
           <button
             type="submit"
-            disabled={!text.trim() && !filePreview && (!forwardedMessage || replyToMsg)}
-            className="absolute bottom-1.5 right-1.5 bg-gradient-to-r from-cyan-500  to-cyan-600 text-white rounded-md  font-medium hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 "
+            disabled={isSendDisabled}
+            className="absolute bottom-1.5 right-1.5 bg-cyan-600 text-white rounded-md px-3 py-2 hover:bg-cyan-700 disabled:opacity-50"
           >
-            <SendIcon className="w-5 h-5 " />
+            <SendIcon className="w-5 h-5" />
           </button>
         </form>
-      </div >
+      </div>
 
       <StickerPanel
         open={open}
@@ -228,5 +261,6 @@ const MessageInput = memo(({ textareaRef }) => {
       />
     </div>
   );
-})
+});
+
 export default MessageInput;

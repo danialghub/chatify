@@ -34,7 +34,7 @@ const AddMembers = () => {
                 {/* Header */}
                 <div className="bg-blue-500/90 text-white p-4 flex items-center justify-between shadow-sm">
                     <button
-                        onClick={() => openModal('GroupInfo')}
+                        onClick={() => openModal('RoomInfo', { isGroup: true, informations: selectedRoom })}
                         className="bg-white/20 hover:bg-white/30 p-2 rounded-full transition"
                     >
                         <X size={18} />
@@ -59,7 +59,7 @@ const AddMembers = () => {
                 <div className="flex-1 overflow-y-auto max-h-[50vh] divide-y divide-gray-100">
                     {filteredContacts.length ? (
                         filteredContacts.map((r) => {
-                            const user = r.members.filter(m => m._id !== authUser._id)[0]
+                            const user = r.otherMember
                             const isOnline = onlineUsers.includes(user._id)
                             const isSelected = selectedMembers.includes(user._id)
 

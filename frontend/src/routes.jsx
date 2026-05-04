@@ -15,6 +15,7 @@ const routes = () => {
             path: "/",
             element: authUser ? <ChatPage /> : <Navigate to={"/login"} />
         },
+       
         {
             path: "/edit",
             element: authUser ? <EditProfile /> : <Navigate to={"/login"} />

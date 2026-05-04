@@ -3,6 +3,7 @@ import {
     addMembers,
     createRoom,
     getAllRooms,
+    getUserOrGroup,
     leavingTheGroup,
     removeRoom,
     updateGroupRooms
@@ -17,6 +18,7 @@ router.use(arcjetProtection, protectRoute);
 
 
 router.get('/all', getAllRooms)
+router.get('/info/:id', getUserOrGroup)
 
 
 router.post('/create', createRoom)

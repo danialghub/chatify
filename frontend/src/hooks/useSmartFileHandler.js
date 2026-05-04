@@ -38,22 +38,13 @@ export function useSmartFileHandler(msg, isMyMsg = false, isUploading = false) {
             checkCache();
         }
         if (isImage && !isMyMsg) {
-            const img = new Image();
-            img.onload = () => {
-                setThumb({
-                    url: FILE_URL.replace("/upload/", "/upload/w_200/"),
-                    width: img.naturalWidth,
-                    height: img.naturalHeight,
-                });
-                console.log(img.naturalWidth, img.naturalHeight, 's');
-
-            }
-            img.src = FILE_URL;
-
+            setThumb({
+                url: FILE_URL.replace("/upload/", "/upload/w_200/"),
+                width: file?.width,
+                height: file?.height,
+            });
         }
-
-
-
+   
     }, [file, isMyMsg]);
 
 

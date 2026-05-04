@@ -36,10 +36,12 @@ const Room = memo(({ room, userId, name, logo }) => {
     }
 
     if (last.file) {
-      if (last.file.type === "image") return <div className='flex items-center gap-1'>
-        <img src={last.file.url} className='size-5 rounded' alt="" />
-        <span>Photo</span>
-      </div>;
+      if (last.file.type === "image") return (
+        <p className='flex items-center gap-1'>
+          <img src={last.file.url} className='size-5 rounded' alt="" />
+          <span>Photo</span>
+        </p>
+      )
       if (last.file.type) return `📄 ${last.file.name}`;
       return "محتوایی ندارد";
     }
@@ -105,7 +107,7 @@ const Room = memo(({ room, userId, name, logo }) => {
         <span
           className="truncate [unicode-bidi:plaintext] text-xs text-slate-400 opacity-70 w-56"
         >
-          <p
+          <div
 
             className="text-xs truncate opacity-70 flex items-center gap-1"
           >
@@ -118,7 +120,7 @@ const Room = memo(({ room, userId, name, logo }) => {
             {last && (
               getLastMessageText(last)
             )}
-          </p>
+          </div>
 
         </span>
 

@@ -1,10 +1,14 @@
 import { MessageCircleIcon } from "lucide-react";
-import { useChatStore } from "@/store/useChatStore";
+import { useSendMessage } from "@/hooks/useMessage";
 import StickerPreview from '../Messages/StickerPreview'
 const NoChatHistoryPlaceholder = ({ name }) => {
-  const { sendMessage } = useChatStore();
+  const { mutateAsync: sendMessage } = useSendMessage();
   const sendMessageHandler = (sticker) => {
-    sendMessage({ sticker })
+    const formData = new FormData()
+    formData.append("sticker", JSON.stringify(sticker));
+    sendMessage({ formData })
+
+
   }
   const messages = [
     "👋 سلام ",

@@ -1,5 +1,5 @@
 import {
-  uploadImageToCloudinary, uploadDocumentToCloudinary, checkFileType
+  uploadImageToCloudinary, uploadDocumentToCloudinary, checkFileType, getImageMetaData
 } from "../lib/helper.js";
 import { io, emitToOnlineMembers, getReceiverSocketId } from "../lib/socket.js";
 
@@ -15,6 +15,8 @@ import Message from "../models/Message.js";
 export const getMessagesByRoomId = async (req, res) => {
   try {
     const { roomId } = req.params;
+    // const { limit = 30, cursor = null } = req.query;
+
 
     /* --------------------------------------------------------------------------
      * 1️⃣ بررسی اعتبار شناسه روم
@@ -23,15 +25,30 @@ export const getMessagesByRoomId = async (req, res) => {
       return res.status(400).json({ message: "شناسه روم نامعتبر است" });
     }
 
+    const query = { roomId };
+
+    // اگر cursor وجود داشت پیام‌های قدیمی‌تر را بکش
+    // if (cursor) {
+    //   query._id = { $lt: cursor };
+    // }
+
     /* --------------------------------------------------------------------------
      * 2️⃣ دریافت پیام‌ها از سرویس
      * --------------------------------------------------------------------------*/
-    const messages = await messageService.findByRoomId(roomId);
+    const messages = await messageService.findByRoomId(query);
+
+    // تعیین next cursor
+    // let nextCursor = null;
+    // if (messages.length === Number(limit)) {
+    //   nextCursor = messages[messages.length - 1]._id;
+    // }
 
     /* --------------------------------------------------------------------------
      * 3️⃣ پاسخ موفقیت‌آمیز
      * --------------------------------------------------------------------------*/
-    res.status(200).json(messages);
+    res.json({
+      messages,
+    });
 
   } catch (error) {
     console.error("getMessagesByRoomId:", error);
@@ -97,16 +114,6 @@ export const sendMessage = async (req, res) => {
      * 4️⃣ آپلود فایل (در صورت وجود) با امکان لغو
      * --------------------------------------------------------------------------*/
     if (file) {
-      let uploadedFile = null;
-      if (file.mimetype.startsWith("image/")) {
-        uploadedFile = await uploadImageToCloudinary(file, req.signal); // ← اضافه شد
-      } else {
-        uploadedFile = await uploadDocumentToCloudinary(file, req.signal); // ← اضافه شد
-      }
-
-
-
-
       // 🔹 بررسی لغو بعد از آپلود قبل از ذخیره پیام
       if (req.aborted) {
         return; // کاربر لغو کرده، هیچ چیزی ثبت نشود
@@ -116,16 +123,32 @@ export const sendMessage = async (req, res) => {
       const safeName = Buffer.from(file.originalname, "latin1").toString("utf8");
 
       // تعیین نوع واقعی فایل
-      let [type] = checkFileType(file)
+      let [type] = checkFileType(file);
+      console.log(file);
 
-      messageData.file = {
+
+      let uploadedFile = {
         type,
         name: safeName,
-        size: uploadedFile.bytes,
-        url: uploadedFile.secure_url
+        size: file.size,
+        url: `http://localhost:3000/${file.path.replace(/\\/g, '/')}`
       };
+
+      if (file.mimetype.startsWith("image/")) {
+        // فقط یک بار اجرا شود
+        const metaImageData = await getImageMetaData(file.path);
+
+        // بررسی مجدد لغو بعد از عملیات سنگین
+        if (req.aborted) return;
+        console.log(metaImageData);
+
+        uploadedFile['width'] = metaImageData.width;
+        uploadedFile['height'] = metaImageData.height;
+      }
+
+      messageData.file = uploadedFile;
     }
-  
+
 
     /* --------------------------------------------------------------------------
      * 5️⃣ بررسی اینکه حداقل یک فیلد معتبر وجود داشته باشد
@@ -161,7 +184,7 @@ export const sendMessage = async (req, res) => {
     /* --------------------------------------------------------------------------
      * 🔟 پاسخ موفقیت‌آمیز
      * --------------------------------------------------------------------------*/
-    res.status(201).json([newMessage]);
+    res.status(201).json(newMessage);
 
   } catch (error) {
     // 🔹 اگر خطای لغو آپلود باشد، کاری انجام نده
@@ -224,7 +247,6 @@ export const removeMsg = async (req, res) => {
       // یافتن آخرین پیام غیرسیستمی در اتاق
       const prevMsg = await Message.findOne({
         roomId: room._id,
-        type: { $ne: "dailyDate" }
       }).sort({ createdAt: -1 });
 
       // بروزرسانی پیام آخر اتاق
@@ -285,7 +307,7 @@ export const markMessageAsSeen = async (req, res) => {
     for (const [senderId] of latestMessagesBySender.entries()) {
       const senderSocketId = getReceiverSocketId(senderId);
       if (senderSocketId) {
-        console.log('backend');
+        console.log('backend', senderSocketId);
 
         io.to(senderSocketId).emit("message:seen", { roomId, seenBy: userId });
       }

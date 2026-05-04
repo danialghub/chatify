@@ -114,6 +114,8 @@ export const useRoomStore = create((set, get) => ({
    * حذف روم
    */
   removeRoom: async (room) => {
+    console.log(room);
+
     const { openModal } = useChatStore.getState();
     const { setSelectedRoom } = get();
     const roomType = room.isGroup ? "groupRooms" : "privateRooms";
@@ -175,6 +177,17 @@ export const useRoomStore = create((set, get) => ({
       set({ isUpdatingLoading: false });
     }
   },
+  updateRoomLastMessage: (room) => {
+    console.log(room);
+
+    const chatType = room.isGroup ? "groupRooms" : "privateRooms";
+
+    set((prev) => ({
+      [chatType]: prev[chatType].map((chat) =>
+        chat._id === room._id ? { ...chat, lastMessage: room.lastMessage } : chat
+      ),
+    }));
+  },
 
   /**
    * اضافه کردن اعضا به گروه
@@ -190,6 +203,17 @@ export const useRoomStore = create((set, get) => ({
       console.log(error.response?.data?.message || "Error in add members");
     } finally {
       set({ isJoining: false });
+    }
+  },
+
+  getUserOrGroupInfo: async (isGroup, id) => {
+    try {
+      const { data } = await axiosInstance.get(`/room/info/${id}`, {
+        params: { isGroup }
+      })
+      return data.targetInfo
+    } catch (error) {
+      console.log(error.response?.data?.message || "Error in getUserOrGroupInfo");
     }
   },
 
@@ -215,12 +239,22 @@ export const useRoomStore = create((set, get) => ({
     const { socket } = useAuthStore.getState();
     const { selectedRoom } = get();
 
+    // 🚨 ذخیره موقعیت اسکرول قبل از خروج
+    const chatContainer = document.getElementById("chatContainer");
+    if (chatContainer && selectedRoom?._id) {
+      localStorage.setItem(
+        `scroll-${selectedRoom._id}`,
+        chatContainer.scrollTop
+      );
+    }
+
     socket.emit("leave-room", selectedRoom._id);
     set({ selectedRoom: null });
 
     // ریست reply
     useChatStore.getState().setReplyToMsg(null);
   },
+
 
   // --------------------------
   // 🔹 Socket listeners
@@ -306,12 +340,15 @@ export const useRoomStore = create((set, get) => ({
   updateGroupStates: (updatedGroup) => {
     const { selectedRoom } = get();
 
+
     set(({ groupRooms }) => ({
       groupRooms: [updatedGroup, ...groupRooms.filter((g) => g._id !== updatedGroup._id)],
     }));
+    console.log(updatedGroup?._id, selectedRoom?._id);
 
-    if (selectedRoom?._id === updatedGroup._id) {
-      set({ selectedRoom: { _id: selectedRoom._id, ...updatedGroup } });
+    if (selectedRoom?._id === updatedGroup?._id) {
+      set({ selectedRoom: { ...updatedGroup, _id: selectedRoom._id || null } });
     }
   },
+
 }));

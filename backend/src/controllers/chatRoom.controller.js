@@ -46,7 +46,7 @@ export const createRoom = async (req, res) => {
       /* ------------------ ارسال پیام سیستمی "گروه ایجاد شد" ------------------ */
       const systemNotif = {
         roomId: newRoom._id,
-        type: "system",
+        system: true,
         text: "گروه ایجاد شد"
       };
 
@@ -126,7 +126,7 @@ export const getAllRooms = async (req, res) => {
     /* --------------------------------------------------------------------------
      *  دریافت لیست روم‌های کاربر (خصوصی یا گروهی)
      * --------------------------------------------------------------------------*/
-    const rooms = await chatRoomService.findRooms(userId, isGroup);
+    let rooms = await chatRoomService.findRooms(userId, isGroup);
 
     // اگر روم وجود نداشت
     if (!rooms.length) {
@@ -135,15 +135,15 @@ export const getAllRooms = async (req, res) => {
         unSeenMessages: {}
       });
     }
+    if (isGroup === 'false') {
+      rooms = rooms.map(room => ({
+        ...room,
+        otherMember: room.members.filter(r => r._id.toString() !== userId.toString())[0],
+        members: []
+      }))
+    }
 
-    /* --------------------------------------------------------------------------
-     *  شمارش پیام‌های خوانده‌نشده برای هر روم
-     * --------------------------------------------------------------------------
-     *  - پیام‌هایی که:
-     *      system: false  → پیام سیستمی نیست
-     *      senderId != userId → پیام از سمت خود کاربر نیست
-     *      seenBy != userId → کاربر هنوز آن پیام را ندیده
-     * --------------------------------------------------------------------------*/
+
     const unSeenMessages = Object.fromEntries(
       await Promise.all(
         rooms.map(async (room) => {
@@ -277,7 +277,7 @@ export const leavingTheGroup = async (req, res) => {
      * --------------------------------------------------------------------------*/
     const leaveMsg = await Message.create({
       roomId,
-      type: "system",
+      system: true,
       text: `${userName} از گروه خارج شد`,
     });
 
@@ -360,7 +360,7 @@ export const updateGroupRooms = async (req, res) => {
     systemMessages.push({
       roomId,
       text: `گروه توسط مالک گروه بروزرسانی شد`,
-      type: "system",
+      system: true,
     });
 
     // پیام‌ها برای اعضای حذف‌شده
@@ -368,7 +368,7 @@ export const updateGroupRooms = async (req, res) => {
       systemMessages.push({
         roomId,
         text: `${m.name} از گروه حذف شد`,
-        type: "system",
+        system: true,
       });
     });
 
@@ -379,7 +379,7 @@ export const updateGroupRooms = async (req, res) => {
       systemMessages.push({
         roomId,
         text: `${member.name} به گروه اضافه شد`,
-        type: "system",
+        system: true,
       });
     });
 
@@ -464,7 +464,7 @@ export const addMembers = async (req, res) => {
     const systemMessages = newMembers.map(user => ({
       roomId,
       text: `${user.name}, توسط ${userName} عضو گروه شد`,
-      type: "system",
+      system: true,
     }));
 
     /* --------------------------------------------------------------------------
@@ -503,3 +503,27 @@ export const addMembers = async (req, res) => {
     return res.status(500).json({ message: "خطای داخلی سرور" });
   }
 };
+
+export const getUserOrGroup = async (req, res) => {
+  const { isGroup } = req.query
+  const { id } = req.params
+
+  if (!isGroup || !id) return res.status(400).json({ message: "هم شناسه مورد نظر هم نوع باید مشخص شود" })
+
+  try {
+    let targetInfo = null
+    if (isGroup === "true") {
+      targetInfo = await chatRoomService.findById(id)
+    } else {
+      targetInfo = await User.findOne({ _id: id })
+      console.log(targetInfo);
+
+    }
+    if (!targetInfo) return res.status(400).json({ message: "نامعتبر است" })
+
+    res.status(200).json({ targetInfo })
+  } catch (error) {
+    console.error("getUserOrGroup:", error);
+    return res.status(500).json({ message: "خطای داخلی سرور" });
+  }
+}

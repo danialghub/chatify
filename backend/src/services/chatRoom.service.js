@@ -17,7 +17,7 @@ export const chatRoomService = {
             .sort({ updatedAt: -1 })
             .populate({
                 path: "members",
-                select: "name profilePic bio"
+                select: "name profilePic bio userName"
             })
             .populate({
                 path: "lastMessage",

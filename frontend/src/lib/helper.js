@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import jalaliday from "jalaliday";
 
@@ -61,6 +62,7 @@ export const handleSwipe = (e, msg, setReplyTo, inputRef) => {
     const width = e.target.offsetWidth + 20; // محدودیت جابجایی
 
 
+
     const getClientX = (event) =>
         event.touches ? event.touches[0].clientX : event.clientX;
     const getClientY = (event) =>
@@ -109,6 +111,8 @@ export const handleSwipe = (e, msg, setReplyTo, inputRef) => {
 
         // فقط اگر به حد لازم رسیده بود trigger reply
         if (movedX < -70) {
+
+
             setReplyTo(msg);
             inputRef.current.focus()
         }
@@ -144,6 +148,32 @@ export const handleSwipe = (e, msg, setReplyTo, inputRef) => {
     start(e);
 };
 
+export const goToMsg = (e , id, messages) => {
+    e?.stopPropagation();
+  console.log(messages);
+  
+    const msgObj = messages.find((m) => m._id === id);
+    if (!msgObj) return;
+
+    const msgEl = document.getElementById(`msg_${id}`);
+    if (!msgEl) return;
+
+    msgEl.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    const observer = new IntersectionObserver(
+        ([entry], self) => {
+            if (!entry.isIntersecting) return;
+
+            msgEl.classList.add("flash");
+            setTimeout(() => msgEl.classList.remove("flash"), 900);
+
+            self.disconnect();
+        },
+        { threshold: 0.6 }
+    );
+
+    observer.observe(msgEl);
+}
 
 
 export const parseDynamicContent = (msgText) => {
@@ -247,11 +277,12 @@ export const checkFileType = (file) => {
 };
 
 
-export const injectDateMessages = (messages) => {
+export const injectDateMessages = (messages = []) => {
     let newList = [];
     let lastDate = null;
+    console.log(messages);
 
-    messages.forEach(msg => {
+    messages?.forEach(msg => {
 
         const msgDate = dayjs(msg.createdAt).locale("fa").format("YYYY-MM-DD");
 
@@ -259,7 +290,7 @@ export const injectDateMessages = (messages) => {
 
             newList.push({
                 _id: `date-${msgDate}`,
-                type: "date",
+                system: true,
                 text: dayjs(msg.createdAt).locale("fa").format("D MMMM")
             });
             lastDate = msgDate;

@@ -23,6 +23,7 @@ const ChatPage = () => {
   const showChatOnMobile =
     (selectedRoom && !forwardedMessage) || targetForwardRoom;
 
+  console.log(selectedRoom);
 
   return (
     <div

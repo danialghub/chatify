@@ -6,6 +6,8 @@ import { useAuthStore } from "@/store/useAuthStore";
 
 const GroupForm = ({ state }) => {
     const { privateRooms, createRoom, updateGroup, selectedRoom, isCreatingLoading, isUpdatingLoading } = useRoomStore()
+
+
     const { authUser } = useAuthStore()
 
     const isCreateMode = state === "create"
@@ -15,16 +17,17 @@ const GroupForm = ({ state }) => {
 
 
     const [groupName, setGroupName] = useState(
-        isCreateMode ? "" : selectedRoom.name
+        isCreateMode ? "" : selectedRoom?.name
     )
     const [groupImage, setGroupImage] = useState(
-        isCreateMode ? null : selectedRoom.logo
+        isCreateMode ? null : selectedRoom?.logo
     )
     const [selectedUsers, setSelectedUsers] = useState(
         isCreateMode
             ? []
-            : selectedRoom.members.filter((user) => user._id !== authUser._id)
+            : selectedRoom?.otherMember
     );
+console.log(isCreateMode);
 
 
     const toggleUser = (user) => {
@@ -71,7 +74,7 @@ const GroupForm = ({ state }) => {
 
         <div className="w-full max-w-md mx-auto px-5 rounded-2xl ">
             {/* Header: Selected Users */}
-            {selectedUsers.length > 0 && (
+            {selectedUsers?.length > 0 && (
                 <div className="flex items-center gap-3 overflow-x-auto pb-1 mb-4 border-b border-white/40 text-gray-200">
                     {selectedUsers.map((user) => (
                         <div
@@ -148,8 +151,8 @@ const GroupForm = ({ state }) => {
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-52 overflow-y-auto overflow-x-hidden p-1 text-gray-200">
                         {privateRooms.map(r => {
-                            const members = r.members.filter(m => m._id !== authUser._id)[0]
-                            const isSelected = selectedUsers.some((u) => u._id === members._id)
+                            const members = r.otherMember
+                            const isSelected = selectedUsers?.some((u) => u._id === members._id)
 
                             return (
                                 <div
@@ -181,7 +184,7 @@ const GroupForm = ({ state }) => {
 
                 {/* Submit */}
                 <button
-                    disabled={!selectedUsers.length || !groupName || isCreatingLoading || isUpdatingLoading}
+                    disabled={!selectedUsers?.length || !groupName || isCreatingLoading || isUpdatingLoading}
                     type="submit"
                     className="w-full py-2.5 rounded-lg bg-indigo-600  disabled:bg-gray-600 hover:bg-indigo-700 text-white font-semibold transition-all shadow-md hover:shadow-lg "
                 >

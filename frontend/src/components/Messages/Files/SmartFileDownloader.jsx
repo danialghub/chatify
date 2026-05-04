@@ -20,7 +20,7 @@ const SmartFileDownloader = ({ msg, isMyMsg, isUploading, hasBg, children }) => 
             <SmartImageViewer
                 downloader={downloader}
                 title={msg.file.name}
-                image={msg.file.url}
+                image={msg.file}
                 isUploading={isUploading}
                 isMyMsg={isMyMsg}
                 hasBg={hasBg}

@@ -4,33 +4,41 @@ import { useChatStore } from '@/store/useChatStore'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Reply, ClipboardCopy, Edit, Delete, SaveIcon, Forward } from 'lucide-react';
 import { toast } from 'react-hot-toast'
-
+import { useQueryClient } from '@tanstack/react-query'
 const ContextMenu = forwardRef((props, ref) => {
 
-  const { targetId, chatContainerRef, isOpen, menuPos, close, textareaRef } = props;
+  const { targetId, roomId, isOpen, menuPos, close, textareaRef } = props;
   const [targetMsg, setTargetMsg] = useState(null)
 
   const overlayRef = useRef(null);
-
 
 
   const {
     removeMessage,
     openModal,
     setReplyToMsg,
-    messages,
     downloadedFiles,
     setForwardMessage
   } = useChatStore()
 
+
+
+
   const { authUser } = useAuthStore()
+console.log(targetId);
 
-
+  const queryClient = useQueryClient()
   useEffect(() => {
-    const targetMsg = messages.find(msg => msg._id === targetId)
-    const isMyMessage = authUser._id === targetMsg?.senderId?._id
-    setTargetMsg({ msg: targetMsg, isMyMessage })
-  }, [targetId])
+    if (roomId && targetId) {
+      const {messages} = queryClient.getQueryData(['messages', roomId])
+      
+      const targetMsg = messages.find(msg => msg._id === targetId)
+      console.log(targetMsg);
+      
+      const isMyMessage = authUser._id === targetMsg?.senderId?._id
+      setTargetMsg({ msg: targetMsg, isMyMessage })
+    }
+  }, [targetId, roomId])
 
   // ------------------------
   // 🔥 متن را کپی کن
@@ -77,6 +85,9 @@ const ContextMenu = forwardRef((props, ref) => {
 
     close()
   };
+  const forwarding = () => setForwardMessage(targetMsg?.msg?.forwardedFrom ? targetMsg?.msg?.forwardedFrom : targetMsg?.msg)
+
+
 
 
 
@@ -121,7 +132,7 @@ const ContextMenu = forwardRef((props, ref) => {
       label: "فوروارد",
       color: "text-blue-600",
       icon: Forward,
-      onClick: () => setForwardMessage(targetMsg?.msg?.forwardedFrom ? targetMsg?.msg?.forwardedFrom : targetMsg?.msg)
+      onClick: forwarding
     },
     {
       id: "save",
@@ -139,13 +150,15 @@ const ContextMenu = forwardRef((props, ref) => {
     },
   ]
     .filter(item => targetMsg?.isMyMessage || item.id !== "delete" && item.id !== "edit")
-    .filter(item => item.id !== "copy" || targetMsg?.msg?.text)
+    .filter(item => item.id !== "copy" || targetMsg?.msg?.text || targetMsg?.msg?.forwardedFrom?.text)
     .filter(item => {
       if (item.id === "save") {
         return targetMsg?.msg?.file && downloadedFiles[targetMsg?.msg?._id];
       }
       return true;
     });
+
+
 
 
 
@@ -157,11 +170,14 @@ const ContextMenu = forwardRef((props, ref) => {
         {isOpen && (
           <motion.div
             ref={overlayRef}
-            className="absolute top-0 left-0   w-full h-full bg-black/70 z-[60] "
+            className="absolute -top-0 left-0 h-full  w-full  bg-slate-950/60 z-[60] "
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            style={{
+              top: menuPos.y - 400
 
+            }}
           />
 
         )}

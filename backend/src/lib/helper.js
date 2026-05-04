@@ -1,20 +1,31 @@
 import cloudinary from "./cloudinary.js";
 import path from 'path'
 import fs from 'fs'
+import sharp from 'sharp'
 
-
-export const uploadImage = async (image) => {
-  const { secure_url } = await cloudinary.uploader.upload(image, {
-    transformation: [
-      { crop: "fill", gravity: "face" },
-      { quality: "auto", fetch_format: "auto" },
-    ],
-  });
-  return secure_url
+//without cloud
+export const getImageMetaData = async (filePath) => {
+  const metaData = await sharp(filePath).metadata();
+  return {
+    width: metaData.width,
+    height: metaData.height,
+    size: metaData.size
+  }
 }
 
 
+export const uploadImage = async (image) => {
+  // const { secure_url } = await cloudinary.uploader.upload(image, {
+  //   transformation: [
+  //     { crop: "fill", gravity: "face" },
+  //     { quality: "auto", fetch_format: "auto" },
+  //   ],
+  // });
+  const metaData = await getImageMetaData(image.path)
 
+  return { url: image.path, bytes: metaData.size, ...metaData }
+}
+//with cloud
 export const uploadImageToCloudinary = async (file) => {
   try {
     if (!file.path) throw Error("Image file has no path");
@@ -38,8 +49,6 @@ export const uploadImageToCloudinary = async (file) => {
     throw err;
   }
 };
-
-
 
 export const uploadDocumentToCloudinary = async (file, signal) => {
   if (!file.path) throw new Error("Document file has no path");

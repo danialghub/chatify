@@ -12,6 +12,7 @@ import MessageFooter from './MessageFooter'
 /* ===================== REPLIED ===================== */
 const MessageReplied = memo(({ msg, isMyMessage, goToMsg }) => {
   const authUser = useAuthStore(state => state.authUser);
+  const messages = useChatStore(state => state.messages)
   const reply = msg?.replyTo;
 
   const isReplyMine = reply?.senderId?._id === authUser._id;
@@ -23,7 +24,7 @@ const MessageReplied = memo(({ msg, isMyMessage, goToMsg }) => {
 
   return (
     <div
-      onClick={(e) => goToMsg(e, reply._id)}
+      onClick={(e) => goToMsg(e, reply._id, messages)}
       className={`mb-2 mx-2 px-3 py-1 mt-0.5 rounded text-sm border-l-4 text-ellipsis overflow-hidden max-md:max-w-[60vw]  cursor-pointer
         ${isMyMessage ? "border-sky-300" : "border-cyan-500"} 
         ${!isMyMsgRepliedByMe ? "bg-black/10" : "bg-white/10 text-cyan-100"}`}
@@ -46,15 +47,20 @@ const ForwardedMessage = ({ forwardedMessage, isMyMessage }) => {
   const logo = forwardedMessage.roomId?.logo || forwardedMessage.senderId?.profilePic
   const name = forwardedMessage.roomId?.name || forwardedMessage.senderId?.name
   const roomId = forwardedMessage.roomId
-  console.log(roomId);
-  
+
+
   const setSelectedRoom = useRoomStore(s => s.setSelectedRoom)
   const authUser = useAuthStore(state => state.authUser);
-  const forwardedFromMe = authUser._id === forwardedMessage.senderId._id && !forwardedMessage.roomId.isGroup 
+  const setTargetForwardedMessage = useChatStore(state => state.setTargetForwardedMessage)
+  const forwardedFromMe = authUser._id === forwardedMessage.senderId._id && !forwardedMessage.roomId.isGroup
 
   return (
     <div
-      onClick={() => setSelectedRoom(roomId)}
+      onClick={() => {
+        setTargetForwardedMessage(forwardedMessage)
+        setSelectedRoom(roomId)
+      }
+      }
       className={`${isMyMessage ? "text-sky-500" : "text-sky-300"} text-left p-2 flex flex-col gap-1 pt-1 cursor-pointer font-bold`}>
       <h3 className="text-sm ">Forwarded from</h3>
       <div className="flex items-center justify-end gap-2">
@@ -82,12 +88,12 @@ const Message = ({
   isStillSame,
   goToMsg,
   inputRef,
-  selectedMsg,
   openMenu,
   isMessageSending
 }) => {
 
   const setReplyToMsg = useChatStore(state => state.setReplyToMsg);
+  const openModal = useChatStore(state => state.openModal);
   const msg = message?.forwardedFrom || message
 
 
@@ -117,33 +123,36 @@ const Message = ({
   return (
     <div
       id={`msg_${msg._id}`}
-      onMouseDown={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
-      className={`chat relative  ${selectedMsg && "z-[100]"} ${!isMyMessage ? "chat-end" : "chat-start group duration-200"}`}
+
+      className={`chat relative  ${!isMyMessage ? "chat-end" : "chat-start group duration-200"
+        }`}
     >
       <div
         onContextMenu={(e) => openMenu(e, isMyMessage, message)}
-        onTouchStart={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
-        className={`flex items-end gap-2 transition-transform ${isMyMessage ? "flex-row-reverse" : "flex-row"} ${selectedMsg && "scale-105"}`}
+        onPointerDown={(e) => handleSwipe(e, msg, setReplyToMsg, inputRef)}
+        className={` flex items-end gap-2 transition-transform ${isMyMessage ? "flex-row-reverse" : "flex-row"
+          } `}
       >
-
-        {/* Bubble */}
-        <div className={`chat-bubble p-1 max-w-[75vw] md:max-w-[40vw] relative 
-          ${hasBg ?
-            (isMyMessage
-              ? "bg-cyan-950/80 text-slate-100 border border-cyan-800/40"
-              : "bg-slate-800/80 text-slate-200")
-            : "bg-black/0"
-          }`}
+        <div
+          className={`chat-bubble p-1 max-w-[75vw] md:max-w-[40vw] relative
+         
+          ${hasBg
+              ? isMyMessage
+                ? "bg-cyan-950/80 text-slate-100 border border-cyan-800/40"
+                : "bg-slate-800/80 text-slate-200"
+              : "bg-black/0"
+            }`}
         >
-          {/* Forward */}
-          {message?.forwardedFrom && (
+          {/* Forward (Only top for normal text/file mode) */}
+          {message?.forwardedFrom && !msg?.sticker && !isEmojiOnly && (
             <ForwardedMessage
-              forwardedMessage={message?.forwardedFrom}
+              forwardedMessage={message.forwardedFrom}
               isMyMessage={isMyMessage}
             />
           )}
-          {/* Reply */}
-          {msg?.replyTo && !msg.sticker && !isEmojiOnly && (
+
+          {/* Reply (Only top for normal text/file mode) */}
+          {msg?.replyTo?._id && !msg?.sticker && !isEmojiOnly && (
             <MessageReplied msg={msg} isMyMessage={isMyMessage} goToMsg={goToMsg} />
           )}
 
@@ -155,7 +164,6 @@ const Message = ({
               isMyMsg={isMyMessage}
               hasBg={!msg?.text && msg.file.type === "image"}
             >
-
               {!msg?.text && msg.file && (
                 <MessageFooter
                   hasBg={!msg?.text && msg.file.type === "image"}
@@ -164,10 +172,7 @@ const Message = ({
                   isMyMessage={isMyMessage}
                   isMessageSending={isMessageSending}
                 />
-              )
-
-              }
-
+              )}
             </SmartFileDownloader>
           )}
 
@@ -199,27 +204,39 @@ const Message = ({
             )
           )}
 
-          {/* Sticker or Emoji */}
+          {/* Sticker or Emoji (Forward + Reply beside it) */}
           {(msg?.sticker || isEmojiOnly) && (
             <div
-              className={`flex justify-between items-start ${isMyMessage ? "flex-row-reverse" : "flex-row"}`}>
-              {msg?.replyTo && (
+              className={`flex justify-between items-start ${isMyMessage ? "flex-row-reverse" : "flex-row"
+                } ${isOnlyEmoji ? "pt-5" : ""}`}
+            >
+              {message?.forwardedFrom && (
+                <div className="mx-1">
+                  <ForwardedMessage
+                    forwardedMessage={message.forwardedFrom}
+                    isMyMessage={isMyMessage}
+                  />
+                </div>
+              )}
+
+              {msg?.replyTo?._id && (
                 <MessageReplied msg={msg} isMyMessage={isMyMessage} goToMsg={goToMsg} />
               )}
+
               {!msg?.sticker ? (
-                <p dir="auto" className="text-5xl leading-none select-none" dangerouslySetInnerHTML={{ __html: parsedText }} />
+                <p
+                  dir="auto"
+                  className="text-5xl leading-none select-none"
+                  dangerouslySetInnerHTML={{ __html: parsedText }}
+                />
               ) : (
                 <MessageSticker url={msg.sticker.url} />
               )}
             </div>
           )}
 
-          {/* Meta Content */}
-          {link && !msg?.file && (
-            <MetaUrl url={link} />
-          )}
+          {link && !msg?.file && <MetaUrl url={link} />}
 
-          {/* Footer */}
           {hasFooter && (
             <MessageFooter
               hasBg={isOnlyEmoji || msg?.sticker}
@@ -231,17 +248,22 @@ const Message = ({
           )}
         </div>
 
-        {/* Avatar */}
         {(isGroup && !isMyMessage && !isStillSame) ? (
           <ChatIcon
             classProps="size-11"
-            profile={msg.senderId?.profilePic} name={msg?.senderId?.name} />
+            profile={msg.senderId?.profilePic}
+            name={msg?.senderId?.name}
+            onClick={() => openModal("RoomInfo", { isGroup: false, informations: msg.senderId })}
+          />
         ) : (
-          <div className={`shrink-0 ${isGroup && !isMyMessage ? "w-10" : "w-3"}`} />
+          <div
+            className={`shrink-0 ${isGroup && !isMyMessage ? "w-10" : "w-3"}`}
+          />
         )}
       </div>
     </div>
   );
+
 };
 
 export default memo(Message);

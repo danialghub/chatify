@@ -23,7 +23,7 @@ const PrivateRooms = memo(() => {
   return (
     <AnimatePresence >
       {privateRooms.map((room) => {
-        const user = room.members.filter(m => m._id !== authUser._id)[0]
+        const user = room.otherMember
 
         return (
           < Room
