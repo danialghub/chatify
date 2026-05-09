@@ -1,9 +1,9 @@
 import { create } from "zustand";
-import { authService } from "@/services/auth.services";
 import { useRoomStore } from '@/store/useRoomStore'
 import { useChatStore } from '@/store/useChatStore'
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
+import { axiosInstance } from "../lib/axios";
 
 const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:3000" : "/";
 
@@ -16,9 +16,10 @@ export const useAuthStore = create((set, get) => ({
   socket: null,
   onlineUsers: [],
 
+  //apis
   checkAuth: async () => {
     try {
-      const data = await authService.checkAuth()
+      const { data } = await axiosInstance.get("/auth/check")
       set({ authUser: data });
       get().connectSocket();
 
@@ -34,7 +35,7 @@ export const useAuthStore = create((set, get) => ({
     set({ isSigningUp: true });
     try {
 
-      const data = await authService.signUp(authData);
+      const { data } = await axiosInstance.post("/auth/signup", authData);
       set({ authUser: data });
 
       toast.success("حساب شما با موفقیت ساخته شد");
@@ -49,7 +50,7 @@ export const useAuthStore = create((set, get) => ({
   login: async (authData) => {
     set({ isLoggingIn: true });
     try {
-      const data = await authService.login(authData);
+      const { data } = await axiosInstance.post("/auth/login", authData);
       set({ authUser: data });
 
       toast.success("با موفقیت وارد شدید");
@@ -64,7 +65,7 @@ export const useAuthStore = create((set, get) => ({
 
   logout: async () => {
     try {
-      await authService.logout()
+      await axiosInstance.post("/auth/logout");
       set({ authUser: null });
       toast.success("با موفقیت خارج شدید");
       get().disconnectSocket();
@@ -79,7 +80,11 @@ export const useAuthStore = create((set, get) => ({
   updateProfile: async (body) => {
     try {
       set({ isUpdating: true })
-      const data = await authService.updateProfile(body)
+      const { data } = await axiosInstance.put(
+        "/auth/update-profile",
+        body,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
       set({ authUser: data.updatedUser });
       toast.success(data.message);
     } catch (error) {
@@ -90,6 +95,7 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  //socket configs
   connectSocket: () => {
     const { authUser } = get();
     if (!authUser || get().socket?.connected) return;

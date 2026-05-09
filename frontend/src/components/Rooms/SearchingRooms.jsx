@@ -19,7 +19,10 @@ const SearchingRooms = () => {
         }
     }
     const createRoomHandler = async (participantId) => {
-        await createRoom({ isGroup: false, memberIds: [participantId] }, participantId)
+        const form = new FormData()
+        form.append('isGroup', false)
+        if (participantId) form.append('memberIds', JSON.stringify([participantId]))
+        await createRoom(form, participantId)
     }
     useEffect(() => {
         inputRef.current.focus()
@@ -55,7 +58,8 @@ const SearchingRooms = () => {
             <div className="mt-6 w-full ">
                 {!isSearching ? (
                     foundUsers ? (
-                        foundUsers.length ? (
+                        foundUsers.length 
+                        ? (
                             <div
                                 dir="rtl"
                                 className="mt-4 h-[50vh] overflow-y-auto custom-scrollbar px-2"

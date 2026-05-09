@@ -1,17 +1,15 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useKeyboardSound from "@/hooks/useKeyboardSound";
 import { useChatStore } from "@/store/useChatStore";
-import { Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
+import { Edit, ImageIcon, Paperclip, SendIcon, Sticker, XIcon } from "lucide-react";
 import { ImageUploader } from '@/components/index'
 import StickerPanel from "./Sticker/Sticker";
 import TextArea from "./TextArea";
 
 const MessageInput = ({ textareaRef }) => {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
-
-  const [text, setText] = useState("");
   const [cursorPos, setCursorPos] = useState(0)
-  const [imagePreview, setImagePreview] = useState(null);
+  const [image, setImage] = useState(null);
   const [emojiTab, setEmojiTab] = useState('emoji');
 
   const fileInputRef = useRef(null);
@@ -20,26 +18,39 @@ const MessageInput = ({ textareaRef }) => {
   const [open, setOpen] = useState(false)
 
 
-  const { sendMessage, isSoundEnabled, replyToMsg, setReplyToMsg } = useChatStore();
+  const { sendMessage, isSoundEnabled, replyToMsg, setReplyToMsg, setMessageInput, messageInput, messageInputMode, editMessage, setMessageInputMode } = useChatStore();
+
+  const [text, setText] = useState('')
 
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!text.trim() && !imagePreview) return;
+    if (!text.trim() && !image) return;
     if (isSoundEnabled) playRandomKeyStrokeSound();
+    const form = new FormData()
+    const img = fileInputRef.current?.files[0] || null
+    if (text) form.append('text', text)
+    if (img) form.append('image', img)
+    if (replyToMsg) form.append('replyTo', JSON.stringify(replyToMsg))
 
-    sendMessage({
-      text: text.trim(),
-      image: imagePreview,
-      replyTo: replyToMsg
-    });
-    setTimeout(() => {
-      document.getElementById('messageEndRef').scrollIntoView({ behavior: "smooth"})
-    }, 100);
-    setText("");
-    setImagePreview("");
-    setReplyToMsg(null);
 
+    if (messageInputMode === "create") {
+
+      sendMessage(form, image);
+
+      setTimeout(() => {
+        document.getElementById('messageEndRef')?.scrollIntoView({ behavior: "smooth" })
+      }, 100);
+      setImage("");
+      setReplyToMsg(null);
+
+    } else {
+      editMessage(messageInput._id, text)
+      setMessageInput({});
+      setText('')
+      setMessageInputMode('create')
+    }
+    setText('')
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -58,16 +69,20 @@ const MessageInput = ({ textareaRef }) => {
     setCursorPos(cursorPos + emoji.length)
   }
 
-
+  useEffect(() => {
+    if (messageInput) {
+      setText(messageInput.text)
+    }
+  }, [messageInput?.text])
 
   return (
     <div className="relative" ref={inputContainerRef}>
-      <div className="p-4 pt-1 border-t border-slate-700/50">
+      <div className="p-4 pt-0 border-t border-slate-700/50">
 
-        <div className="max-w-3xl mx-auto mb-3 ">
+        <div className="max-w-3xl mx-auto mb-2 ">
           {replyToMsg && (
             <div className="relative w-full text-white/80">
-              < div className=" bg-white/5 border-r-8 border-r-cyan-600 rounded-r-lg">
+              < div className=" bg-slate-900/80 border-r-8 border-r-cyan-600 rounded-r-lg">
                 {/* msg content */}
                 <div dir="rtl" className="mt-2 py-2  text-right text-sm">
                   <span className="!text-md font-bold pr-3">پاسخ به {replyToMsg.senderId.name} :</span>
@@ -93,10 +108,10 @@ const MessageInput = ({ textareaRef }) => {
               </button>
             </div>
           )}
-          {imagePreview && (
+          {image && (
             <div className="relative mt-2 w-fit">
               <img
-                src={imagePreview}
+                src={image}
                 alt="Preview"
                 className="w-20 h-20 object-cover rounded-lg border border-slate-700"
               />
@@ -111,11 +126,30 @@ const MessageInput = ({ textareaRef }) => {
             </div>
           )}
         </div>
+        {/* edit panel */}
+        {messageInputMode === "edit" &&
+          <div className="p-2 bg-slate-900/80">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center  gap-4">
+                <Edit size={20} className="text-blue-400" />
+                <div className="flex flex-col justify-start text-sm gap-1">
+                  <h4 className="text-blue-500">ویرایش پیام</h4>
+                  {messageInput?.text.slice(0, 10).concat('...')}
+                </div>
+              </div>
+              <XIcon size={22} cursor='pointer' onClick={() => {
+                setMessageInput('');
+                setMessageInputMode('create')
+              }} />
+            </div>
+          </div>
+        }
 
         <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto relative flex items-center py-3 px-16 bg-slate-800/50 border border-slate-700/50 " >
 
           {/* دکمه اموجی یا استیکر */}
           <div className="flex absolute left-1 bottom-1.5 text-white items-center ">
+
             <button
               onClick={() => setOpen(prev => !prev)}
               type="button"
@@ -136,7 +170,7 @@ const MessageInput = ({ textareaRef }) => {
               className="p-2 text-gray-500 hover:text-blue-500 hover:bg-gray-700 rounded-full transition"
               onClick={() => fileInputRef.current?.click()}
             >
-              <Paperclip className="w-5 h-5" />
+              <ImageIcon className="size-5" />
             </button>
           </div>
 
@@ -154,23 +188,15 @@ const MessageInput = ({ textareaRef }) => {
           />
 
           <ImageUploader
-            setImage={setImagePreview}
+            setImage={setImage}
             inputRef={fileInputRef}
           />
 
-          {/* <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className={`absolute bottom-1.5 left-1.5 bg-slate-700/30 text-slate-400 hover:text-slate-200  rounded-md transition-colors px-3 py-2 ${imagePreview ? "text-cyan-500" : ""
-            }`}
-        >
-          <ImageIcon className="size-5" />
-        </button> */}
 
 
           <button
             type="submit"
-            disabled={!text.trim() && !imagePreview}
+            disabled={!text?.trim() && !image}
             className="absolute bottom-1.5 right-1.5 bg-gradient-to-r from-cyan-500  to-cyan-600 text-white rounded-md  font-medium hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 "
           >
             <SendIcon className="w-5 h-5 " />

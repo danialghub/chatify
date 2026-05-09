@@ -1,14 +1,15 @@
 import express from 'express'
 import { protectRoute } from '../middleware/auth.middleware.js';
-import { arcjetProtection } from '../middleware/arcjet.middleware.js';
 import { getUsers } from '../controllers/user.controller.js';
 
 const router = express.Router()
 
-router.use(arcjetProtection, protectRoute);
+//کاربر باید هویتش احراز شده باشد برای دسترسی به این مسیر ها
+router.use(protectRoute);
 
 
-router.get('/all',getUsers)
+//دریافت اطلاعات کاربران
+router.get('/all', getUsers)
 
 
 

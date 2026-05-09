@@ -3,12 +3,17 @@ import TgsPlayer from "../../helper/TgsPlayer";
 import { useChatStore } from "@/store/useChatStore";
 
 export default function StickerPanel({ stickers = [], setOpen }) {
-  const { sendMessage, isSoundEnabled } = useChatStore();
+  const { sendMessage, isSoundEnabled, replyToMsg, setReplyToMsg } = useChatStore();
   const playersRef = useRef([]);
 
   const handleSendSticker = (sticker) => {
-    if (isSoundEnabled) playRandomKeyStrokeSound();
-    sendMessage({ sticker });
+    if (!sticker) return
+    const form = new FormData()
+    form.append('sticker', JSON.stringify(sticker))
+    if (replyToMsg) form.append('replyTo', JSON.stringify(replyToMsg))
+
+    sendMessage(form);
+    setReplyToMsg(null)
     setOpen(false);
   };
 

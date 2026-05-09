@@ -37,36 +37,7 @@ const ChatContainer = () => {
   const textareaRef = useRef(null);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
 
-  const goToMsg = (id) => {
-    const targetMsgIdx = messages.findIndex(msg => msg._id === id);
-    const targetMsg = document.getElementById(`msg_${targetMsgIdx}`);
-
-    if (!targetMsg) return;
-
-    // اسکرول به سمت پیام
-    targetMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    // ساخت observer برای تشخیص ورود به viewport
-    const observer = new IntersectionObserver(
-      (entries, observerInstance) => {
-        const entry = entries[0];
-        if (entry.isIntersecting) {
-          // وقتی وارد viewport شد:
-          targetMsg.classList.add('flash');
-
-          setTimeout(() => {
-            targetMsg.classList.remove('flash');
-          }, 1000);
-
-          // بعد از اجرا فقط یکبار نظارت کن
-          observerInstance.disconnect();
-        }
-      },
-      { threshold: 0.5 } // یعنی حداقل ۵۰٪ از المنت داخل دید باشه
-    );
-
-    observer.observe(targetMsg);
-  };
+  
 
 
   // 📩 گرفتن پیام‌ها
@@ -75,7 +46,7 @@ const ChatContainer = () => {
     checkMessageAsSeen(selectedRoom._id)
     getMessagesByRoomId(selectedRoom._id);
   }, [
-    selectedRoom,
+
     getMessagesByRoomId,
   ]);
 
@@ -105,46 +76,45 @@ const ChatContainer = () => {
   }, []);
 
 
-return (
-  <>
-    {selectedRoom.isGroup ? <GroupChatHeader /> : <PrivateChatHeader />}
+  return (
+    <>
+      {selectedRoom.isGroup ? <GroupChatHeader /> : <PrivateChatHeader />}
 
-    <div
-      id="chatContainer"
-      className="
+      <div
+        id="chatContainer"
+        className="
         flex-1 px-3 pr-5 overflow-y-auto py-8
         will-change-transform transform-gpu
         scroll-smooth chat-scrollbar relative
       "
-      dir="rtl"
-    >
-      {!isMessagesLoading && messages.length > 0 ? (
-        <MessageList
-          messages={messages}
-          authUser={authUser}
-          selectedRoom={selectedRoom}
-          goToMsg={goToMsg}
-          textareaRef={textareaRef}
-          messageEndRef={messageEndRef}
-        />
-      ) : isMessagesLoading ? (
-        <MessagesLoadingSkeleton />
-      ) : (
-        <NoChatHistoryPlaceholder
-          name={selectedRoom?.user?.name || selectedRoom.name}
-        />
-      )}
-    </div>
+        dir="rtl"
+      >
+        {!isMessagesLoading && messages.length > 0 ? (
+          <MessageList
+            messages={messages}
+            authUser={authUser}
+            selectedRoom={selectedRoom}
+            textareaRef={textareaRef}
+            messageEndRef={messageEndRef}
+          />
+        ) : isMessagesLoading ? (
+          <MessagesLoadingSkeleton />
+        ) : (
+          <NoChatHistoryPlaceholder
+            name={selectedRoom?.user?.name || selectedRoom.name}
+          />
+        )}
+      </div>
 
-    {showScrollBtn && (
-      <button
-        onClick={() =>
-          document.getElementById("chatContainer")?.scrollTo({
-            top: document.getElementById("chatContainer").scrollHeight,
-            behavior: "smooth",
-          })
-        }
-        className="
+      {showScrollBtn && (
+        <button
+          onClick={() =>
+            document.getElementById("chatContainer")?.scrollTo({
+              top: document.getElementById("chatContainer").scrollHeight,
+              behavior: "smooth",
+            })
+          }
+          className="
           absolute w-10 bottom-32 left-6
           p-2 rounded-full
           backdrop-blur-xl bg-white/10
@@ -154,14 +124,14 @@ return (
           transition-all duration-300
           hover:scale-110 active:scale-95
         "
-      >
-        <ChevronDown className="w-6 h-6 text-white drop-shadow" />
-      </button>
-    )}
+        >
+          <ChevronDown className="w-6 h-6 text-white drop-shadow" />
+        </button>
+      )}
 
-    <MessageInput textareaRef={textareaRef} />
-  </>
-);
+      <MessageInput textareaRef={textareaRef} />
+    </>
+  );
 
 }
 

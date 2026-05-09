@@ -1,23 +1,31 @@
 import express from "express";
 import {
+  editMessage,
   getMessagesByRoomId,
   markMessageAsSeen,
   removeMsg,
   sendMessage,
 } from "../controllers/message.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
-import { arcjetProtection } from "../middleware/arcjet.middleware.js";
+import { upload } from '../lib/multer.js'
 
 const router = express.Router();
 
-// the middlewares execute in order - so requests get rate-limited first, then authenticated.
-// this is actually more efficient since unauthenticated requests get blocked by rate limiting before hitting the auth middleware.
-router.use(arcjetProtection, protectRoute);
+//کاربر باید هویتش احراز شده باشد برای دسترسی به این مسیر ها
+router.use(protectRoute);
 
-
+//دریافت تمام پیام های یک اتاق با شناسه اتاق
 router.get("/:roomId", getMessagesByRoomId);
-router.post("/send/:roomId", sendMessage);
+
+//ارسال یک پیام به اتاق با شناسه اتاق
+router.post("/send/:roomId", upload.single('image'),sendMessage);
+//سین زدن پیام های اتاق با شناسه اتاق
 router.post("/seenby/:roomId", markMessageAsSeen);
+
+//حذف یک پیام خاص
 router.delete("/remove/:msgId", removeMsg);
+
+//ادیت یک پیام خاص
+router.put("/edit/:msgId", editMessage);
 
 export default router;

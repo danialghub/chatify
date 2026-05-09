@@ -14,17 +14,18 @@ const io = new Server(server, {
   },
 });
 
-// apply authentication middleware to all socket connections
+// بررسی اطلاعات احراز شده
 io.use(socketAuthMiddleware);
 
-// we will use this function to check if the user is online or not
+// بررسی آنلاین بودن یک کاربر
 export const getReceiverSocketId = (userId) => {
   return userSocketMap[userId];
 }
 
-// we will use this function to send information to the members who are online
+// برای ارسال اطلاعات به اعضاء خاص
 export const emitToOnlineMembers = (members, action, info) => {
   for (const member of members) {
+    
     const receiverIsOnline = getReceiverSocketId(member)
     if (receiverIsOnline) {
       io.to(receiverIsOnline).emit(action, info)
@@ -32,28 +33,31 @@ export const emitToOnlineMembers = (members, action, info) => {
   }
 }
 
-// this is for storig online users
+// ذخیره شناسه های تمام کاربران آنلاین در سایت
 const userSocketMap = {}; // {userId:socketId}
 
+//ایجاد یک اتصال بلادرنگ
 io.on("connection", (socket) => {
   console.log("A user connected", socket.user.name);
 
   const userId = socket.userId;
   userSocketMap[userId] = socket.id;
 
-  // io.emit() is used to send events to all connected clients
+  // ارسال شناسه کاربران آنلاین 
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
+  // متصل کردن یک کاربر به یک اتاق خاص با دریافت شناسه اتاق
   socket.on('join-room', (roomId) => {
     socket.join(roomId)
     console.log(`user ${userId} joined room ${roomId}`);
   })
+  // خارج کردن یک کاربر به یک اتاق خاص با دریافت شناسه اتاق
   socket.on('leave-room', (roomId) => {
     socket.leave(roomId)
     console.log(`user ${userId} left room ${roomId}`);
   })
 
-  // with socket.on we listen for events from clients
+  //قطع اتصال کاربر
   socket.on("disconnect", () => {
     console.log("A user disconnected", socket.user.name);
     delete userSocketMap[userId];

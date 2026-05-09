@@ -40,13 +40,23 @@ const GroupForm = ({ state }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!groupNameRef.current.value.trim() || !selectedUsers.length) return;
-        const memberIds = selectedUsers.map(m => m._id)
-        const img = imageInputRef.current?.files[0] ? groupImage : null
-        const data = { isGroup: true, memberIds, groupName, groupImage: img }
+        const memberIds = selectedUsers.map(m => m._id);
+        const img = groupImage ? imageInputRef.current?.files[0] : null;
+
+        const formData = new FormData();
+
+        // اضافه کردن فیلدهای معمولی
+        formData.append('isGroup', true);
+        formData.append('groupName', groupName);
+        if (memberIds.length) formData.append('memberIds', JSON.stringify(memberIds));
+        if (img) formData.append('image', img)
+            console.log(memberIds);
+            
+
         if (isCreateMode) {
-            createRoom(data, true)
+            createRoom(formData, true)
         } else {
-            updateGroup(data, selectedRoom._id)
+            updateGroup(formData, selectedRoom._id)
         }
 
     };

@@ -13,7 +13,7 @@ export const getUsers = async (req, res) => {
         })
 
         if (!users.length)
-            return res.status(404).json({ messages: "هیچ موردی یافت نشد" })
+            return res.json({ messages: "هیچ موردی یافت نشد" })
 
         res.status(200).json(users)
     } catch (error) {

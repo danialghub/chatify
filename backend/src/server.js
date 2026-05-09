@@ -17,16 +17,20 @@ const __dirname = path.resolve();
 
 const PORT = ENV.PORT || 3000;
 
-app.use(express.json({ limit: "5mb" })); // req.body
+// ========== MIDDLEWARES ==========
+app.use('/uploads', express.static('uploads')); //معرفی پوشه فایل های ثابت 
+app.use(express.json({ limit: "5mb" })); //با محدودیت حجم 5 مگابایت json برای دریافت اطلاعات 
+//مدیریت سایت هایی که به سرور ما درخواست میدهند
 app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
-app.use(cookieParser());
+app.use(cookieParser()); // خواندن کوکی‌ها
 
+//APIs
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/room", chatRoomRoutes);
 app.use("/api/user", userRoutes);
 
-// make ready for deployment
+// آماده سازی بک اند و فرانت اند برای استقرار سایت
 if (ENV.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 

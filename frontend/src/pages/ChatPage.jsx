@@ -43,10 +43,11 @@ const ChatPage = () => {
         {/* RIGHT SIDE */
           (
             <div
-              className={`flex flex-col bg-slate-900/50 backdrop-blur-sm w-full md:w-2/3 ${!selectedRoom && "max-md:hidden"}`}
+              className={`relative flex flex-col chat-bg  backdrop-blur-sm w-full md:w-2/3 ${!selectedRoom && "max-md:hidden"}`}
             >
               {selectedRoom ? <ChatContainer /> : <NoConversationPlaceholder />}
             </div>
+
           )
         }
       </BorderAnimatedContainer>

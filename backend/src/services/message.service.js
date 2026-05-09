@@ -20,4 +20,24 @@ export const messageService = {
             ])
         return messages
     },
+    updateMessage: async (msgId, text) => {
+        const updatedMessage = await Message.findByIdAndUpdate(
+            msgId,
+            { $set: { text, isEdited: true } },
+            { new: true }
+        )
+        return updatedMessage.populate([
+            { path: "roomId", select: "updatedAt isGroup members" },
+            { path: "senderId", select: "name profilePic" },
+            { path: "replyTo", populate: { path: "senderId", select: "name" } },
+        ]);
+    },
+    findOne: async (filter) => {
+        return await Message.findOne(filter)
+            .populate([
+                { path: "roomId", select: "updatedAt isGroup members" },
+                { path: "senderId", select: "name profilePic" },
+                { path: "replyTo", populate: { path: "senderId", select: "name" } },
+            ])
+    }
 }

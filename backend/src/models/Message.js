@@ -38,7 +38,8 @@ const messageSchema = new mongoose.Schema(
     {
       type: mongoose.Schema.ObjectId,
       ref: "Message",
-    }
+    },
+    isEdited: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

@@ -4,13 +4,12 @@ import StickerPreview from '../Messages/StickerPreview'
 const NoChatHistoryPlaceholder = ({ name }) => {
   const { sendMessage } = useChatStore();
   const sendMessageHandler = (sticker) => {
-    sendMessage({ sticker })
+    if (!sticker) return
+    const form = new FormData()
+    form.append('sticker', JSON.stringify(sticker))
+    sendMessage(form)
   }
-  const messages = [
-    "👋 سلام ",
-    "🤝 چطوری؟",
-    "🤙 چه خبرا؟"
-  ]
+
   const message = {
     name: "سلام",
     url: "/Stickers/Hi.tgs",
@@ -21,25 +20,25 @@ const NoChatHistoryPlaceholder = ({ name }) => {
       <div className="bg-gradient-to-br from-teal-700/20 via-cyan-800/20 to-slate-900/20 text-center flex flex-col items-center justify-center rounded-md p-6 ">
 
 
-      <div className="w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-cyan-400/10 rounded-full flex items-center justify-center mb-5">
-        <MessageCircleIcon className="size-8 text-cyan-400" />
-      </div>
-      <h3 className="text-lg font-medium text-slate-200 mb-3">
-        شروع کن  {name}  گفتگو را در گروه
-      </h3>
-      <div className="flex flex-col  max-w-md ">
-        <p className="text-slate-400 text-sm">
-          این آغاز گفت‌وگوی شماست. برای شروع گفتگو، پیامی بفرستید.
-        </p>
-        <div className="h-px w-32 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent mx-auto"></div>
-      </div>
- 
+        <div className="w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-cyan-400/10 rounded-full flex items-center justify-center mb-5">
+          <MessageCircleIcon className="size-8 text-cyan-400" />
+        </div>
+        <h3 className="text-lg font-medium text-slate-200 mb-3">
+          شروع کن  {name}  گفتگو را در گروه
+        </h3>
+        <div className="flex flex-col  max-w-md ">
+          <p className="text-slate-400 text-sm">
+            این آغاز گفت‌وگوی شماست. برای شروع گفتگو، پیامی بفرستید.
+          </p>
+          <div className="h-px w-32 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent mx-auto"></div>
+        </div>
+
         <button
           onClick={() => sendMessageHandler(message)}
           className="px-4  ">
           <StickerPreview url={message.url} size={150} />
         </button>
-       </div>
+      </div>
     </div>
   );
 };

@@ -3,13 +3,15 @@ import { axiosInstance } from "../lib/axios";
 import toast from 'react-hot-toast';
 
 export const useUserStore = create((set, get) => ({
+    //states
     isSearching: false,
     foundUsers: null,
 
+    //apis
     getSeachedUsers: async (text) => {
         try {
             set({ isSearching: true })
-            const { data } = await axiosInstance.get('/user/all', { params: {text} })
+            const { data } = await axiosInstance.get('/user/all', { params: { text } })
             set({ foundUsers: data })
 
         } catch (error) {

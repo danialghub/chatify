@@ -1,5 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Vazirmatn:wght@100..900&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Vazirmatn:wght@100..900&display=swap');
+ */
 
+@font-face {
+  font-family: "VazirMatn";
+  src: url('/Fonts/Vazirmatn.ttf');
+}
 
 
 @tailwind base;
@@ -20,11 +25,15 @@
     outline: none !important;
   }
 
+  .chat-bg {
+    @apply bg-[url('/bg.webp')] bg-center bg-contain bg-blend-multiply bg-slate-900/80 backdrop-blur-md
+  }
 
   .chat-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: #888 transparent;
   }
+
   .input-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: #888 transparent;
@@ -61,7 +70,8 @@
   .auth-link {
     @apply px-4 py-2 inline-block bg-cyan-500/10 rounded-lg text-cyan-400 hover:text-cyan-500 text-sm transition-colors;
   }
-  .flash{
+
+  .flash {
     @apply bg-cyan-400/10 transition-colors duration-300
   }
 }

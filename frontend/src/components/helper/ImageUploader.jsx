@@ -1,7 +1,7 @@
 import { toast } from 'react-hot-toast'
 import { imgageSchema } from '@/lib/validation'
 
-const ImageUploader = ({ inputRef, setImage ,...props}) => {
+const ImageUploader = ({ inputRef, setImage, ...props }) => {
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -10,7 +10,7 @@ const ImageUploader = ({ inputRef, setImage ,...props}) => {
         const validation = imgageSchema.safeParse(file)
         if (!validation.success) {
             toast.error(validation.error.issues[0].message);
-            
+
             setImage(null)
             return
         }

@@ -3,6 +3,7 @@ import jalaliday from "jalaliday";
 
 // افزونه Jalali برای dayjs
 dayjs.extend(jalaliday);
+dayjs.calendar("jalali");
 
 // تبدیل اعداد انگلیسی به فارسی
 const toPersianDigits = (input) => {
@@ -142,11 +143,46 @@ export const handleSwipe = (e, msg, setReplyTo, inputRef) => {
     start(e);
 };
 
+export const goToMsg = (e, id) => {
+    e.preventDefault()
+    const targetMsg = document.getElementById(`msg_${id}`);
 
+    if (!targetMsg) return;
+
+    // اسکرول به سمت پیام
+    targetMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // ساخت observer برای تشخیص ورود به viewport
+    const observer = new IntersectionObserver(
+        (entries, observerInstance) => {
+            const entry = entries[0];
+            if (entry.isIntersecting) {
+                // وقتی وارد viewport شد:
+                targetMsg.classList.add('flash');
+
+                setTimeout(() => {
+                    targetMsg.classList.remove('flash');
+                }, 1000);
+
+                // بعد از اجرا فقط یکبار نظارت کن
+                observerInstance.disconnect();
+            }
+        },
+        { threshold: 0.5 } // یعنی حداقل ۵۰٪ از المنت داخل دید باشه
+    );
+
+    observer.observe(targetMsg);
+};
 
 export const parseDynamicContent = (msgText) => {
     let html = null;
-    if (!msgText) return [null, false]
+    const data = {
+        parsedText: null,
+        isOnlyEmoji: false,
+        link: null,
+        characterLength: 0
+    }
+    if (!msgText) return data
     const emojiRegex = /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)/gu;
     const emojis = msgText.match(emojiRegex) || [];
 
@@ -157,22 +193,27 @@ export const parseDynamicContent = (msgText) => {
     let fontSizeClass = "text-xl ";
     if (isOnlyEmoji) {
 
+
         switch (emojis.length) {
             case 1:
-                fontSizeClass = "text-6xl max-sm:text-5xl";
+                fontSizeClass = "text-7xl max-sm:text-6xl ";
                 break;
             case 2:
-                fontSizeClass = "text-5xl max-sm:text-4xl";
+                fontSizeClass = "text-6xl max-sm:text-5xl";
                 break;
             case 3:
-                fontSizeClass = "text-4xl max-sm:text-3xl";
+                fontSizeClass = "text-5xl max-sm:text-4xl";
                 break;
             default:
-                fontSizeClass = "text-3xl max-sm:text-2xl";
+                fontSizeClass = "text-4xl max-sm:text-3xl";
         }
 
-        html = `<span class="${fontSizeClass}">${msgText}</span>`
-        return [html, true];
+        html = `<span class="${fontSizeClass} leading-[90px]">${msgText}</span>`
+        data['parsedText'] = html;
+        data['isOnlyEmoji'] = isOnlyEmoji;
+        data['characterLength'] = emojis.length;
+
+        return data
     } else {
         html = msgText.replace(emojiRegex, (emoji) => {
             return `<span class="${fontSizeClass} max-sm:text-sm">${emoji}</span>`
@@ -184,18 +225,57 @@ export const parseDynamicContent = (msgText) => {
     // --------------------------
     const urlRegex = /(https?:\/\/[^\s]+)/g;
 
-    html = html.replace(urlRegex, (url) => {
-        const displayText = url.replace(/^https?:\/\//, '');
-        return `<a 
-            class="text-blue-300"
+    // پیدا کردن اولین لینک
+    const match = html.match(urlRegex);
+    const link = match ? match[0] : null;
+
+    // اگر لینک داشت، جایگزینی انجام شود
+    if (link) {
+        html = html.replace(urlRegex, (url) => {
+            const displayText = url.replace(/^https?:\/\//, '');
+            return `<a 
+            class="text-blue-300 underline"
             href="${url}" 
             target="_blank"
             rel="noopener noreferrer"
         >${displayText}</a>`;
-    });
+        });
+    }
 
-    return [html, false];
+
+
+    data.parsedText = html;
+    data.link = link;              // اولین لینک یا null
+    data.characterLength = msgText.length;
+
+    return data;
+
 };
 
+
+export const injectDateMessages = (messages = []) => {
+    let newList = [];
+    let lastDate = null;
+    console.log(messages);
+
+    messages?.forEach(msg => {
+
+        const msgDate = dayjs(msg.createdAt).locale("fa").format("YYYY-MM-DD");
+
+        if (msgDate !== lastDate) {
+
+            newList.push({
+                _id: `date-${msgDate}`,
+                system: true,
+                text: dayjs(msg.createdAt).locale("fa").format("D MMMM")
+            });
+            lastDate = msgDate;
+        }
+
+        newList.push(msg);
+    });
+
+    return newList;
+}
 
 

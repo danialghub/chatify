@@ -9,13 +9,14 @@ const mouseClickSound = new Audio("/sounds/mouse-click.mp3");
 const ProfileHeader = ({ showSidebar }) => {
 
   const { logout, authUser, updateProfile } = useAuthStore();
-  const { isSoundEnabled, toggleSound ,openModal} = useChatStore();
+  const { isSoundEnabled, toggleSound, openModal } = useChatStore();
 
 
   const fileInputRef = useRef(null);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
+    
     if (!file) return;
 
     const reader = new FileReader();
@@ -23,7 +24,9 @@ const ProfileHeader = ({ showSidebar }) => {
 
     reader.onloadend = async () => {
       const base64Image = reader.result;
-      await updateProfile({ profilePic: base64Image });
+      const form = new FormData()
+      form.append('image', file)
+      await updateProfile(form);
     };
   };
 
@@ -72,8 +75,8 @@ const ProfileHeader = ({ showSidebar }) => {
           {/* LOGOUT BTN */}
           <button
             className="text-slate-400 hover:text-slate-200 transition-colors"
-            onClick={()=>
-              openModal('Alert' , {title:"خروج", onComplete:logout,size:"sm"})
+            onClick={() =>
+              openModal('Alert', { title: "خروج", onComplete: logout, size: "sm" })
             }
           >
             <LogOutIcon className="size-5" />

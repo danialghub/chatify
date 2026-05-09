@@ -2,42 +2,45 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { ENV } from "../lib/env.js";
 
+//در کوکی و ذخیره کاربر در آبجکت سوکت ها JWT با بررسی توکن  Socket.IO احراز هویت سوکت های 
 export const socketAuthMiddleware = async (socket, next) => {
   try {
-    // extract token from http-only cookies
+    // استخراج توکن از کوکی
     const token = socket.handshake.headers.cookie
       ?.split("; ")
       .find((row) => row.startsWith("jwt="))
       ?.split("=")[1];
 
     if (!token) {
-      console.log("Socket connection rejected: No token provided");
-      return next(new Error("Unauthorized - No Token Provided"));
+      console.log("اتصال سوکت رد شد: توکن ارائه نشده است");
+      return next(new Error("دسترسی غیر مجاز - هیچ توکنی وجود ندارد"));
     }
 
-    // verify the token
+    // اعتبارسنجی توکن
     const decoded = jwt.verify(token, ENV.JWT_SECRET);
+
     if (!decoded) {
-      console.log("Socket connection rejected: Invalid token");
-      return next(new Error("Unauthorized - Invalid Token"));
+      console.log("اتصال سوکت رد شد: توکن نامعتبر است");
+      return next(new Error("دسترسی غیر مجاز - توکن نامعتبر"));
     }
 
-    // find the user fromdb
+    // یافتن کاربر در دیتابیس
     const user = await User.findById(decoded.userId).select("-password");
+
     if (!user) {
-      console.log("Socket connection rejected: User not found");
-      return next(new Error("User not found"));
+      console.log("اتصال سوکت رد شد: کاربر یافت نشد");
+      return next(new Error("کاربر پیدا نشد"));
     }
 
-    // attach user info to socket
+    // ذخیره اطلاعات کاربر در سوکت
     socket.user = user;
     socket.userId = user._id.toString();
 
-    console.log(`Socket authenticated for user: ${user.name} (${user._id})`);
+    console.log(`احراز هویت سوکت برای کاربر: ${user.name} (${user._id}) با موفقیت انجام شد`);
 
     next();
   } catch (error) {
-    console.log("Error in socket authentication:", error.message);
-    next(new Error("Unauthorized - Authentication failed"));
+    console.log("خطا در احراز هویت سوکت:", error.message);
+    next(new Error("دسترسی غیر مجاز - احراز هویت به شکست خورد"));
   }
 };

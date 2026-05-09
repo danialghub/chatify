@@ -5,6 +5,7 @@ import { useChatStore } from "./useChatStore";
 import { axiosInstance } from "../lib/axios";
 
 export const useRoomStore = create((set, get) => ({
+    //states
     groupRooms: [],
     privateRooms: [],
     unSeenMessages: {},
@@ -13,9 +14,10 @@ export const useRoomStore = create((set, get) => ({
     isCreatingLoading: null,
     isRemovingLoading: false,
     isJoining: false,
-    isLeaving:false,
+    isLeaving: false,
     activeTab: "chats",
 
+    //state setters
     setActiveTab: (tab) => set({ activeTab: tab }),
     setSelectedRoom: async (newRoom) => {
         const { joinNewRoomSocket, leaveRoomSocket, selectedRoom } = get();
@@ -48,13 +50,16 @@ export const useRoomStore = create((set, get) => ({
     },
     createRoom: async (body, isChattingWith) => {
         const { openModal } = useChatStore.getState()
-        const roomType = body.isGroup ? "groupRooms" : "privateRooms"
+        const isGroup = body.get('isGroup')
+        const roomType = isGroup ? "groupRooms" : "privateRooms"
 
         try {
 
             set({ isCreatingLoading: isChattingWith })
-            const { data } = await axiosInstance.post("/room/create", { ...body });
-
+            const { data } = await axiosInstance.post("/room/create",
+                body,
+                { headers: { "Content-Type": "multipart/form-data" } }
+            );
             const isGroup = data?.newRoom?.isGroup || data?.room?.isGroup
 
             set(prev => {
@@ -85,7 +90,7 @@ export const useRoomStore = create((set, get) => ({
 
         try {
             set({ isRemovingLoading: true })
-            
+
             const { data } = await axiosInstance.delete(`/room/remove/${room._id}`);
             set((prev) => ({
                 [roomType]: prev[roomType].filter(r => r._id !== room._id),
@@ -102,9 +107,9 @@ export const useRoomStore = create((set, get) => ({
     leaveingTheGroup: async (roomId) => {
         const { setSelectedRoom } = get()
         const { openModal } = useChatStore.getState()
-        
+
         try {
-            set({isLeaving:true})
+            set({ isLeaving: true })
             const { data } = await axiosInstance.put(`/room/leave/${roomId}`)
             set(({ groupRooms }) => ({ groupRooms: groupRooms.filter(g => g._id !== roomId) }))
             setSelectedRoom(null)
@@ -112,8 +117,8 @@ export const useRoomStore = create((set, get) => ({
             openModal(null)
         } catch (error) {
             toast.error(error?.response?.data.message || "Internal Error")
-        }finally{
-            set({isLeaving:false})
+        } finally {
+            set({ isLeaving: false })
         }
     },
     updateGroup: async (body, roomId) => {
@@ -121,7 +126,10 @@ export const useRoomStore = create((set, get) => ({
 
         try {
             set({ isUpdatingLoading: true })
-            const { data } = await axiosInstance.put(`/room/update/${roomId}`, { ...body });
+            const { data } = await axiosInstance.put(`/room/update/${roomId}`,
+                body,
+                { headers: { "Content-Type": "multipart/form-data" } }
+            );
             openModal(null)
             if (data?.message) {
                 toast.success(data?.message)
@@ -146,6 +154,7 @@ export const useRoomStore = create((set, get) => ({
             set({ isJoining: false })
         }
     },
+    
     //socket configs
     joinNewRoomSocket: () => {
         const { socket } = useAuthStore.getState();
@@ -191,57 +200,81 @@ export const useRoomStore = create((set, get) => ({
             setSelectedRoom(null)
         }
     },
-    updateRoomStates: (newMessage) => {
+    updateRoomStates: ({ message, actionType = "new", prevMsg }) => {
         const { isSoundEnabled } = useChatStore.getState();
 
+        if (!message) return
+        set((prev) => {
+            const roomType = message.roomId.isGroup ? "groupRooms" : "privateRooms";
+            const chats = [...(prev[roomType] || [])];
+            const chatIndex = chats.findIndex(c => c._id === message.roomId._id);
+            if (chatIndex === -1) return prev;
 
-        set(prev => {
-            const roomType = newMessage.roomId.isGroup ? "groupRooms" : "privateRooms"
-            const chats = prev[roomType];
-            const unSeenMessages = prev.unSeenMessages;
-            const newDate = newMessage.createddAt;
-            const isFromSys = newMessage.system
-            const targetChat = chats.find(chat => chat._id === newMessage.roomId._id);
+            const chat = { ...chats[chatIndex] };
+            const unSeenMessages = { ...prev.unSeenMessages };
+            const seenMessageIds = new Set(prev.seenMessageIds);
 
-            if (!targetChat) return prev;
+            // Delete logic
+            if (actionType === "delete" && chat.lastMessage?._id === message._id) {
+                chat.lastMessage = prevMsg || null;
+                chat.updatedAt = chat.lastMessage?.createddAt || chat.updatedAt;
+                chats[chatIndex] = chat;
+                unSeenMessages[message.roomId._id] = (unSeenMessages[message.roomId._id] || 0) - 1;
+                seenMessageIds.add(message._id);
+                return { ...prev, [roomType]: chats, unSeenMessages, seenMessageIds };
+            }
 
-            const isCurrentRoomOpen = prev.selectedRoom?._id === newMessage.roomId._id;
+            // Seen counter (only for new messages, not edits)
+            if (actionType === "new" && !seenMessageIds.has(message._id)) {
+                const isSelected = prev.selectedRoom?._id === message.roomId._id;
+                unSeenMessages[message.roomId._id] = (isSelected || message.system) ? 0 : (unSeenMessages[message.roomId._id] || 0) + 1;
+                seenMessageIds.add(message._id);
+            }
 
-            // چت به‌روز‌شده را در ابتدای آرایه می‌گذاریم
-            const updatedChats = [
-                { ...targetChat, updatedAt: newDate, lastMessage: newMessage },
-                ...chats.filter(chat => chat._id !== newMessage.roomId._id)
-            ];
+            // Update last message
+            const isEditingLast = actionType === "edit" && chat.lastMessage?._id === message._id;
+            if (actionType === "new" || isEditingLast) {
+                chat.previousLastMessage = actionType === "new" ? chat.lastMessage : chat.previousLastMessage;
+                chat.lastMessage = message;
+                chat.updatedAt = message.createddAt;
+            }
 
-            return {
-                [roomType]: updatedChats,
-                unSeenMessages: {
-                    ...unSeenMessages,
-                    [newMessage.roomId._id]: isCurrentRoomOpen || isFromSys
-                        ? 0
-                        : (unSeenMessages[newMessage.roomId._id] || 0) + 1
-                }
-            };
+            chats[chatIndex] = chat;
+            return { ...prev, [roomType]: chats, unSeenMessages, seenMessageIds };
         });
 
-        //صدای اعلان
-        if (isSoundEnabled) {
-            const notificationSound = new Audio("/sounds/notification.mp3");
-            notificationSound.currentTime = 0; // reset to start
-            notificationSound.play().catch((e) => console.log("Audio play failed:", e));
+        // Play sound for new messages only
+        if (actionType === "new" && isSoundEnabled) {
+            new Audio("/sounds/notification.mp3").play().catch(() => { });
         }
     },
     updateGroupStates: (updatedGroup) => {
-        const { selectedRoom } = get()
+        const { selectedRoom, groupRooms, setSelectedRoom } = get();
+        const { authUser } = useAuthStore.getState()
 
-        set(({ groupRooms }) => ({
-            groupRooms: [updatedGroup, ...groupRooms.filter(g => g._id !== updatedGroup._id)]
-        }));
+        const isUserKickedOut =
+            groupRooms.some(g => g._id === updatedGroup._id) &&
+            !updatedGroup.members.some(mem => mem._id === authUser._id)
 
-        if (selectedRoom._id === updatedGroup._id) {
-            set({ selectedRoom: { _id: selectedRoom._id, ...updatedGroup } })
+        if (isUserKickedOut) {
+            set(({ groupRooms }) => ({
+                groupRooms: groupRooms.filter((g) => g._id !== updatedGroup._id)
+            }));
+            if (selectedRoom?._id === updatedGroup?._id) {
+                setSelectedRoom(null)
+                toast.error(`بیرون انداخته شدید ${updatedGroup.name} شما از گروه`)
+            }
+
+        } else {
+            set(({ groupRooms }) => ({
+                groupRooms: [updatedGroup, ...groupRooms.filter((g) => g._id !== updatedGroup._id)]
+            }));
+            if (selectedRoom?._id === updatedGroup?._id) {
+                set({ selectedRoom: { ...updatedGroup, _id: selectedRoom._id || null } });
+            }
         }
 
-    }
+
+    },
 
 }))

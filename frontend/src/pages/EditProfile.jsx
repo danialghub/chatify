@@ -9,14 +9,19 @@ import { useAuthStore } from '@/store/useAuthStore'
 import { useNavigate } from 'react-router'
 export default function EditProfile() {
 
-  const [image, setImage] = useState('')
-  const imageRef = useRef()
 
   const { authUser, updateProfile, isUpdating } = useAuthStore()
+
+  const [image, setImage] = useState(authUser?.profilePic || '')
+  const imageRef = useRef()
+
   const navigate = useNavigate()
 
   const onSubmit = async (formData) => {
-    await updateProfile({ ...formData, profilePic: image })
+    const form = new FormData()
+    if (image) form.append('image', imageRef.current.files[0]) // Removed JSON.stringify
+    const finalData = { ...formData, ...Object.fromEntries(form) } // Fixed merging logic
+    await updateProfile(finalData)
     navigate('/')
   }
 
@@ -62,7 +67,7 @@ export default function EditProfile() {
           <div className="relative">
 
             <ChatIcon
-              profile={authUser?.profilePic || image}
+              profile={image}
               name={authUser.name}
               classProps="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md text-5xl font-bold"
             />
@@ -125,7 +130,6 @@ export default function EditProfile() {
                 {...register('password')}
                 className="w-full mt-1 p-2.5 rounded-md border bg-zinc-900 border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none transition text-sm"
                 placeholder="رمزعبور"
-                autoComplete="password"
 
               />
               {errors.password && (
@@ -144,7 +148,6 @@ export default function EditProfile() {
                 {...register('passwordConfirm')}
                 className="w-full mt-1 p-2.5 rounded-md border bg-zinc-900 border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none transition text-sm"
                 placeholder="تایید رمزعبور"
-                autoComplete="passwordConfirm"
               />
               {errors.passwordConfirm && (
                 <p className="text-red-500 text-xs mt-2">{errors.passwordConfirm.message}</p>
